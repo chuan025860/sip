@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 會員-進行中的旅程</title>
+    <div th:replace="~{customerNavbar/customerNavbar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{customerNavbar/customerNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{customerNavbar/customerNavbar_3}"></div>
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <div class="table-responsive border">
+                    <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <th scope="col"><input class="form-check-input" type="checkbox"></th>
+                                <th scope="col">訂單編號</th>
+                                <th scope="col">住客姓名</th>
+                                <th scope="col">飯店</th>
+                                <th scope="col">房間</th>
+                                <th scope="col">數量</th>
+                                <th scope="col">住宿日期</th>
+                                <th scope="col">退房日期</th>
+                                <th scope="col">訂單金額</th>
+                                <th scope="col">訂單狀態</th>
+                                <th scope="col">付款方式</th>
+                                <th scope="col">訂單明細</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table">
+                            <tr th:each="order : ${orderTables}">
+                                <th scope='col'><input class='form-check-input' type='checkbox'></th>
+                                <td class='text-dark' th:text="${order.orderID}"></td>
+                                <td class='text-dark' th:text="${order.firstName + '&nbsp;' + order.lastName}">
+                                </td>
+                                <td class='text-dark' th:text="${order.hotel.hotelName}">
+                                </td>
+                                <td class='text-dark'>
+                                    <div class='room-name' th:each="orderItem : ${order.orderItems}">
+                                        <span class='text-dark' th:text="${orderItem.room.productName}"></span><br>
+                                    </div>
+                                </td>
+                                <td class='text-dark'>
+                                    <div class='room-quantity' th:each="orderItem : ${order.orderItems}">
+                                        <span class='text-dark' th:text="${orderItem.quantity}">2</span><br>
+                                    </div>
+                                </td>
+                                <td class='text-dark' th:text="${#dates.format(order.checkInDate, 'yyyy-MM-dd')}"></td>
+                                <td class='text-dark' th:text="${#dates.format(order.checkOutDate, 'yyyy-MM-dd')}"></td>
+                                <td class='text-dark' th:text="${order.orderPrice}"></td>
+                                <td class='text-dark' th:text="${order.orderStatus}"></td>
+                                <td class='text-dark' th:text="${order.payment == 'cash' ? '現金' : order.payment}"></td>
+                                <td>
+                                    <a class='btn btn-sm btn-primary'
+                                        th:href="@{'/customer/orderdetail?orderID='+ ${order.orderID}}">訂單明細</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <div th:replace="~{customerNavbar/customerNavbar_4}"></div>
+    <div th:replace="~{customerNavbar/customerNavbar_5}"></div>
+</body>
+
+</html>

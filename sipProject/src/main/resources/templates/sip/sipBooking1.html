@@ -1,0 +1,624 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+	<div th:replace="~{indexNavbar/navbar1}"></div>
+	<!-- TITLE OF SITE -->
+	<title>SIP-建立訂單-1</title>
+	<style>
+		.modal-backdrop {
+			display: none !important;
+		}
+
+		.fixed-right {
+			position: fixed;
+			top: 50%;
+			/* 將垂直位置設定為螢幕的中央 */
+			transform: translateY(-50%);
+			/* 透過 transform 將元素上移自身高度的一半 */
+			right: 0;
+			height: 500px;
+			/* 讓高度自適應內容，而不是整個螢幕高度 */
+			width: 200px;
+			padding: 15px;
+			background-color: rgba(255, 255, 255, 0.8);
+			border: 1px solid #ddd;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+			display: none;
+			/* 初始時設定為不可見 */
+		}
+
+		.single-package-item {
+			display: flex;
+			width: 100%;
+		}
+
+		.single-package-item-txt {
+			flex: 2;
+			margin-left: 20px;
+		}
+
+		.hotelType,
+		.roomName,
+		.hotelDetail {
+			font-size: large;
+		}
+
+		.hotelIntroduction {
+			font-size: 15PX;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div th:replace="~{indexNavbar/navbar2}"></div>
+
+
+	<!--service start-->
+	<section id="service" class="" style="background-color: #f9f9f9;">
+		<div class="container">
+			<div class="service-counter ">
+				<div class="row">
+					<div class="col-sm-8">
+						<br>
+						<h3 class="text-dark">
+							<span class="text-dark hotelName" th:text="${room.hotel.hotelName}">Hotel
+								Name</span>
+							<span class="pull-right text-dark" th:text=" ${room.hotel.hotelType}">飯店類型</span>
+						</h3>
+						<br>
+						<!-- 地址 -->
+						<h4 class="text-dark">
+							<span>
+								<span
+									th:text="'地址:'+${room.hotel.country} + ', ' + ${room.hotel.city} + ', ' + ${room.hotel.region} + ', ' + ${room.hotel.street}">
+									國家, 城市, 區域, 街道
+								</span>
+							</span>
+							<br><br>
+							<!-- 飯店星級 -->
+							<span th:if="${room.hotel.hotelType != '民宿'}">
+								<span th:text="'飯店星級:'+${room.hotel.hotelStar}">星級</span>
+								<br><br>
+							</span>
+							<!-- 聯絡電話 -->
+							<span>
+								<span th:text="'聯絡電話:'+${room.hotel.tel}">電話</span>
+							</span>
+							<br><br>
+						</h4>
+						<!-- 飯店介紹 -->
+						<h4>飯店介紹</h4>
+						<div class="hotelIntroduction" th:utext="${room.hotel.hotelIntroduction}">
+							飯店詳細介紹內容
+						</div>
+					</div><!--/.col-sm-8-->
+
+				</div><!--/.row-->
+			</div><!--/.statistics-counter-->
+		</div><!--/.container-->
+	</section><!--/.service-->
+	<!--service end-->
+
+	<!--packages start-->
+	<section id="pack" class="" style="background-color: #f9f9f9;">
+		<div class="container">
+			<div class="packages-content">
+				<div class="row">
+					<div class="col-md-12 col-sm-12" style="margin-top: -50px;">
+						<div class="single-package-item">
+							<div th:id="'carouselExampleControls_' + ${room.productID}" class="carousel slide "
+								style="width: 532px; height: 389.5px;">
+								<div class="carousel-inner">
+									<div th:each="roompicture, iterStat : ${room.roomPictures}"
+										th:classappend="${iterStat.index == 0} ? 'carousel-item active' : 'carousel-item'"
+										th:attr="data-index=${iterStat.index},data-productid=${room.productID}">
+										<img th:src="@{'/room/roompicture?imgID=' + ${roompicture.imgID}}"
+											class="d-block w-100" alt="Room Image" data-bs-toggle="modal"
+											th:data-bs-target="'#imageModal_' + ${room.productID}"
+											style="width: 532px; height: 389.5px;">
+										<p th:text=" ${roompicture.imgID}"></p>
+									</div>
+								</div>
+								<button class="carousel-control-prev" type="button"
+									th:data-bs-target="'#carouselExampleControls_' + ${room.productID}"
+									data-bs-slide="prev">
+									<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+									<span class="visually-hidden">Previous</span>
+								</button>
+								<button class="carousel-control-next" type="button"
+									th:data-bs-target="'#carouselExampleControls_' + ${room.productID}"
+									data-bs-slide="next">
+									<span class="carousel-control-next-icon" aria-hidden="true"></span>
+									<span class="visually-hidden">Next</span>
+								</button>
+							</div>
+
+							<!-- Modal -->
+							<div class="modal" th:id="'imageModal_' + ${room.productID}" tabindex="-1">
+								<div class="modal-dialog modal-lg">
+									<div class="modal-content" style="width: 900px;">
+										<div class="modal-header">
+											<h5 class="modal-title" id="facilitiesModalLabel">房間圖片</h5>
+											<button type="button" class="btn-close" data-bs-dismiss="modal"
+												aria-label="Close"></button>
+										</div>
+										<div class="modal-body">
+											<div th:id="'carouselExampleControls2_' + ${room.productID}"
+												class="carousel slide">
+												<div class="carousel-inner roomPicturesCarousel"></div>
+												<button class="carousel-control-prev" type="button"
+													th:data-bs-target="'#carouselExampleControls2_' + ${room.productID}"
+													data-bs-slide="prev">
+													<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+													<span class="visually-hidden">Previous</span>
+												</button>
+												<button class="carousel-control-next" type="button"
+													th:data-bs-target="'#carouselExampleControls2_' + ${room.productID}"
+													data-bs-slide="next">
+													<span class="carousel-control-next-icon" aria-hidden="true"></span>
+													<span class="visually-hidden">Next</span>
+												</button>
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-secondary"
+												data-bs-dismiss="modal">Close</button>
+										</div>
+									</div>
+								</div>
+							</div>
+
+
+							<div class="single-package-item-txt"
+								style="width: 588px; display: flex; flex-direction: column; height: 100%;">
+								<h3>
+									<span class="text-dark hotelName" th:text="${room.hotel.hotelName}">Hotel
+										Name</span>
+									<br>
+									<br>
+									<span class="pull-right  text-dark" th:text=" ${room.hotel.hotelType}">飯店類型</span>
+									<!-- 加入地址，使用 inline-block 或者 pull-left 來確保與售價同一行 -->
+									<span class="pull-left  text-dark"
+										th:text="${room.hotel.city}+${room.hotel.street}">地址</span>
+								</h3>
+								<div class="packages-para">
+									<h4>
+										<span class="text-dark productName" th:text="${room.productName}">Hotel
+											Name</span>
+										<span class="pull-right text-dark" th:if="${room.discountPercentage != 1}"
+											th:text="'TWD ' + ${room.price} + ' (促銷 ' + ${#numbers.formatDecimal(100-room.discountPercentage*100,1,'COMMA',2,'POINT')} + '%)'">售價</span>
+										<span class="pull-right text-dark" th:unless="${room.discountPercentage != 1}"
+											th:text="'TWD ' + ${room.price}">售價</span>
+									</h4>
+								</div>
+								<br>
+								<!-- Hotel and Room Details -->
+								<div class="hotel-details">
+									<span th:text="${room.productDescription}"></span><br><br>
+									<p class="text-dark hotelDetail">房型摘要:</p>
+									<span th:if="${room.privateBathroom}">◆獨立浴室</span>
+									<span th:if="${room.hotel.hotelDetail.cleaningService}">◆每日清潔服務</span>
+									<span th:if="${room.hotel.hotelDetail.cleaningService}">◆每日清潔服務</span>
+									<span th:if="${room.hotel.hotelDetail.expressCheckin}">◆快速入住</span>
+									<span th:if="${room.hotel.hotelDetail.counter24hr}">◆24 小時接待櫃檯</span><br>
+									<span th:if="${room.hotel.hotelDetail.freeWiFi}">◆住宿全館提供WiFi免費</span>
+									<span th:if="${room.hotel.hotelDetail.roomCard}">◆房卡進出</span>
+									<span th:if="${room.hotel.hotelDetail.noSmoking}">◆全面禁菸</span>
+									<span th:if="${room.childExtraBed}">◆兒童可加床</span>
+									<span th:if="${room.hotel.hotelDetail.petFriendly}">◆可攜帶寵物</span><br>
+									<div style="border-top: 1px solid #252121; margin: 5px 0;"></div>
+									<!-- 添加細線分隔 -->
+									<p class="text-dark" th:if="${room.childExtraBed}"
+										th:text="'兒童年齡:&nbsp; ' + ${room.age} +'歲以下' +' 兒童加床費用:&nbsp; ' + ${room.childrenPrice}">
+										兒童加床
+									</p>
+									<p class="text-dark" th:if=" ${room.hotel.hotelDetail.petFriendly}"
+										th:text="'攜帶寵物 房間押金:&nbsp;' + ${room.hotel.hotelDetail.petDeposit}">攜帶寵物
+										房間押金
+									</p>
+									<p class="text-dark" th:if="${room.hotel.hotelDetail.petFriendly}"
+										th:text="'寵物清潔費:&nbsp;'+${room.hotel.hotelDetail.petCleaningFee}">寵物清潔費
+									</p><br>
+									<span th:text="'入住時間:&nbsp;'+${room.checkInTime}"></span><br>
+									<span th:text="'退房時間:&nbsp;'+${room.checkOutTime}"></span><br><br>
+									<p class="text-dark hotelDetail"
+										th:if="${room.hotel.hotelDetail.reservationNotice != null and room.hotel.hotelDetail.reservationNotice != ''}">
+										預訂須知:</p>
+									<p class="text-dark" th:text="${room.hotel.hotelDetail.reservationNotice}">
+									</p>
+								</div><br>
+								<div class="row" style="margin-top: auto;">
+									<div class="col-md-6">
+										<span>選擇數量</span>
+										<select class="about-view packages-btn quantity-select" name="quantity"
+											th:data-product-id="${room.productID}" th:data-price="${room.price}"
+											th:data-product-Name="${room.productName}">
+											<option th:each="i : ${#numbers.sequence(0, room.minQuantity)}"
+												th:value="${i}" th:text="${i}"></option>
+										</select>
+									</div>
+								</div>
+							</div><!--/.single-package-item-txt-->
+						</div><!--/.single-package-item-->
+					</div><!--/.col-->
+
+
+					<h2>&nbsp;其餘空房情況</h2>
+
+					<th:block th:each="otherRoom:${otherRooms}">
+						<div class="col-md-12 col-sm-12">
+							<div class="single-package-item">
+								<div th:id="'carouselExampleControls_' + ${otherRoom.productID}" class="carousel slide "
+									style="width: 532px; height: 389.5px;">
+									<div class="carousel-inner">
+										<div th:each="roompicture, iterStat : ${otherRoom.roomPictures}"
+											th:classappend="${iterStat.index == 0} ? 'carousel-item active' : 'carousel-item'"
+											th:attr="data-index=${iterStat.index},data-productid=${otherRoom.productID}">
+											<img th:src="@{'/room/roompicture?imgID=' + ${roompicture.imgID}}"
+												class="d-block w-100" alt="Room Image" data-bs-toggle="modal"
+												th:data-bs-target="'#imageModal_' + ${otherRoom.productID}"
+												style="width: 532px; height: 389.5px;">
+											<p th:text=" ${roompicture.imgID}"></p>
+										</div>
+									</div>
+									<button class="carousel-control-prev" type="button"
+										th:data-bs-target="'#carouselExampleControls_' + ${otherRoom.productID}"
+										data-bs-slide="prev">
+										<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+										<span class="visually-hidden">Previous</span>
+									</button>
+									<button class="carousel-control-next" type="button"
+										th:data-bs-target="'#carouselExampleControls_' + ${otherRoom.productID}"
+										data-bs-slide="next">
+										<span class="carousel-control-next-icon" aria-hidden="true"></span>
+										<span class="visually-hidden">Next</span>
+									</button>
+								</div>
+
+								<!-- Modal -->
+								<div class="modal" th:id="'imageModal_' + ${otherRoom.productID}" tabindex="-1">
+									<div class="modal-dialog modal-lg">
+										<div class="modal-content" style="width: 900px;">
+											<div class="modal-header">
+												<h5 class="modal-title" id="facilitiesModalLabel">房間圖片</h5>
+												<button type="button" class="btn-close" data-bs-dismiss="modal"
+													aria-label="Close"></button>
+											</div>
+											<div class="modal-body">
+												<div th:id="'carouselExampleControls2_' + ${otherRoom.productID}"
+													class="carousel slide">
+													<div class="carousel-inner roomPicturesCarousel"></div>
+													<button class="carousel-control-prev" type="button"
+														th:data-bs-target="'#carouselExampleControls2_' + ${otherRoom.productID}"
+														data-bs-slide="prev">
+														<span class="carousel-control-prev-icon"
+															aria-hidden="true"></span>
+														<span class="visually-hidden">Previous</span>
+													</button>
+													<button class="carousel-control-next" type="button"
+														th:data-bs-target="'#carouselExampleControls2_' + ${otherRoom.productID}"
+														data-bs-slide="next">
+														<span class="carousel-control-next-icon"
+															aria-hidden="true"></span>
+														<span class="visually-hidden">Next</span>
+													</button>
+												</div>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-secondary"
+													data-bs-dismiss="modal">Close</button>
+											</div>
+										</div>
+									</div>
+								</div>
+
+
+								<div class="single-package-item-txt"
+									style="width: 588px; display: flex; flex-direction: column; height: 100%;">
+									<h3>
+										<span class="text-dark hotelName" th:text="${otherRoom.hotel.hotelName}">Hotel
+											Name</span>
+										<br>
+										<br>
+										<span class="pull-right  text-dark"
+											th:text=" ${otherRoom.hotel.hotelType}">飯店類型</span>
+										<!-- 加入地址，使用 inline-block 或者 pull-left 來確保與售價同一行 -->
+										<span class="pull-left  text-dark"
+											th:text="${otherRoom.hotel.city}+${otherRoom.hotel.street}">地址</span>
+									</h3>
+									<div class="packages-para">
+										<h4>
+											<span class="text-dark productName" th:text="${otherRoom.productName}">Hotel
+												Name</span>
+											<span class="pull-right text-dark"
+												th:if="${otherRoom.discountPercentage != 1}"
+												th:text="'TWD ' + ${otherRoom.price} + ' (促銷 ' + ${#numbers.formatDecimal(100-otherRoom.discountPercentage*100,1,'COMMA',2,'POINT')} + '%)'">售價</span>
+											<span class="pull-right text-dark"
+												th:unless="${otherRoom.discountPercentage != 1}"
+												th:text="'TWD ' + ${otherRoom.price}">售價</span>
+										</h4>
+									</div>
+									<br>
+									<!-- Hotel and Room Details -->
+									<div class="hotel-details">
+										<span th:text="${otherRoom.productDescription}"></span><br><br>
+										<p class="text-dark hotelDetail">房型摘要:</p>
+										<span th:if="${otherRoom.privateBathroom}">◆獨立浴室</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.cleaningService}">◆每日清潔服務</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.cleaningService}">◆每日清潔服務</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.expressCheckin}">◆快速入住</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.counter24hr}">◆24 小時接待櫃檯</span><br>
+										<span th:if="${otherRoom.hotel.hotelDetail.freeWiFi}">◆住宿全館提供WiFi免費</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.roomCard}">◆房卡進出</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.noSmoking}">◆全面禁菸</span>
+										<span th:if="${otherRoom.childExtraBed}">◆兒童可加床</span>
+										<span th:if="${otherRoom.hotel.hotelDetail.petFriendly}">◆可攜帶寵物</span><br>
+										<div style="border-top: 1px solid #252121; margin: 5px 0;"></div>
+										<!-- 添加細線分隔 -->
+										<p class="text-dark" th:if="${otherRoom.childExtraBed}"
+											th:text="'兒童年齡:&nbsp; ' + ${otherRoom.age} +'歲以下' +' 兒童加床費用:&nbsp; ' + ${otherRoom.childrenPrice}">
+											兒童加床
+										</p>
+										<p class="text-dark" th:if=" ${otherRoom.hotel.hotelDetail.petFriendly}"
+											th:text="'攜帶寵物 房間押金:&nbsp;' + ${otherRoom.hotel.hotelDetail.petDeposit}">
+											攜帶寵物
+											房間押金
+										</p>
+										<p class="text-dark" th:if="${otherRoom.hotel.hotelDetail.petFriendly}"
+											th:text="'寵物清潔費:&nbsp;'+${otherRoom.hotel.hotelDetail.petCleaningFee}">寵物清潔費
+										</p><br>
+										<span th:text="'入住時間:&nbsp;'+${otherRoom.checkInTime}"></span><br>
+										<span th:text="'退房時間:&nbsp;'+${otherRoom.checkOutTime}"></span><br><br>
+										<p class="text-dark hotelDetail"
+											th:if="${otherRoom.hotel.hotelDetail.reservationNotice != null and otherRoom.hotel.hotelDetail.reservationNotice != ''}">
+											預訂須知:</p>
+										<p class="text-dark" th:text="${otherRoom.hotel.hotelDetail.reservationNotice}">
+										</p>
+									</div><br>
+									<div class="row" style="margin-top: auto;">
+										<div class="col-md-6">
+											<span>選擇數量</span>
+											<select class="about-view packages-btn quantity-select" name="quantity"
+												th:data-product-id="${otherRoom.productID}"
+												th:data-price="${otherRoom.price}"
+												th:data-product-Name="${otherRoom.productName}">
+												<option th:each="i : ${#numbers.sequence(0, otherRoom.minQuantity)}"
+													th:value="${i}" th:text="${i}"></option>
+											</select>
+										</div>
+									</div>
+								</div><!--/.single-package-item-txt-->
+							</div><!--/.single-package-item-->
+						</div><!--/.col-->
+					</th:block>
+				</div><!--/.row-->
+			</div><!--/.packages-content-->
+		</div><!--/.container-->
+
+
+	</section><!--/.packages-->
+	<!--packages end-->
+
+	<div id="priceCalculator" class="fixed-right">
+		<div id="totalQuantity" class=""></div>
+		<div id="totalPrice" class="total-price"></div>
+		<input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+		<input type="submit" value="立即預定" id="submitButton">
+	</div>
+
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+		crossorigin="anonymous"></script>
+
+	<div th:replace="~{indexNavbar/navbar3}"></div>
+	<div th:replace="~{indexNavbar/navbar4}"></div>
+	<script>
+
+
+		document.addEventListener("DOMContentLoaded", function () {
+			// 事件監聽器
+			window.addEventListener("scroll", checkScrollPosition);
+
+			// 檢測滾動位置
+			checkScrollPosition();
+
+			// 滾動位置的函數
+			function checkScrollPosition() {
+				// 取得滾動位置
+				var scrollPosition = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+
+				// 根據滾動位置來判斷是否顯示或隱藏價格計算器
+				if (scrollPosition >= 750) {
+					document.getElementById("priceCalculator").style.display = "block";
+				} else {
+					document.getElementById("priceCalculator").style.display = "none";
+				}
+			}
+		});
+
+
+		$(document).ready(function () {
+			var clickedIndex;
+			var productID;
+			var clickedIndex;
+			var productID;
+			// 點擊事件
+			$('.carousel-item').click(function () {
+				// $('.carousel-item') 選擇所有具有 carousel-item 類的 <div> 元素。
+				// 這邊$(this) 代表當前被點擊的 <div> 元素。
+				clickedIndex = $(this).data('index'); //圖片的index
+				productID = $(this).data('productid'); // 確保屬性名稱與 Thymeleaf 中一致
+				console.log('productID:', productID);
+				console.log('Clicked index:', clickedIndex);
+				$('.roomPicturesCarousel').empty();
+				$.ajax({
+					type: 'GET',
+					url: '/sip/sipIndex/findPicture', // 根據實際後端路徑修改
+					data: { productID: productID },
+					headers: {
+						'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+					},
+					success: function (data) {
+						// 儲存HTML結構的變量
+						var carouselItemsHTML = '';
+
+						// 迴圈中拼接HTML字串
+						for (var i = 0; i < data.length; i++) {
+							var picture = data[i];
+							// active 類別在 Bootstrap 的 carousel 中會使該圖片成為當前可見的圖片。
+							var isActive = (i === clickedIndex) ? 'active' : ''; // 第一張設置 active
+							var imgElement = '<img src="/sip/room/roompicture?imgID=' + picture.imgID + '" class="d-block w-100" alt="package-place" style="width: 868px; height: 688.98px;">';
+							var captionElement = '<p>' + picture.imgID + '</p>';
+							var carouselItem = '<div class="carousel-item ' + isActive + '">' + imgElement + captionElement + '</div>';
+
+							// 將每個carousel項目添加到HTML變量中
+							carouselItemsHTML += carouselItem;
+						}
+
+						// 一次性將所有項目插入DOM
+						$('.roomPicturesCarousel').html(carouselItemsHTML);
+					},
+					error: function () {
+						// 處理錯誤情況
+						console.log('Error fetching room pictures.');
+					}
+				});
+			});
+
+			// 總價計算器
+			var totalPriceElement = document.getElementById('totalPrice');
+			var quantitySelects = document.querySelectorAll('.quantity-select');
+			var totalQuantityElement = document.getElementById('totalQuantity');
+			var submitButton = document.getElementById('submitButton');
+			// 初始時先禁用按鈕
+			submitButton.disabled = true;
+			// this 代表觸發事件的 DOM 元素，即被選擇的 .quantity-select 元素
+			// this.value 取得選擇的數量（<select> 元素的值）。
+			// this.dataset.productId 取得 data-product-id 屬性的值，這是該房間的產品 ID。
+			// this.dataset.price 取得 data-price 屬性的值，這是該房間的價格。
+			// quantitySelect 元素都添加了相同的事件監聽器。當任何一個 quantitySelect 的值發生變化（即 change 事件觸發）時，事件監聽器中的代碼都會被執行。
+			// 每次觸發事件時，它會計算該特定房間的總價，然後更新總價（totalPrice）。在這個過程中，使用了(parseFloat(this.dataset.totalPrice) || 0) 
+			// 這個表達式，它的作用是取出之前該房間的總價，如果沒有的話就默認為 0。
+			// 初始總價
+			var totalPrice = 0;
+			var totalQuantity = 0;
+			var selectedRooms = []; // 用於存儲選擇的房間信息的數組
+			quantitySelects.forEach(function (quantitySelect) {
+				quantitySelect.addEventListener('change', function () {
+					var selectedQuantity = parseInt(this.value);
+					console.log(selectedQuantity)
+					var productId = this.dataset.productId;
+					var productName = this.dataset.productName;
+					var price = parseInt(this.dataset.price);
+					// 計算總價
+					var orderItemPrice = selectedQuantity * price;
+
+					//更新總價、數量
+					//扣除原本的總價
+					//ex:如果 totalPrice 目前是 5000，而房間之前的總價是 2000，新的總價是 3000，那麼 5000 - 2000 + 3000; // 最終 totalPrice = 6000
+					totalPrice = totalPrice - (parseFloat(this.dataset.totalPrice) || 0) + orderItemPrice;
+					totalQuantity = totalQuantity - (parseFloat(this.dataset.totalQuantity) || 0) + selectedQuantity;
+
+					// 將房間信息添加到選擇的房間數組中
+					var roomInfo = {
+						productID: productId,
+						quantity: selectedQuantity,
+						productName: productName,
+						orderItemPrice: orderItemPrice
+					};
+					//方法寫在下面
+					updateSelectedRooms(roomInfo);
+
+					// 將房間總價存儲在 data-total-price 屬性中，以便在下次更改時使用
+					// 將數量存儲在 data-total-Quantity 屬性中，以便在下次更改時使用
+					this.dataset.totalPrice = orderItemPrice;
+					this.dataset.totalQuantity = selectedQuantity;
+
+					// 更新顯示總價的元素
+					totalPriceElement.textContent = '總價：TWD ' + totalPrice.toFixed(2);
+					totalQuantityElement.textContent = '房間數量：' + totalQuantity;
+					console.log('選擇的數量：', selectedQuantity);
+					console.log('產品 ID：', productId);
+					//檢查數組是否有裝入
+					console.log(selectedRooms)
+					submitButton.disabled = (totalPrice <= 0);
+				});
+			});
+
+			// 函數用於更新選擇的房間信息數組
+			function updateSelectedRooms(roomInfo) {
+				// 檢查是否已經存在相同roomId的房間信息
+				// 使用 findIndex() 方法，檢查 selectedRooms 中是否已經存在與 roomInfo.productID 相同的房間。
+				//這裡的 existingRoomIndex 會存儲匹配到的房間索引。如果找不到匹配的房間，existingRoomIndex 將會是 -1。
+				var existingRoomIndex = selectedRooms.findIndex(function (room) {
+					return room.productID === roomInfo.productID;
+				});
+
+				// 如果房間數量為 0，從數組中移除該房間
+				if (roomInfo.quantity === 0) {
+					if (existingRoomIndex !== -1) {
+						// 使用 splice 方法從數組中移除該房間
+						// splice() 方法接受兩個參數：existingRoomIndex（要移除的房間在數組中的索引）和 1（表示從數組中移除一個元素，即該房間）。
+						selectedRooms.splice(existingRoomIndex, 1);
+					}
+				}
+				// 如果房間已經存在，更新數量和價格
+				else if (existingRoomIndex !== -1) {
+					selectedRooms[existingRoomIndex].quantity = roomInfo.quantity;
+					selectedRooms[existingRoomIndex].orderItemPrice = roomInfo.orderItemPrice;
+				}
+				// 如果房間不存在，把 roomInfo 裝入 selectedRooms
+				else {
+					selectedRooms.push(roomInfo);
+				}
+			}
+
+			//$('#submitButton').submit 送出表單from
+			$('#submitButton').click(function (event) {
+				event.preventDefault(); // 防止表單提交
+				console.log("check")
+				var requestData = {
+					selectedRooms: selectedRooms,
+					totalPrice: totalPrice
+				};
+				//ajax傳送
+				$.ajax({
+					type: 'POST',
+					url: '/sip/sipIndex/requestBooking',
+					data: JSON.stringify(requestData),
+					contentType: 'application/json',
+					headers: {
+						'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+					},
+					//成功重新導向
+					success: function (response) {
+						if (response === 'Y') {
+							console.log("success")
+							window.location.href = '/sip/sipIndex/booking2';
+						} else {
+							Swal.fire({
+								icon: 'error',
+								title: '請登入會員',
+								showCancelButton: false,
+							}).then((result) => {
+								window.location.href = '/sip/customer/login'; // 引導去登入介面
+							})
+						}
+					},
+					error: function (error) {
+						console.error('AJAX error:', error);
+					}
+				});
+			});
+
+		});
+	</script>
+
+</body>
+
+</html>

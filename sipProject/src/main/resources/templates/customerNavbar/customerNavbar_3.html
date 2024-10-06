@@ -1,0 +1,43 @@
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0">
+    <div class="navbar-nav align-items-center ms-auto">
+        <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"> <i
+                    class="fa fa-envelope me-lg-2"></i>
+                <span class="d-none d-lg-inline-flex">訊息</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                <a href="#" class="dropdown-item">
+                    <div class="d-flex align-items-center">
+                        <div class="ms-2">
+                            <h6 class="fw-normal mb-0">Test</h6>
+                            <small>test</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"> <i class="fa fa-bell me-lg-2"></i>
+                <span class="d-none d-lg-inline-flex">通知</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                <a href="#" class="dropdown-item">
+                    <h6 class="fw-normal mb-0">Test</h6> <small>Test</small>
+                </a>
+            </div>
+        </div>
+        <div class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <img id="userImage" class="rounded-circle" th:src="@{/customer/customerPicture}" alt="User Image"
+                    style="width: 40px; height: 40px;"> <span class="d-none d-lg-inline-flex"
+                    th:text="${session.customerloginName}"></span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                <a href="#" class="dropdown-item">設定</a>
+                <a th:href="@{/customer/logout}" class="dropdown-item">登出</a>
+            </div>
+        </div>
+    </div>
+</nav>
+<!-- Navbar End -->
