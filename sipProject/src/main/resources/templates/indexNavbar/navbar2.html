@@ -1,0 +1,173 @@
+<!-- main-menu Start -->
+<header class="top-area">
+    <div class="header-area">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-2">
+                    <div class="logo">
+                        <a th:href="@{/sipIndex}">
+                            <span>SIP</span>
+                        </a>
+                    </div><!-- /.logo-->
+                </div><!-- /.col-->
+                <div class="col-sm-10">
+                    <div class="main-menu">
+                        <!-- Brand and toggle get grouped for better mobile display -->
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                                data-target=".navbar-collapse">
+                                <i class="fa fa-bars"></i>
+                            </button><!-- / button-->
+                        </div><!-- /.navbar-header-->
+                        <div class="collapse navbar-collapse">
+                            <ul class="nav navbar-nav navbar-right" style="display: inline;">
+                                <!-- 如果使用者已經登入，顯示使用者名稱 -->
+                                <li class="smooth-menu" th:if="${session.userLoggedIn}" style="display: inline;">
+                                    <a th:text="'hello   '+${session.customerloginName}"></a>
+                                </li>
+                                <li th:if="${session.userLoggedIn}"><a th:href="@{/customer/dashboard}">我的帳戶</a>
+                                </li>
+                                <li th:if="${session.userLoggedIn}"><a th:href="@{/sipIndex/logout}">登出</a>
+                                    <!-- 如果使用者未登入，顯示登入連結 -->
+                                <li style="display: inline;">
+                                    <a th:unless="${session.userLoggedIn}" th:href="@{/customer/login}">登入</a>
+                                </li>
+                            </ul>
+                        </div><!-- /.navbar-collapse -->
+                    </div><!-- /.main-menu-->
+                </div><!-- /.col-->
+            </div><!-- /.row -->
+            <div class="home-border"></div><!-- /.home-border-->
+        </div><!-- /.container-->
+    </div><!-- /.header-area -->
+</header><!-- /.top-area-->
+<!-- main-menu End -->
+
+<!--about-us start -->
+<section id="home" class="about-us">
+    <div class="container">
+        <div class="about-us-content">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="single-about-us">
+                        <div class="about-us-txt">
+                            <h2>
+                                往下搜尋你的旅程
+                            </h2>
+                        </div><!--/.about-us-txt-->
+                    </div><!--/.single-about-us-->
+                </div><!--/.col-->
+                <div class="col-sm-0">
+                    <div class="single-about-us">
+                    </div><!--/.single-about-us-->
+                </div><!--/.col-->
+            </div><!--/.row-->
+        </div><!--/.about-us-content-->
+    </div><!--/.container-->
+</section><!--/.about-us-->
+<!--about-us end -->
+
+<!--travel-box start-->
+<section class="travel-box">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="single-travel-boxes">
+                    <div id="desc-tabs" class="desc-tabs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active">
+                                <a href="#tours" aria-controls="hotels" role="tab" data-toggle="tab">
+                                    <i class="fa fa-tree"></i>
+                                    hotels
+                                </a>
+                            </li>
+                        </ul>
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active fade in" id="hotels">
+                                <div class="tab-para">
+                                    <form th:action="@{/sipIndex/select}" method="get">
+                                        <div class="row">
+                                            <div class="col-lg-4 col-md-4 col-sm-12">
+
+                                                <h2>搜尋你想住的城市</h2>
+
+                                                <input type="text" class="form-control" placeholder="搜尋你想住的城市"
+                                                    name="city" th:value="${session.city}" required>
+
+                                            </div><!--/.col-->
+
+                                            <!--隱藏session 日曆表需要值 用script抓出-->
+                                            <input type="hidden" id="sessionCheckinDay"
+                                                th:value="${session.checkinDay}" />
+                                            <input type="hidden" id="sessionCheckoutDay"
+                                                th:value="${session.checkoutDay}" />
+
+
+                                            <div class="col-lg-2 col-md-3 col-sm-4">
+                                                <div class="single-tab-select-box">
+                                                    <h2>入住日期</h2>
+                                                    <div class="travel-check-icon">
+                                                        <input type="text" id="checkinDay" name="checkinDay"
+                                                            class="form-control  selectedDate">
+                                                    </div><!-- /.travel-check-icon -->
+                                                </div><!--/.single-tab-select-box-->
+                                            </div><!--/.col-->
+
+                                            <div class="col-lg-2 col-md-3 col-sm-4">
+                                                <div class="single-tab-select-box">
+                                                    <h2>退房日期</h2>
+                                                    <div class="travel-check-icon">
+                                                        <input type="date" id="checkoutDay" name="checkoutDay"
+                                                            class="form-control  selectedDate">
+                                                    </div><!-- /.travel-check-icon -->
+                                                </div><!--/.single-tab-select-box-->
+                                            </div><!--/.col-->
+
+                                            <div class="col-lg-2 col-md-1 col-sm-4">
+                                                <div class="single-tab-select-box">
+                                                    <h2>房間數量</h2>
+                                                    <div class="quantity">
+                                                        <input class="form-control" type="number" id="quantity"
+                                                            name="quantity" th:value="${session.quantity}" min="1"
+                                                            max="30" required />
+                                                        <button class="btn btn-outline-secondary minus-btn" id="minus"
+                                                            type="button">-</button>
+                                                        <button class="btn btn-outline-secondary plus-btn" id="plus"
+                                                            type="button">+</button>
+                                                    </div>
+                                                </div><!--/.single-tab-select-box-->
+                                            </div><!--/.col-->
+
+                                            <div class="col-lg-2 col-md-1 col-sm-4">
+                                                <div class="single-tab-select-box">
+                                                    <h2>人數</h2>
+                                                    <div class="totalPeople">
+                                                        <input class="form-control" type="number" id="totalPeople"
+                                                            name="totalPeople" th:value="${session.totalPeople}" min="1"
+                                                            max="30" required />
+                                                        <button class="btn btn-outline-secondary minus-btn"
+                                                            id="minus_People" type="button">-</button>
+                                                        <button class="btn btn-outline-secondary plus-btn"
+                                                            id="plus_People" type="button">+</button>
+                                                    </div>
+                                                </div><!--/.single-tab-select-box-->
+                                            </div><!--/.col-->
+
+                                            <div class="clo-sm-7">
+                                                <div class="about-btn travel-mrt-0 pull-right">
+                                                    <input type="submit" class="about-view travel-btn" value="search">
+                                                </div><!--/.about-btn-->
+                                            </div><!--/.col-->
+                                        </div><!--/.row-->
+                                    </form>
+                                </div><!--/.tab-para-->
+                            </div><!--/.tabpannel-->
+                        </div><!--/.tab content-->
+                    </div><!--/.desc-tabs-->
+                </div><!--/.single-travel-box-->
+            </div><!--/.col-->
+        </div><!--/.row-->
+    </div><!--/.container-->
+</section><!--/.travel-box-->
+<!--travel-box end-->

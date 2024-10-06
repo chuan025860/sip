@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 會員-更新會員資料</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <style>
+        .Error {
+            display: none;
+            font-size: 14px;
+            font-weight: bold;
+            color: rgb(249, 117, 117);
+            margin: top 0px;
+            margin-left: 160px;
+        }
+
+        .small-input {
+            width: 300px;
+        }
+
+        .flatpickr-input {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+    </style>
+    <div th:replace="~{customerNavbar/customerNavbar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{customerNavbar/customerNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{customerNavbar/customerNavbar_3}"></div>
+        <!-- Sale & Revenue Start -->
+        <form id="updatecustomer">
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4 h6">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="bg-light rounded h-100 p-5">
+                            <h6 class="mb-4">會員基本資料</h6>
+
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label">使用者姓名:</label>
+                                <input type="text" class="form-control small-input text-dark" id="customerName"
+                                    name="customerName" th:value="${customer.customerName}" required>
+                            </div>
+                            <span class="Error" id="customerNameError"></span> <!-- 顯示錯誤訊息 -->
+                            <div class="mb-3">
+                                <label for="selectedDate" class="form-label">生日:</label>
+                                <input type="text" class="form-control small-input flatpickr" id="selectedDate"
+                                    name="birthday" th:value="${customer.birthday}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="sex" class="form-label">性別:</label>
+                                <select name="sex" id="sex" class="form-select mb-3 small-input text-dark"
+                                    aria-label=".form-select-sm example" required>
+                                    <option th:text="${customer.sex}" selected></option>
+                                    <option value="男">男</option>
+                                    <option value="女">女</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tel" class="form-label">電話</label>
+                                <input type="number" class="form-control small-input text-dark" id="tel" name="tel"
+                                    th:value="${customer.phone}" required />
+                                <span class="Error" id="telError"></span> <!-- 顯示錯誤訊息 -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="bg-light rounded h-100 p-5">
+
+
+                            <div class="mb-3">
+                                <label for="country" class="form-label">國家</label>
+                                <input type="text" class="form-control small-input text-dark" id="country"
+                                    name="country" th:value="${customer.country}" readonly />
+                            </div>
+                            <div class="twzipcode mb-3"><br>
+                                <label for="city" class="form-label">城市</label>
+                                <select data-role="county" name="city" class="form-select mb-3 small-input text-dark"
+                                    id="city" aria-label="Default select example" required>
+                                </select>
+                                <span class="Error" id="cityError"></span>
+                                <label for="region" class="form-label">鄉鎮</label>
+                                <select data-role="district" name="region" id="region"
+                                    class="form-select mb-3 small-input text-dark"
+                                    aria-label="Default select example"></select>
+                                <label for="postalCode" class="form-label small-input text-dark">郵遞區號</label>
+                                <input type="text" readonly data-role="zipcode" name="postalCode" placeholder="郵遞區號"
+                                    class="form-control small-input" id="postalCode" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="street">街區</label>
+                                <input type="text" name="street" placeholder="街區" id="street"
+                                    class="form-control small-input text-dark" th:value="${customer.street}" required />
+                                <span class="Error" id="streetError"></span>
+                            </div>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <button id="submitBtnUpdate" type="submit" class="btn btn-primary m-2">修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Content End -->
+
+    <div th:replace="~{customerNavbar/customerNavbar_4}"></div>
+    <!-- scriptNavbar -->
+    <div th:replace="~{customerNavbar/customerNavbar_5}"></div>
+    <script src="https://code.essoduke.org/js/twzipcode/twzipcode.latest.js"></script>
+    <script th:src="@{/jquery-ui-1.13.2/jquery-ui.js}"></script>
+    <script>
+
+        var selectedDate = flatpickr("#selectedDate", {
+            dateFormat: "Y-m-d", // 提交時的日期格式
+            allowInput: true, // 允許手動輸入
+        });
+        // flatpickr 按鍵盤回車鍵 帶有屬性的空輸入欄位required在透過 HTML5 表單驗證提交之前需要使用者輸入。
+        // 搜尋:HTML5 form validation disabled on Flatpickr inputs #892
+        // 防止手動輸入
+        selectedDate._input.onkeydown = () => false;
+
+        const twzipcode = new TWzipcode();
+        var loginNameInput = document.getElementById('customerName');
+        var loginNameError = document.getElementById('customerNameError');
+        var streetInput = document.getElementById('street');
+        var streetError = document.getElementById('streetError');
+
+        // 添加使用者名子输入事件
+        loginNameInput.addEventListener('input', validateLoginName);
+        // 添加地址输入事件
+        streetInput.addEventListener('input', validateStreet);
+        // 正規表示式 中英文
+        var Regex = /^[a-zA-Z0-9\s\u4e00-\u9fa5#.,-]+$/;
+        // 定義敏感詞彙
+        var sensitiveWords = ["fuck", "Fuck"];
+
+        function validateContent(text) {
+            if (text.trim() === '') {
+                return "required"; //限制 用required控制
+            }
+            if (!Regex.test(text)) {
+                return "invalid"; //是否包含敏感詞彙
+            }
+            for (var i = 0; i < sensitiveWords.length; i++) {
+                if (text.toLowerCase().includes(sensitiveWords[i].toLowerCase())) {
+                    return "sensitive"; //是否包含敏感詞彙
+                }
+            }
+            return "valid"; // all checks
+        }
+
+        function validateLoginName() {
+            var loginName = loginNameInput.value;
+            var validationResult = validateContent(loginName);
+            console.log('啟動');
+            if (validationResult === "required") {
+                loginNameError.style.display = 'none';
+                loginNameError.textContent = '';
+                return false;
+            } else if (validationResult === "invalid") {
+                loginNameError.style.display = 'block';
+                loginNameError.textContent = '含敏感詞彙';
+                return false; //輸入錯誤
+            } else if (validationResult === "sensitive") {
+                loginNameError.style.display = 'block';
+                loginNameError.textContent = '含敏感詞彙';
+                return false;
+            }
+            loginNameError.style.display = 'none';
+            loginNameError.textContent = '';
+            return true;
+        }
+
+        function validateStreet() {
+            console.log('啟動');
+            var street = streetInput.value;
+            var validationResult = validateContent(street);
+            if (validationResult === "required") {
+                streetError.style.display = 'none';
+                streetError.textContent = '';
+                return false; //輸入錯誤
+            } else if (validationResult === "invalid") {
+                streetError.style.display = 'block';
+                streetError.textContent = '含敏感詞彙';
+                return false; //輸入錯誤
+            } else if (validationResult === "sensitive") {
+                streetError.style.display = 'block';
+                streetError.textContent = '含敏感詞彙';
+                return false; //輸入錯誤
+            }
+            streetError.style.display = 'none';
+            streetError.textContent = '';
+            return true;
+        }
+
+        // 驗證數據 送出數據
+        function validateAndSubmit() {
+            var isloginName = validateLoginName();
+            var isStreet = validateStreet();
+            if (isloginName && isStreet) {
+                return true;
+            } else {
+                // 驗證失敗，返回false
+                return false;
+            }
+        };
+        $(document).ready(function () {
+            $('#submitBtnUpdate').click(function (event) {
+                //取消預設動作
+                event.preventDefault();
+                var form = document.getElementById('updatecustomer');
+                // 手動驗證表單 
+                if (form.checkValidity()) {
+                    const customer = {
+                        customerName: $("#customerName").val(),
+                        birthday: $("#selectedDate").val(),
+                        sex: $("#sex").val(),
+                        phone: $("#tel").val(),
+                        country: $("#country").val(),
+                        city: $("#city").val(),
+                        region: $("#region").val(),
+                        street: $("#street").val(),
+                        postalCode: $("#postalCode").val(),
+                    };
+                    // 驗證數據
+                    if (!validateAndSubmit()) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "有一些錯誤",
+                        });
+                        return false; // 數據驗證失敗按鈕無法下一步
+                    }
+                    Swal.fire({
+                        icon: 'question',
+                        title: '修改會員',
+                        showCancelButton: true,
+                    }).then((result) => {
+                        console.log(result.isConfirmed)
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                type: 'PUT',
+                                url: '/sip/customer/update',
+                                contentType: 'application/json',  // 設定請求的內容類型為 JSON
+                                data: JSON.stringify(customer),  // 將 JavaScript 對象轉換為 JSON 字符串
+                                headers: {
+                                    'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                                },
+                                //成功重新導向
+                                success: function (response) {
+                                    console.log('checkState success:', response);
+                                    if (response === "Y") {
+                                        window.location.href = "/sip/customer/customerdetail";
+                                    }
+                                },
+                                error: function (error) {
+                                    console.error('AJAX error:', error);
+                                }
+                            });
+                        }
+                    })
+                } else {
+                    console.log("表單驗證失敗，不能提交");
+                    // 如果表單無效，強制觸發瀏覽器的驗證提示 開啟required功能
+                    form.reportValidity();
+                }
+            });
+        })
+    </script>
+</body>
+
+</html>

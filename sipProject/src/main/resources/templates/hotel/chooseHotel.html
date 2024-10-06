@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com - 選擇飯店</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+</head>
+
+<body style="background-image: url('../img/IMG_9852.jpg'); background-repeat: no-repeat; background-size: cover;">
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Sign In Start -->
+        <div class="container-fluid">
+            <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
+                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                    <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <a href="#">
+                                <h3 class="text-primary">SIP.com</h3>
+                            </a>
+                            <h3>選擇飯店</h3>
+                        </div>
+
+                        <ul class="list-group">
+                            <th:block th:each="hotel : ${hotels}">
+                                <li class="list-group-item">
+                                    <a th:href="@{'/hotel/dashboard?hotelID=' + ${hotel.hotelID}}"
+                                        class="text-decoration-none text-dark">
+                                        <i class="fas fa-hotel"></i> <!-- Optional icon -->
+                                        <span th:text="${hotel.hotelName}"></span>
+                                    </a>
+                                </li>
+                            </th:block>
+                        </ul>
+                        <p class="text-center mb-0"> 返回 <a th:href="@{/hotel/logout}">登出</a></p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sign In End -->
+    </div>
+
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+</body>
+
+</html>
