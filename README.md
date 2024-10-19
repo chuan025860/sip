@@ -40,19 +40,19 @@ __SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店�
 ### 資料庫設計：
 | Tables  | 說明 |
 | ------------- |:-------------:|
-| HotelLogin      | right foo     |
-| Hotel       | right bar     |
-| HotelDetail     | right baz     |
-| DefaultPicture      | right baz     |
-| HotelLoginPicture      | right baz     |
-| Room     | right baz     |
-| RoomQuantityPriceByDate      | right baz     |
-| RoomPicture      | right baz     |
-| Customer      | right baz     |
-| OrderTable      | right baz     |
-| OrderItem      | right baz     |
-
-
+| HotelLogin      | 飯店登入資料    |
+| Hotel       | 飯店基本資料  |
+| HotelDetail     | 飯店詳細資料|
+| DefaultPicture      | 預設大頭圖片|
+| HotelLoginPicture      | 飯店後台帳號頭像|
+| Room     | 房間     |
+| RoomQuantityPriceByDate      | 房間日期庫存     |
+| RoomPicture      | 房間圖片     |
+| Customer      | 客戶     |
+| OrderTable      | 訂單    |
+| OrderItem      | 訂單明細     |
+## 資料庫圖表
+![image](https://github.com/user-attachments/assets/29ad0936-bdec-467c-ae7d-6bb86ed0c97a)
 
 
 
