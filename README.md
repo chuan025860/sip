@@ -1,25 +1,59 @@
-作品名稱
-SIP（飯店預訂系統）
+# SIP（飯店預訂系統）
 
-作品簡介
-SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店註冊、客房管理、訂單處理和客戶管理等功能。前端採用 Thymeleaf 作為模板引擎，結合 HTML、CSS、Bootstrap 進行頁面設計，並使用 SweetAlert 提供友好的交互提示。
+**作品簡介**
 
-功能特點
-飯店管理：飯店可以註冊並登入系統，管理自己的飯店信息、房間信息和訂單。
-客房管理：支持添加、修改和刪除房間信息，包括價格、數量、圖片等。
-訂單處理：客戶可以搜尋酒店、預訂房間，酒店可以查看並管理訂單狀態。
-客戶管理：客戶可以註冊、登入，查看訂單歷史，編輯個人信息。
-第三方登入:Google、Line
+__SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店註冊、客房管理、訂單處理和客戶管理等功能。前端採用 Thymeleaf 作為模板引擎，結合 HTML、CSS、Bootstrap 進行頁面設計，並使用 SweetAlert 提供友好的交互提示。使用 MSSQL 作為關聯型資料庫，並實現了多種資料表關聯，如一對多、一對一關係。__
 
-後端：
-Spring Boot：核心框架，用於構建後端應用程序。
-Spring Security：提供安全性配置和用戶認證。
-Hibernate：ORM 框架，用於數據庫操作。
-MySQL：關係型資料庫，用於存儲系統數據。
+## 功能特點、說明
+### 飯店管理：飯店可以註冊並登入系統，管理自己的飯店信息、房間信息和訂單。
+### 客房管理：支持添加、修改和刪除房間信息，包括價格、數量、圖片等。
+### 訂單處理與悲觀鎖：客戶可以搜尋飯店、預訂房間，飯店可以查看並管理訂單狀態
+* **建立訂單**：在建立訂單時，系統會使用悲觀鎖來鎖定所選房間的庫存資料，確保在同一時間內只有一個交易能夠修改該房間的庫存。這樣可以避免多個使用者同時訂購導致超賣的問題。當交易成功後，房間的可用庫存會自動減少。
 
-前端：
-Thymeleaf：模板引擎，用於服務端渲染 HTML。
-HTML5 & CSS3：頁面結構和樣式。
-Bootstrap：響應式佈局和 UI 元件。
-SweetAlert：美觀的彈出提示框，提升用戶體驗。
-JavaScript：實現頁面交互和動態效果。
+* **取消訂單**：在取消訂單時，系統同樣使用悲觀鎖來鎖定房間資料，確保房間庫存正確恢復。鎖定期間，其他交易無法修改該房間的庫存，直到取消訂單操作完成並釋放鎖。
+
+* **庫存控制**：對每個房間進行實時的庫存管理。
+
+### 客戶管理：客戶可以註冊、登入，查看訂單歷史，編輯個人信息。
+### 第三方登入:Google、Line
+## 技術架構
+### 後端：
+* 後端框架：Spring Boot
+* 資料庫：MSSQL
+* ORM框架：JPA (Java Persistence API)
+* 資料庫關聯：
+1. 一對多（One-to-Many）：飯店與房間之間的關聯
+2. 一對一（One-to-One）：訂單與客戶詳細資料的關聯
+3. 一對多（One-to-Many）：訂單與飯店的關聯
+4. 多對一（Many-to-One）：訂單明細與房間的關聯
+5. 諸多其他關聯
+* 並發處理：使用悲觀鎖進行資源保護
+  
+
+### 前端：
+* Thymeleaf：模板引擎，用於服務端渲染 HTML。
+* HTML5 & CSS3：頁面結構和樣式。
+* Bootstrap：響應式佈局和 UI 元件。
+* SweetAlert：美觀的彈出提示框，提升用戶體驗。
+* JavaScript：實現頁面交互和動態效果。
+
+### 資料庫設計：
+| Tables  | 說明 |
+| ------------- |:-------------:|
+| HotelLogin      | right foo     |
+| Hotel       | right bar     |
+| HotelDetail     | right baz     |
+| DefaultPicture      | right baz     |
+| HotelLoginPicture      | right baz     |
+| Room     | right baz     |
+| RoomQuantityPriceByDate      | right baz     |
+| RoomPicture      | right baz     |
+| Customer      | right baz     |
+| OrderTable      | right baz     |
+| OrderItem      | right baz     |
+
+
+
+
+
+
