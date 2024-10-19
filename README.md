@@ -2,7 +2,10 @@
 
 **作品簡介**
 
-__SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店註冊、客房管理、訂單處理和客戶管理等功能。前端採用 Thymeleaf 作為模板引擎，結合 HTML、CSS、Bootstrap 進行頁面設計，並使用 SweetAlert 提供友好的交互提示。使用 MSSQL 作為關聯型資料庫，並實現了多種資料表關聯，如一對多、一對一關係。__
+* SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店註冊、客房管理、訂單處理和客戶管理等功能。
+* 前端採用 Thymeleaf 作為模板引擎，結合 HTML、CSS、Bootstrap、SweetAlert、FullCalendar 進行頁面設計。
+* 並使用 Ajax非同步請求 提升用戶體驗。
+* 使用 MSSQL 作為關聯型資料庫，並實現了多種資料表關聯，如一對多、一對一關係。
 
 ## 功能特點、說明
 ### 飯店管理：飯店可以註冊並登入系統，管理自己的飯店信息、房間信息和訂單。
@@ -60,9 +63,25 @@ __SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店�
 * 使用Maven版控與依賴管理
 ### 部署步驟
 1. 克隆專案：
-## Blocks of code
 ```
 bash
-git clone https://github.com/yourusername/SIP.git
+git clone https://github.com/chuan025860/sip.git
 ```
+2. 建立資料庫：
+* MS SQL 中創建名為 SIP 的資料庫。
+* 執行 SIP.sql 文件中的 SQL 語句。
+
+3. 修改資料庫配置：
+在 src/main/resources/application.properties 中，修改資料庫連接的用戶名和密碼。
+
+4. 編譯並運行專案
+
+5. 在瀏覽器中訪問：
+```
+首頁:http://localhost:8080/sip/sipIndex
+後台登入:http://localhost:8080/sip/hotel/login
+用戶登入:http://localhost:8080/sip/customer/login
+```
+### 截圖展示
+
 
