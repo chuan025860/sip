@@ -4,7 +4,8 @@
 
 * SIP 是一個基於 Spring Boot 開發的飯店預訂系統，提供了飯店註冊、客房管理、訂單處理和客戶管理等功能。
 * 前端採用 Thymeleaf 作為模板引擎，結合 HTML、CSS、Bootstrap、SweetAlert、FullCalendar 進行頁面設計。
-* 並使用 Ajax非同步請求 提升用戶體驗。
+* 使用 Ajax非同步請求 提升用戶體驗。
+* 系統設計上，飯店後台採用 session 驗證，用戶後台則運用 JWT（JSON Web Token）進行身份驗證。
 * 使用 MSSQL 作為關聯型資料庫，並實現了多種資料表關聯，如一對多、一對一關係。
 
 ## 功能特點、說明
@@ -32,6 +33,7 @@
 5. 諸多其他關聯
 * 並發處理：使用悲觀鎖進行資源保護
 * Maven: 使用 pom.xml 進行版本控制和依賴管理
+* JWT 身份驗證：基於 JWT（JSON Web Token）進行身份驗證，提升用戶資料安全性與跨域存取便捷性。
   
 
 ### 前端：
@@ -40,6 +42,7 @@
 * Bootstrap：響應式佈局和 UI 元件。
 * SweetAlert：美觀的彈出提示框，提升用戶體驗。
 * JavaScript：實現頁面交互和動態效果。
+* AJAX：實現非同步數據傳輸，提升頁面交互速度和流暢度。
 
 ### 資料庫設計：
 | Tables  | 說明 |
