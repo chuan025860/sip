@@ -1,0 +1,141 @@
+<script>
+    // 抓出sessionData
+    var sessionCheckinDay = document.getElementById('sessionCheckinDay').value.trim();
+    var sessionCheckoutDay = document.getElementById('sessionCheckoutDay').value.trim();
+    console.log("Check-in Day:", sessionCheckinDay);
+    console.log("Check-out Day:", sessionCheckoutDay);
+    var selectCheckinDay = new Date();
+    var selectCheckoutDay = new Date();
+
+    // 判斷 sessionDataElement 是否有值
+    if (sessionCheckinDay) {
+        //如果有 用session的值去設定selectCheckinDay、selectCheckoutDay
+        selectCheckinDay = new Date(sessionCheckinDay);
+        selectCheckoutDay = new Date(sessionCheckoutDay);
+
+        var checkinPicker = flatpickr("#checkinDay", {
+            dateFormat: "Y-m-d",
+            allowInput: true, // 允許手動輸入
+            minDate: "today",
+            defaultDate: [selectCheckinDay],
+            onChange: function (selectedDates, dateStr, instance) {
+                // 更新退房日期的最小日期為選取的入住日期的下一天
+                var newDate = new Date(dateStr);
+                newDate.setDate(newDate.getDate() + 1);
+
+                // 設定 checkoutPicker 的最小日期為新的日期，確保至少晚一天
+                checkoutPicker.set('minDate', newDate);
+                checkoutPicker.setDate(newDate); // 更新退房日期為最小日期
+            }
+        });
+        // 防止手動輸入
+        checkinPicker._input.onkeydown = () => false;
+
+        var checkoutPicker = flatpickr("#checkoutDay", {
+            dateFormat: "Y-m-d",
+            allowInput: true, // 允許手動輸入
+            defaultDate: [selectCheckoutDay],
+            //發現剛開始 使用者可以直接點選checkinPicker之前的日期 給一個open事件抓出checkinPicker並設定
+            onOpen: function () {
+                // 取得 checkinPicker 選取的日期
+                var checkinDate = checkinPicker.selectedDates[0];
+                if (checkinDate) {
+                    // 設定 checkoutPicker 的最小日期為 checkinPicker 的日期加一天
+                    var newDate = new Date(checkinDate);
+                    newDate.setDate(newDate.getDate() + 1);
+                    checkoutPicker.set('minDate', newDate);
+                }
+            }
+        });
+        // 防止手動輸入
+        checkoutPicker._input.onkeydown = () => false;
+
+    } else {
+
+        // 如果沒有值，使用今天的日期 Checkout預設+1
+        selectCheckinDay = new Date();
+        selectCheckoutDay.setDate(selectCheckinDay.getDate() + 1);
+        var checkinPicker = flatpickr("#checkinDay", {
+            dateFormat: "Y-m-d",
+            allowInput: true, // 允許手動輸入
+            minDate: "today",
+            defaultDate: [selectCheckinDay],
+            onChange: function (selectedDates, dateStr, instance) {
+                // 更新退房日期的最小日期為選取的入住日期的下一天
+                checkoutPicker.set('minDate', dateStr);
+                var newDate = new Date(dateStr);
+                newDate.setDate(newDate.getDate() + 1);
+                checkoutPicker.setDate(newDate);
+            }
+        });
+        // 防止手動輸入
+        checkinPicker._input.onkeydown = () => false;
+
+        var checkoutPicker = flatpickr("#checkoutDay", {
+            dateFormat: "Y-m-d",
+            allowInput: true, // 允許手動輸入
+            defaultDate: [selectCheckoutDay],
+            //發現 使用者可以直接點選checkinPicker之前的日期 給一個open事件抓出checkinPicker並設定
+            onOpen: function () {
+                // 取得 checkinPicker 選取的日期
+                var checkinDate = checkinPicker.selectedDates[0];
+                if (checkinDate) {
+                    // 設定 checkoutPicker 的最小日期為 checkinPicker 的日期加一天
+                    var newDate = new Date(checkinDate);
+                    newDate.setDate(newDate.getDate() + 1);
+                    checkoutPicker.set('minDate', newDate);
+                }
+            }
+        });
+        // 防止手動輸入
+        checkoutPicker._input.onkeydown = () => false;
+    }
+
+    document.getElementById('plus').addEventListener('click', function () {
+        incrementValue();
+    });
+
+    document.getElementById('minus').addEventListener('click', function () {
+        decrementValue();
+    });
+    document.getElementById('plus_People').addEventListener('click', function () {
+        incrementValue_People();
+    });
+
+    document.getElementById('minus_People').addEventListener('click', function () {
+        decrementValue_People();
+    });
+
+
+    function incrementValue() {
+        var value = parseInt(document.getElementById('quantity').value, 10);
+        value = isNaN(value) ? 0 : value;
+        if (value < 30) {
+            document.getElementById('quantity').value = value + 1;
+        }
+    }
+
+    function decrementValue() {
+        //10 是指定進制為十進制 
+        var value = parseInt(document.getElementById('quantity').value, 10);
+        value = isNaN(value) ? 0 : value;
+        if (value > 1) {
+            document.getElementById('quantity').value = value - 1;
+        }
+    }
+    function incrementValue_People() {
+        var value = parseInt(document.getElementById('totalPeople').value, 10);
+        value = isNaN(value) ? 0 : value;
+        if (value < 30) {
+            document.getElementById('totalPeople').value = value + 1;
+        }
+    }
+
+    function decrementValue_People() {
+        var value = parseInt(document.getElementById('totalPeople').value, 10);
+        value = isNaN(value) ? 0 : value;
+        if (value > 1) {
+            document.getElementById('totalPeople').value = value - 1;
+        }
+    }
+</script>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 飯店後台- 設定帳號</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <div class="container-fluid pt-4 px-4">
+            <div class="row g-4">
+                <!-- 帳號密碼 Start -->
+                <div class="col-sm-12 col-xl-6">
+                    <div class="bg-light rounded h-100 p-4">
+                        <div class="col-sm-2 col-form-label text-dark fw-bold ">帳號密碼</div>
+                        <form id="checkEmail" method="post">
+                            <div class="row mb-3">
+                                <div class="col-sm-10">
+                                    <label for="inputEmail" class="col-sm-2 col-form-label text-dark ">Email</label>
+                                    <input type="email" readonly name="email" class="form-control text-dark "
+                                        id="inputEmail" th:value="${session.loginEmail}">
+                                    <input name="hotelID" id="hotelID" th:value="${hotelID}" hidden>
+                                    <hr>
+                                    <label for="password" class="col-sm-2 col-form-label text-dark">密碼</label>
+                                    <input type="password" readonly class="form-control" id="password"
+                                        th:value="${session.loginEmail}">
+                                </div>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            </div>
+                            <button id="submitBtn" type="submit" class="btn btn-primary">修改</button>
+                        </form>
+                        <br>
+                        <hr>
+                        <h6 class="mb-4">更換大頭貼</h6>
+                        <form id="uploadAvatarForm" method="post" enctype="multipart/form-data">
+                            <div class="col-sm-10">
+                                <label for="file" class="col-form-label">大頭貼</label>
+                                <input name="file" id="file" type="file" class="form-control"
+                                    onchange="previewImage(this)">
+                                <img id="imagePreview" src="" alt="預覽圖片" style="max-width: 100%; max-height: 200px;">
+                            </div>
+                            <br>
+                            <button id="uploadButton" class="btn btn-primary ">上傳</button>
+                        </form>
+
+                        <!-- 提示 -->
+                        <p style="color:green;text-align: center;" th:text="${mailMsg}?${mailMsg}"></p>
+                        <p style="color:red ;text-align: center;" id="errMsg"></p>
+                    </div>
+                </div>
+
+
+                <!-- 帳號密碼 End -->
+
+                <!-- 快速登入 Start -->
+                <div class="col-sm-12 col-xl-6">
+                    <div class="bg-light rounded h-100 p-4">
+                        <h6 class="mb-4">快速登入</h6>
+                        <div class="m-n2">
+                            <table>
+                                <!--Google-->
+                                <tr>
+                                    <td>
+                                        <!-- svg google圖片 -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="25" height="25"
+                                            viewBox="0 0 48 48">
+                                            <path fill="#FFC107"
+                                                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
+                                            </path>
+                                            <path fill="#FF3D00"
+                                                d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
+                                            </path>
+                                            <path fill="#4CAF50"
+                                                d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z">
+                                            </path>
+                                            <path fill="#1976D2"
+                                                d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z">
+                                            </path>
+                                        </svg>
+                                        綁定Google帳號
+                                    </td>
+                                    <td>
+                                        <!--綁定google-->
+                                        <div id="bind_google" style="display: none;">
+                                            <div id="g_id_onload"
+                                                data-client_id="163327713304-db6bqvp88aunith7rk9k6mijn34asjs1.apps.googleusercontent.com"
+                                                data-context="use" data-ux_mode="popup"
+                                                data-callback="handleCredentialResponse" data-nonce=""
+                                                data-auto_prompt="false">
+                                            </div>
+                                            <div class="g_id_signin" data-type="standard" data-shape="pill"
+                                                data-theme="outline" data-text="continue_with" data-size="large"
+                                                data-logo_alignment="left">
+                                            </div>
+                                        </div>
+                                        <!--解除綁定-->
+                                        <div id="deactivate-google" style="display: none;">
+                                            <form id="clearGoogleIDForm" th:action="@{/hotel/clearGoogleID}"
+                                                method="post">
+                                                <input type="hidden" th:name="${_csrf.parameterName}"
+                                                    th:value="${_csrf.token}" />
+                                                <input type="hidden" name="loginID" th:value="${session.loginId}" />
+                                                <button id="deactivate-google-btn"
+                                                    class="btn btn-danger btn-sm rounded-pill m-2">
+                                                    解除綁定
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr></tr>
+
+                                <!--LINE-->
+                                <tr>
+                                    <td>
+                                        <!-- svg Line圖片 -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30"
+                                            viewBox="0 0 48 48">
+                                            <path fill="#00c300"
+                                                d="M12.5,42h23c3.59,0,6.5-2.91,6.5-6.5v-23C42,8.91,39.09,6,35.5,6h-23C8.91,6,6,8.91,6,12.5v23C6,39.09,8.91,42,12.5,42z">
+                                            </path>
+                                            <path fill="#fff"
+                                                d="M37.113,22.417c0-5.865-5.88-10.637-13.107-10.637s-13.108,4.772-13.108,10.637c0,5.258,4.663,9.662,10.962,10.495c0.427,0.092,1.008,0.282,1.155,0.646c0.132,0.331,0.086,0.85,0.042,1.185c0,0-0.153,0.925-0.187,1.122c-0.057,0.331-0.263,1.296,1.135,0.707c1.399-0.589,7.548-4.445,10.298-7.611h-0.001C36.203,26.879,37.113,24.764,37.113,22.417z M18.875,25.907h-2.604c-0.379,0-0.687-0.308-0.687-0.688V20.01c0-0.379,0.308-0.687,0.687-0.687c0.379,0,0.687,0.308,0.687,0.687v4.521h1.917c0.379,0,0.687,0.308,0.687,0.687C19.562,25.598,19.254,25.907,18.875,25.907z M21.568,25.219c0,0.379-0.308,0.688-0.687,0.688s-0.687-0.308-0.687-0.688V20.01c0-0.379,0.308-0.687,0.687-0.687s0.687,0.308,0.687,0.687V25.219z M27.838,25.219c0,0.297-0.188,0.559-0.47,0.652c-0.071,0.024-0.145,0.036-0.218,0.036c-0.215,0-0.42-0.103-0.549-0.275l-2.669-3.635v3.222c0,0.379-0.308,0.688-0.688,0.688c-0.379,0-0.688-0.308-0.688-0.688V20.01c0-0.296,0.189-0.558,0.47-0.652c0.071-0.024,0.144-0.035,0.218-0.035c0.214,0,0.42,0.103,0.549,0.275l2.67,3.635V20.01c0-0.379,0.309-0.687,0.688-0.687c0.379,0,0.687,0.308,0.687,0.687V25.219z M32.052,21.927c0.379,0,0.688,0.308,0.688,0.688c0,0.379-0.308,0.687-0.688,0.687h-1.917v1.23h1.917c0.379,0,0.688,0.308,0.688,0.687c0,0.379-0.309,0.688-0.688,0.688h-2.604c-0.378,0-0.687-0.308-0.687-0.688v-2.603c0-0.001,0-0.001,0-0.001c0,0,0-0.001,0-0.001v-2.601c0-0.001,0-0.001,0-0.002c0-0.379,0.308-0.687,0.687-0.687h2.604c0.379,0,0.688,0.308,0.688,0.687s-0.308,0.687-0.688,0.687h-1.917v1.23H32.052z">
+                                            </path>
+                                        </svg>
+                                        綁定LINE帳號
+                                    </td>
+
+                                    <td>
+                                        <!--綁定line-->
+                                        <!--bindLine-LINE-submit-->
+                                        <div id="bindLine-line" style="display: none;">
+                                            <button id="bindLine-LINE-submit-btn" type="submit"
+                                                class="btn btn-sm rounded-pill m-2"
+                                                style="background-color: #00c300; color: white;">
+                                                連結Line
+                                            </button>
+                                        </div>
+                                        <!--解除綁定-->
+                                        <div id="deactivate-line" style="display: none;">
+                                            <form id="clearLineIDForm">
+                                                <input type="hidden" th:name="${_csrf.parameterName}"
+                                                    th:value="${_csrf.token}" id="testline" />
+                                                <input type="hidden" name="loginID" th:value="${session.loginId}" />
+                                                <button id="deactivate-LINE-btn"
+                                                    class="btn btn-danger btn-sm rounded-pill m-2">
+                                                    解除綁定
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <!--提示-->
+                            <p class="text-success" id="bind_sucess_Msg"></p>
+                            <p class="text-danger" id="bind_danger_Msg"></p>
+                        </div>
+                    </div>
+                    <!-- 快速登入 End -->.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer --><!-- Back to Top -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        function previewImage(input) {
+            const imagePreview = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+
+        function handleCredentialResponse(response) {<!--Google 登入-->
+            const responsePayload = decodeJwtResponse(response.credential);
+            const formData = JSON.stringify(responsePayload);
+            // < !--Google Login AJAX-- >
+            $.ajax({
+                type: 'PUT',
+                url: '/sip/hotel/bindGoogleID',
+                data: formData,
+                dataType: 'text',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('input[name=_csrf]').val(),
+                    'Accept': 'application/json'
+                },
+                success: function (response) {
+                    console.log('loginForm success:', response);
+                    if (response === 'Y') {
+                        $('#bind_google').hide();
+                        $('#deactivate-google').show();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Google',
+                            text: '綁定成功',
+                            showCancelButton: true,
+                        })
+                    }
+                    if (response === 'N') {
+                        $('#bind_google').show();
+                        $('#deactivate-google').hide();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Google',
+                            text: '此Google帳號已被綁定',
+                            showCancelButton: true,
+                        })
+                    }
+                },
+                error: function (error) {
+                    console.error('AJAX error:', error);
+                }
+            });
+        }
+        // < !--解碼-->
+        function decodeJwtResponse(token) {
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split("")
+                    .map(function (c) {
+                        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+                    })
+                    .join("")
+            );
+            return JSON.parse(jsonPayload);
+        }
+
+
+        $(document).ready(function () {
+            $("#uploadButton").on("click", function (event) {
+                event.preventDefault();
+                var formData = new FormData();
+                var fileInput = $("#file")[0].files[0]; // 取得檔案輸入框中的文件
+                formData.append("file", fileInput);
+
+                $.ajax({
+                    url: "/sip/hotel/picture",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    success: function (response) {
+                        if (response === "Y") {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '上傳成功',
+                            }).then((result) => {
+                                location.reload();
+                            })
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Oops...",
+                                text: "上傳失敗",
+                            });
+                        }
+                    },
+                    error: function () {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "上傳失敗",
+                        });
+                    }
+                });
+            });
+
+            $('#submitBtn').click(function (event) {
+                event.preventDefault();
+                // 取得Form資料
+                const formData = $('#checkEmail').serialize();
+                Swal.fire({
+                    icon: 'question',
+                    title: '修改密碼',
+                    text: '點擊確認寄發email驗證碼',
+                    showCancelButton: true,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: "發送中...",
+                            text: "請稍候",
+                            icon: "info",
+                            allowOutsideClick: false, // 禁止點擊背景關閉
+                            allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                            allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading(); // 顯示Loading
+                            }
+                        });
+                        $.ajax({
+                            type: 'POST',
+                            url: '/sip/hotel/change_password',
+                            data: formData,
+                            headers: {
+                                'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                            },
+                            success: function (response) {
+                                console.log('loginForm success:', response);
+                                if (response.status === 'Y') {
+                                    $('#errMsg').html(null);
+                                    console.log(response.hotelID)
+                                    window.location.href = '/sip/hotel/changereset_password?hotelID=' + response.hotelID;
+                                }
+                                if (response.status === 'N') {
+                                    $('#errMsg').html('此信箱尚未註冊');
+                                }
+                            },
+                            error: function (error) {
+                                console.error('AJAX error:', error);
+                            }
+                        });
+                    }
+                })
+
+            });
+
+            $.ajax({//檢查googleID是否綁定，控制顯示綁定或解除綁定
+                type: 'GET',
+                url: '/sip/hotel/checkGoogleID',
+                headers: {
+                    'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                },
+                success: function (response) {
+                    console.log('checkGoogleID success:', response);
+                    if (response === 'Y') {//已綁定
+                        $('#bind_google').hide();
+                        $('#deactivate-google').show();
+                    }
+                    if (response === 'N') {//未綁定
+                        $('#bind_google').show();
+                        $('#deactivate-google').hide();
+                    }
+                },
+                error: function (error) {
+                    console.error('AJAX error:', error);
+                }
+            });
+
+            $('#clearGoogleIDForm').submit(function (event) {
+                event.preventDefault();
+                // 取得Form資料
+                const formData = $(this).serialize();
+                $.ajax({
+                    type: 'DELETE',
+                    url: '/sip/hotel/clearGoogleID',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    success: function (response) {
+                        console.log('clearGoogleIDForm success:', response);
+
+                        if (response === 'Y') {
+                            $('#bind_google').show();
+                            $('#deactivate-google').hide();
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Google',
+                                text: '已成功解除綁定',
+                            })
+                        }
+                        if (response === 'N') {
+                            $('#bind_google').hide();
+                            $('#deactivate-google').show();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Google',
+                                text: '解除綁定失敗',
+                                showCancelButton: true,
+                            })
+                        }
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                    }
+                });
+            });
+
+            $.ajax({//檢查lineID是否綁定，控制顯示綁定或解除綁定
+                type: 'GET',
+                url: '/sip/hotel/checkLineID',
+                headers: {
+                    'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                },
+                success: function (response) {
+                    console.log('checkLineID success:', response);
+                    if (response === 'Y') {//已綁定
+                        $('#bindLine-line').hide();
+                        $('#deactivate-line').show();
+                    }
+                    if (response === 'N') {//未綁定
+                        $('#bindLine-line').show();
+                        $('#deactivate-line').hide();
+                    }
+                },
+                error: function (error) {
+                    console.error('AJAX error:', error);
+                }
+            });
+
+
+            $('#clearLineIDForm').submit(function (event) {
+                event.preventDefault();
+                // 取得Form資料
+                const formData = $(this).serialize();
+                $.ajax({
+                    type: 'DELETE',
+                    url: '/sip/hotel/clearLineID',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    success: function (response) {
+                        console.log('clearLineIDForm success:', response);
+
+                        if (response === 'Y') {
+                            $('#bindLine-line').show();
+                            $('#deactivate-line').hide();
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Line',
+                                text: '解除綁定成功',
+                                showCancelButton: false,
+                            })
+                        }
+                        if (response === 'N') {
+                            $('#bindLine-line').hide();
+                            $('#deactivate-line').show();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Line',
+                                text: '解除綁定失敗',
+                                showCancelButton: false,
+                            })
+                        }
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                    }
+                });
+            });
+
+            $('#bindLine-LINE-submit-btn').on('click', function (e) {
+                console.log("test")
+                let client_id = '2000911017';
+                let redirect_uri = 'http://localhost:8080/sip/hotel/lineLogin';
+                let link = 'https://access.line.me/oauth2/v2.1/authorize?';
+                link += 'response_type=code';
+                link += '&client_id=' + client_id;
+                link += '&redirect_uri=' + redirect_uri;
+                link += '&state=SIPlogin';
+                link += '&scope=profile%20openid%20email';
+                link += '&nonce=HelloSIP';
+                window.location.href = link;
+            });
+        });
+    </script>
+</body>
+
+</html>

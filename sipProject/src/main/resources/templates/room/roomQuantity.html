@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com -庫存管理</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <style>
+        .green-event {
+            background-color: green;
+            color: white;
+        }
+
+        .white-event {
+            background-color: white;
+            color: white;
+        }
+    </style>
+</head>
+
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div class="content">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <h3 th:text="${productName}">預設標題</h3>
+        <div style="display: flex;">
+            <div id="calendar" style="width: 1200px;"></div>
+            <form id="updateRoomPriceAndQuantity">
+                <div style="margin-left: 20px; margin-top: 50px;">
+                    <div class="d-flex align-items-center">
+                        <label for="Search" class="col-form-label px-0">選擇日期:</label>
+                    </div>
+                    <input type="search" class="form-control border text-dark " id="selectedDate" readonly
+                        style="background-color: white; width: 400px; " name="selectedDate">
+                    <div class="d-flex align-items-center">
+                        <label for="Search" class="col-form-label px-0 ">數量:</label>
+                    </div>
+                    <input class="form-control border " id="quantity" style="background-color: white; width: 400px; "
+                        name="quantity" required>
+                    <div class="d-flex align-items-center">
+                        <label for="Search" class="col-form-label px-0">售價:</label>
+                    </div>
+                    <input class="form-control border " id="price" style="background-color: white; width: 400px; "
+                        name="price" type="number" required>
+                    <div class="form-group mt-2">
+                        <label for="discountOptions">是否要促銷：</label>
+                        <select class="form-select mb-3 small-input text-dark" id="discountOptions"
+                            name="discountOptions" onchange="updatePrice()">
+                            <option value="">請選擇</option>
+                            <option value="0.95">95折</option>
+                            <option value="0.9">9折</option>
+                            <option value="0.85">85折</option>
+                            <option value="0.8">8折</option>
+                            <option value="0.7">7折</option>
+                            <option value="0.6">6折</option>
+                            <option value="0.5">5折</option>
+                            <option value="0.4">4折</option>
+                            <option value="0.3">3折</option>
+                            <option value="0.2">2折</option>
+                            <option value="0.1">1折</option>
+                            <option value="customize">自訂折扣</option>
+                            <option value="noDiscount">取消則扣</option>
+                        </select>
+                    </div>
+                    <div id="discountPriceView" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <label for="Search" class="col-form-label px-0">促銷價:</label>
+                        </div>
+                        <input class="form-control border text-dark" id="discountPrice"
+                            style="background-color: white; width: 400px; " name="discountPrice" type="number">
+                    </div><br>
+                    <input type="submit" class="btn btn-primary" value="更改" />
+                    <hr>
+                </div>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="productID" th:value="${productID}" id="productID" />
+            </form>
+        </div>
+    </div>
+    <!-- Content End -->
+
+
+
+    <!-- Footer --><!-- Back to Top -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        $(document).ready(function () {
+            var productID = $('#productID').val();
+            var ajaxResponse;
+            var selectedPrice;
+            $.ajax({
+                url: '/sip/room/quantity',
+                method: 'GET',
+                data: {
+                    productID: productID
+                },
+                success: function (response) {
+                    ajaxResponse = response;
+                    // 在這裡調用初始化 FullCalendar 的函數
+                    initializeFullCalendar(ajaxResponse);
+                },
+                error: function (error) {
+                    console.error('Error fetching room inventory data:', error);
+                }
+            });
+            $("#updateRoomPriceAndQuantity").submit(function (event) {
+                //取消預設動作
+                event.preventDefault();
+                var selectedDate = $('#selectedDate').val();
+                var quantity = $('#quantity').val();
+                var price = parseFloat($('#price').val());
+                var discountPrice = parseFloat($('#discountPrice').val());
+                if (!selectedDate) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "請選擇日期",
+                    });
+                    // 提前跳出事件
+                    return;
+                }
+                if (price < 0 || quantity < 0 || discountPrice < 0) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "請輸入正確數量、價格",
+                    });
+                    // 提前跳出事件
+                    return;
+                }
+                if (price < discountPrice) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "促銷價高於售價",
+                    });
+                    //提前跳出事件
+                    return
+                }
+                // 取得Form資料
+                const formData = $('#updateRoomPriceAndQuantity').serialize();
+                console.log(formData)
+                Swal.fire({
+                    title: "修改中...",
+                    text: "請稍候",
+                    icon: "info",
+                    allowOutsideClick: false, // 禁止點擊背景關閉
+                    allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                    allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading(); // 顯示Loading
+                    }
+                });
+                //ajax傳送
+                $.ajax({
+                    type: 'PUT',
+                    url: '/sip/room/updatePriceAndQuantity',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    //成功重新導向
+                    success: function (response) {
+                        ajaxResponse = response;
+                        // 在這裡調用重新渲染 FullCalendar 的函數
+                        initializeFullCalendar(ajaxResponse);
+                        Swal.fire({
+                            icon: "success",
+                            title: "更改成功",
+                            showCancelButton: false,
+                        })
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "有一些錯誤",
+                        });
+                    }
+                });
+
+            });
+        });
+
+        // 模擬房間庫存數量的資料
+        const inventoryData = {
+            '2023-12-01': 10,
+            '2023-12-05': 5,
+            '2023-12-10': 8,
+            // 在這裡加入更多日期和相對應的庫存數量
+        };
+
+        // 將 AJAX 返回的資料轉換為 FullCalendar 的事件數據格式
+        function getEvents(ajaxResponse) {
+            const events = [];
+
+            // 遍歷 AJAX 返回的每一條資料
+            ajaxResponse.forEach(data => {
+                // 提取日期和數量資訊
+                const date = new Date(data.date);
+                const quantity = data.quantityByDate;
+                const price = data.price;
+                const discountPrice = data.discountPrice;
+                console.log(price)
+                // 添加到 FullCalendar 的事件數據中
+                events.push({
+                    title: `數量: ${quantity}`,
+                    start: date,
+                    allDay: true,
+                    sort: 1, // 設置 order 屬性
+                    backgroundColor: "#f56954", //red
+                    borderColor: "#f56954" //red
+                });
+                if (discountPrice == null) {
+                    events.push({
+                        title: `房間售價: ${price}`,
+                        start: date,
+                        allDay: true,
+                        sort: 2, // 設置 order 屬性
+                    });
+                } else {
+                    events.push({
+                        title: `促銷中: ${discountPrice}`,
+                        start: date,
+                        allDay: true,
+                        sort: 2, // 設置 order 屬性
+                        backgroundColor: "#ba55d3", //red
+                        borderColor: "#ba55d3" //red
+                    });
+                }
+            });
+
+            return events;
+        }
+
+        // 初始化 FullCalendar
+        function initializeFullCalendar(ajaxResponse) {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                initialDate: new Date(), // 初始化時顯示當前月份
+                events: getEvents(ajaxResponse), // 使用 AJAX 返回的資料設定事件數據
+                height: 600, // 設定日曆高度
+                eventOrder: 'sort',
+                locale: 'zh-tw',
+                buttonText: {
+                    today: '今天'
+                },
+                //文件搜尋:dateClick fullcalendar  // 日期點擊
+                dateClick: function (info) {
+                    // 取得點擊的日期
+                    const clickedDate = info.date;
+                    // 使用 moment.js 將日期格式化為 'YYYY年MM月DD日'
+                    const startDate = moment(clickedDate).format('YYYY年MM月DD日');
+
+                    console.log('Clicked date:' + startDate);
+
+                    // 使用getEventByDate 獲取點擊日期對應的售價和數量
+                    const clickedEvent = getEventByDate(ajaxResponse, clickedDate);
+                    $('#selectedDate').val(startDate + ' - ' + startDate);
+                    $('#quantity').val(clickedEvent.quantityByDate);
+                    $('#price').val(clickedEvent.price);
+
+                    if (clickedEvent.discountPrice == null) {
+                        // 如果沒折扣 清空欄位
+                        $('#discountPrice').val("");
+                        $('#discountOptions').val("");
+                        $('#discountPriceView').hide();
+                    } else {
+                        const discountPercentage = clickedEvent.discountPrice / clickedEvent.price;
+                        // 尋找匹配的預設折扣
+                        let isStandardDiscount = false;
+                        $('#discountOptions option').each(function () {
+                            // parseFloat($(this).val()) 從這個 jQuery 對象中取得目前選項元素的值（即 <option> 標籤中的值）。
+                            if (parseFloat($(this).val()) === discountPercentage) {
+                                $('#discountOptions').val($(this).val());
+                                // $('#discountOptions').val($(this).val())
+                                //  的作用是將下拉式選單的選取值設為 $(this).val() 的值。這裡 $(this).val() 是從 each 方法中的目前選項中取得的值。
+                                isStandardDiscount = true;
+                                return false; // 退出每个循环
+                            }
+                        });
+                        // 如果有折扣顯示標準折扣或自訂折扣
+                        if (isStandardDiscount) {
+                            // 如果符合標準折扣，設定折扣價格並顯示
+                            $('#discountPrice').val(clickedEvent.discountPrice);
+                            $('#discountPriceView').show();
+                        } else {
+                            // 如果不符合標準折扣，選擇自訂折扣
+                            $('#discountOptions').val("customize");
+                            $('#discountPrice').val(clickedEvent.discountPrice);
+                            $('#discountPriceView').show();
+                        }
+                    }
+                }
+            });
+            // 渲染日曆
+            calendar.render();
+        }
+
+        function getEventByDate(ajaxResponse, targetDate) {
+            // 使用 moment.js 格式化目標日期
+            const formattedTargetDate = moment(targetDate).format('YYYY-MM-DD');
+
+            // 在 AJAX 返回的資料中尋找與目標日期相符的事件
+            const targetEvent = ajaxResponse.find(function (event) {
+                return moment(event.date).format('YYYY-MM-DD') === formattedTargetDate;
+            });
+            console.log(targetEvent)
+
+            return targetEvent || { quantity: '', price: '' }; // 如果找不到相符的事件，返回空值
+        }
+
+        function updatePrice() {
+
+            const selectedDiscount = document.getElementById('discountOptions').value;
+            const roomPirce = document.getElementById('price').value;
+
+            if (selectedDiscount === 'customize') {
+                // 選擇了自訂折扣，顯示折扣輸入框並設定為必填
+                $('#discountPriceView').show();
+                $('#discountPrice').prop('required', true);
+                $('#discountPrice').val("");// 清空折扣價格
+            } else if (selectedDiscount !== '' && selectedDiscount !== 'noDiscount') {
+                // 選擇了預設折扣，計算顯示折扣價
+                const discountedPrice = roomPirce * parseFloat(selectedDiscount);
+                document.getElementById('discountPrice').value = Math.floor(discountedPrice);
+                console.log(price, discountPrice)
+                $('#discountPriceView').show();
+                $('#discountPrice').prop('required', false); // 非必填，自動計算
+            } else {
+                // 沒有選擇折扣或選擇了 "noDiscount"，隱藏折扣輸入框
+                $('#discountPriceView').hide();
+                $('#discountPrice').prop('required', false); // 移除必填要求
+                $('#discountPrice').val("");// 清空折扣價格
+            }
+        }
+        //日期組件
+        $(function () {
+            function cb(start, end) {
+                $('#selectedDate span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+            $('#selectedDate').daterangepicker({
+                minDate: null,
+                "locale": {
+                    "format": "YYYY年MM月DD日",
+                    "separator": " - ",
+                    "applyLabel": "確認",
+                    "cancelLabel": "取消",
+                    "customRangeLabel": "自訂義範圍",
+                    "daysOfWeek": [
+                        "日",
+                        "一",
+                        "二",
+                        "三",
+                        "四",
+                        "五",
+                        "日"
+                    ],
+                    "monthNames": [
+                        "1 月",
+                        "2 月",
+                        "3 月",
+                        "4 月",
+                        "5 月",
+                        "6 月",
+                        "7 月",
+                        "8 月",
+                        "9 月",
+                        "10 月",
+                        "11 月",
+                        "12 月"
+                    ],
+                    "firstDay": 1
+                }, "autoUpdateInput": false
+            }, cb);
+            $('#selectedDate').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY年MM月DD日') + ' - ' + picker.endDate.format('YYYY年MM月DD日'));
+            });
+
+            $('#selectedDate').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+            });
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+	<!-- TITLE OF SITE -->
+	<title>SIP Erroe</title>
+	<div th:replace="~{indexNavbar/navbar1}"></div>
+</head>
+<style>
+	input[readonly] {
+		background-color: transparent !important;
+		/* 使用 !important 以确保覆盖默认样式 */
+	}
+
+	.form-label {
+		font-size: 18px;
+		margin-bottom: 5px;
+	}
+
+	h4 {
+		font-size: 18px;
+		margin-bottom: 5px;
+	}
+
+	#paymentMethod {
+		width: 20%;
+		padding: 8px;
+		border-radius: 8px;
+	}
+</style>
+
+<body>
+
+	<div th:replace="~{indexNavbar/navbar2}"></div>
+
+	<!-- 插入空白行，背景顏色保持一致 -->
+	<section style="background-color: #f9f9f9;">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="spacer" style="height: 20px;"></div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!--travel-box start-->
+	<section class="travel-box" style="background-color: #f9f9f9;">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="">
+						<div id="desc-tabs" class="desc-tabs">
+							<!-- Tab panes -->
+							<div class="tab-content">
+								<div role="tabpanel" class="tab-pane active fade in" id="booking">
+									<div class="tab-para" style="height: 700px;">
+										<div class="mb-3">
+											<label class="form-label" th:text="${errorMsg}"></label>
+										</div>
+									</div><!--/.tab-para-->
+								</div><!--/.tab-pane-->
+							</div><!--/.desc-tabs-->
+						</div><!--/.single-travel-box-->
+					</div><!--/.col-->
+				</div><!--/.row-->
+			</div><!--/.container-->
+	</section><!--/.travel-box-->
+
+
+
+	<!--galley start-->
+	<section id="gallery" class="gallery">
+		<div class="container">
+			<div class="gallery-details">
+				<div class="gallary-header text-center">
+					<h2>
+						top destination
+					</h2>
+				</div><!--/.gallery-header-->
+				<div class="gallery-box">
+					<div class="gallery-content">
+						<div class="filtr-container">
+							<div class="row">
+
+								<div class="col-md-6">
+									<div class="filtr-item">
+										<img src="../assets/images/gallary/taipei.jpg" alt="portfolio image" />
+										<div class="item-title">
+											<a href="#">
+												台北
+											</a>
+											<p><span>Taipei</span></p>
+										</div><!-- /.item-title -->
+									</div><!-- /.filtr-item -->
+								</div><!-- /.col -->
+
+								<div class="col-md-6">
+									<div class="filtr-item">
+										<img src="../assets/images/gallary/taichung.jpg" alt="portfolio image" />
+										<div class="item-title">
+											<a href="#">
+												台中
+											</a>
+											<p><span>Taichung</span></p>
+										</div> <!-- /.item-title-->
+									</div><!-- /.filtr-item -->
+								</div><!-- /.col -->
+
+								<div class="col-md-4">
+									<div class="filtr-item">
+										<img src="../assets/images/gallary/tainan.jpg" alt="portfolio image" />
+										<div class="item-title">
+											<a href="#">
+												台南
+											</a>
+											<p><span>Tainan</span></p>
+										</div><!-- /.item-title -->
+									</div><!-- /.filtr-item -->
+								</div><!-- /.col -->
+
+								<div class="col-md-4">
+									<div class="filtr-item">
+										<img src="../assets/images/gallary/taitung.jpg" alt="portfolio image" />
+										<div class="item-title">
+											<a href="#">
+												台東
+											</a>
+											<p><span>taitung</span></p>
+										</div> <!-- /.item-title-->
+									</div><!-- /.filtr-item -->
+								</div><!-- /.col -->
+
+								<div class="col-md-4">
+									<div class="filtr-item">
+										<img src="../assets/images/gallary/hualien.jpg" alt="portfolio image" />
+										<div class="item-title">
+											<a href="#">
+												花蓮
+											</a>
+											<p><span>hualien</span></p>
+										</div> <!-- /.item-title-->
+									</div><!-- /.filtr-item -->
+								</div><!-- /.col -->
+
+								<div class="col-md-8">
+									<div class="filtr-item">
+										<img src="../assets/images/gallary/yilan.jpg" alt="portfolio image" />
+										<div class="item-title">
+											<a href="#">
+												宜蘭
+											</a>
+											<p><span>yilan</span></p>
+										</div> <!-- /.item-title-->
+									</div><!-- /.filtr-item -->
+								</div><!-- /.col -->
+
+							</div><!-- /.row -->
+						</div><!-- /.filtr-container-->
+					</div><!-- /.gallery-content -->
+				</div><!--/.galley-box-->
+			</div><!--/.gallery-details-->
+		</div><!--/.container-->
+	</section><!--/.gallery-->
+
+	<div th:replace="~{indexNavbar/navbar3}"></div>
+	<div th:replace="~{indexNavbar/navbar4}"></div>
+</body>
+
+</html>
