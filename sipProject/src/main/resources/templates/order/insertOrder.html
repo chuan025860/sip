@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 飯店後台-建立訂單1</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <form id="findRoom">
+                    <input type="hidden" name="hotelID" th:value="${hotelID}" id="hotelID" />
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <br>
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="Search" class="col-form-label px-0">日期搜尋:&nbsp;&nbsp;</label>
+                        </div>
+                        <input type="search" class="form-control border w-50" id="selectedDate" readonly
+                            style="background-color: white; " name="checkDate">
+                        <input type="submit" class="btn btn-primary ms-3" value="搜尋">
+                    </div>
+                    <br>
+                </form>
+                <hr>
+                <div class="table-responsive border">
+                    <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <th scope="col"><input class="form-check-input" type="checkbox"></th>
+                                <th scope="col">房間名子</th>
+                                <th scope="col">房間類型</th>
+                                <th scope="col">房間數量</th>
+                                <th scope="col">可入住人數</th>
+                                <th scope="col">入住日期</th>
+                                <th scope="col">退房日期</th>
+                                <th scope="col">價格</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table">
+                        </tbody>
+                    </table>
+                    <!-- button變成列 貼其左邊 -->
+                    <div class="col text-end">
+                        <div id="total-amount">
+                            <!-- javascript計算 -->
+                        </div>
+                        <div id="button-container">
+                            <!-- javascript放入按鈕 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+            //點擊findRoom啟動搜尋
+            $('#findRoom').submit(function (event) {
+                //取消預設動作
+                event.preventDefault();
+                $('#total-amount').text('訂單金額：0元');
+                var tableBody = $("#order-table");
+                // 清空已有的按钮
+                $('#button-container').empty();
+                // 抓出飯店跟日期資料
+                const selectedDate = $("#selectedDate").val();
+                const hotelID = $("#hotelID").val();
+                const formData = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '/sip/hotel/findRoom',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    success: function (response) {
+                        console.log(response)
+                        //清除現有資料
+                        tableBody.empty();
+                        //總金額
+                        var totalAmount = 0;
+                        //陣列放入多個房間pirce
+                        var roomPrices = [];
+                        if (response !== null) {
+                            for (var i = 0; i < response.length; i++) {
+                                var room = response[i];
+                                //放入陣列
+                                roomPrices.push(room.price);
+                                var startTimeStamp = room.dateStart;
+                                var endTimeStamp = room.dateEnd;
+                                var startDate = new Date(startTimeStamp);
+                                var endDate = new Date(endTimeStamp);
+                                var options = { year: 'numeric', month: 'long', day: 'numeric' };
+                                var formattedStartDate = startDate.toLocaleString(undefined, options);
+                                var formattedEndDate = endDate.toLocaleString(undefined, options);
+                                var newRow = $("<tr>");
+                                newRow.append("<th scope='col'><input class='form-check-input countPrice' type='checkbox'></th>");
+                                newRow.append("<td class='text-dark'>" + room.productName + "</td>");
+                                newRow.append("<td class='text-dark'>" + room.productType + "</td>");
+                                var quantitySelect = $("<select class='form-select roomQuantity'></select>");
+                                quantitySelect.data('index', i); // 使用.data() 設置 'index' 後續需要依靠這個計算金額跟傳送
+                                console.log(quantitySelect.data('index'))
+                                for (var j = 1; j <= room.minQuantity; j++) {
+                                    quantitySelect.append("<option value='" + j + "'>" + j + "</option>");
+                                }
+                                newRow.append(quantitySelect);
+                                newRow.append("<td class='text-dark' id='capacity'>" + room.capacity + "</td>");
+                                newRow.append("<td class='text-dark'>" + formattedStartDate + "</td>");
+                                newRow.append("<td class='text-dark'>" + formattedEndDate + "</td>");
+                                console.log(room.discountPercentage)
+                                var priceCell = "<td class='text-dark price'>";
+                                if (room.discountPercentage !== 1) {
+                                    // 只有當折扣百分比不等於1時才顯示折扣
+                                    priceCell += room.price + " (折扣 " + (100 - room.discountPercentage * 100) + "%)";
+                                } else {
+                                    // 當折扣百分比等於1時，只顯示原價
+                                    priceCell += room.price;
+                                }
+                                priceCell += "</td>";
+                                newRow.append(priceCell);
+                                tableBody.append(newRow);
+                            }
+                            //點擊chebox跟下拉選單計算金額
+                            $('.countPrice , .roomQuantity').on('change', function () {
+                                updateTotalAmount();
+                            });
+                            // 全域
+                            var totalAmount = 0;
+                            //計算金額函數
+                            function updateTotalAmount() {
+                                totalAmount = 0;
+                                $('.countPrice ').each(function () {
+                                    var row = $(this).closest('tr');  //找到了 tr 元素，就可以使用 row 来引用它
+                                    var selectedIndex = row.find('.roomQuantity').data('index');
+                                    var roomPrice = roomPrices[selectedIndex];
+                                    var selectedQuantity = parseInt(row.find('.roomQuantity').val());
+
+                                    //檢查是否為數字
+                                    if (!isNaN(roomPrice) && !isNaN(selectedQuantity)) {
+                                        var discountPercentage = response[selectedIndex].discountPercentage;
+                                        var subtotal = selectedQuantity * roomPrice;
+                                    }
+                                    var discountInfo = ' (折扣 ' + (100 - discountPercentage * 100) + '%)';
+
+                                    // 使用變數儲存 .price 
+                                    var priceElement = row.find('.price');
+
+                                    if (discountPercentage == 1) {
+                                        priceElement.text(subtotal);
+                                    } else {
+                                        priceElement.text((subtotal + discountInfo));
+                                    }
+                                    //檢查checbox
+                                    if (row.find('.countPrice').is(':checked')) {
+                                        totalAmount += subtotal;
+                                    }
+                                });
+                                // 更新金額 //檢查是否為數字 //不是顯示0 
+                                if (!isNaN(totalAmount)) {
+                                    $('#total-amount').text('訂單金額：' + totalAmount + '元');
+                                    return true;
+                                } else {
+                                    $('#total-amount').text('訂單金額：0元');
+                                    return false;
+                                }
+                            }
+
+                            //裝入下一步按鈕
+                            var submitOrderButton = $('<button type="submit" class="btn btn-primary ms-3" id=nextButton >下一步</button>');
+
+                            $('#button-container').append(submitOrderButton);
+
+                            //點擊下一步
+                            $('#nextButton').click(function (event) {
+                                if (totalAmount == 0) {
+                                    return;
+                                }
+                                //取消預設動作
+                                event.preventDefault();
+                                //陣列放入選擇的商品
+                                var selectedProducts = [];
+                                //檢查.countPrice //:checked 是checkbox被勾選狀態
+                                $('.countPrice:checked').each(function () {
+                                    //抓出勾選狀態的[]index
+                                    //每個 <select> 元素，儲存了一個名為 'index' 的資料屬性，其值為目前循環變數 i。
+                                    var row = $(this).closest('tr');  //找到了 tr 元素，就可以使用 row 来引用它
+                                    var selectedIndex = row.find('.roomQuantity').data('index');
+                                    console.log(selectedIndex)
+                                    //用response[?]找出room
+                                    var room = response[selectedIndex];
+                                    console.log(room.productID)
+
+                                    var selectedPrice = roomPrices[selectedIndex];
+                                    var selectedQuantity = parseInt(row.find('.roomQuantity').val());
+                                    console.log(selectedPrice)
+                                    //裝進要傳送的陣列
+                                    selectedProducts.push({
+                                        productID: room.productID,
+                                        productName: room.productName,
+                                        productType: room.productType,
+                                        dateStart: room.dateStart,
+                                        dateEnd: room.dateEnd,
+                                        capacity: room.capacity,
+                                        quantity: selectedQuantity,
+                                        discountPercentage: room.discountPercentage,
+                                        orderItemPrice: selectedQuantity * selectedPrice,
+                                    });
+                                });
+                                console.log(selectedProducts)
+                                var requestData = {
+                                    selectedRooms: selectedProducts,
+                                    totalPrice: totalAmount
+                                };
+
+                                // ajax傳送
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '/sip/hotel/insterOrderStep1',
+                                    data: JSON.stringify(requestData),
+                                    contentType: 'application/json',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                                    },
+                                    //成功重新導向
+                                    success: function (response) {
+                                        console.log("testscuess")
+                                        window.location.href = "/sip/hotel/insterOrderStep2?hotelID=" + $("#hotelID").val();
+                                    },
+                                    error: function (error) {
+                                        console.error('AJAX error:', error);
+                                    }
+                                });
+                            });
+                        } else {
+                            tableBody.empty();
+                        }
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                    }
+                });
+
+            })
+        });
+
+        //日期組件  入住日期
+        $(function () {
+            var start = moment().subtract(29, 'days');
+            var end = moment();
+            function cb(start, end) {
+                $('#selectedDate span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+            $('#selectedDate').daterangepicker({
+                startDate: start,
+                endDate: end,
+                minDate: moment(),
+                "locale": {
+                    "format": "YYYY年MM月DD日",
+                    "separator": " - ",
+                    "applyLabel": "確認",
+                    "cancelLabel": "取消",
+                    "customRangeLabel": "自訂義範圍",
+                    "daysOfWeek": [
+                        "日",
+                        "一",
+                        "二",
+                        "三",
+                        "四",
+                        "五",
+                        "日"
+                    ],
+                    "monthNames": [
+                        "1 月",
+                        "2 月",
+                        "3 月",
+                        "4 月",
+                        "5 月",
+                        "6 月",
+                        "7 月",
+                        "8 月",
+                        "9 月",
+                        "10 月",
+                        "11 月",
+                        "12 月"
+                    ],
+                    "firstDay": 1
+                }, "autoUpdateInput": false
+            }, cb);
+            $('#selectedDate').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY年MM月DD日') + ' - ' + picker.endDate.format('YYYY年MM月DD日'));
+            });
+
+            $('#selectedDate').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+            });
+            cb(start, end);
+        });
+
+    </script>
+</body>
+
+</html>
