@@ -327,7 +327,7 @@ public class HotelLoginController {
         params.add("code", code);
         params.add("redirect_uri", "http://localhost:8080/sip/hotel/lineLogin");  // 一定要與 LINE Console 中設定的相同
         params.add("client_id", "2000911017");
-        params.add("client_secret", "7389ef57adffa0ac4b1f046be56f74ce");
+        params.add("client_secret", "XXX");
 
         // 使用 RestTemplate 發送 POST 請求
         RestTemplate restTemplate = new RestTemplate();

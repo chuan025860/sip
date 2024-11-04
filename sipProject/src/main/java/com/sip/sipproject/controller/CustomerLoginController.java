@@ -308,7 +308,7 @@ public class CustomerLoginController {
         params.add("code", code);
         params.add("redirect_uri", "http://localhost:8080/sip/customer/lineLogin");  // 一定要與 LINE Console 中設定的相同
         params.add("client_id", "2006237133");
-        params.add("client_secret", "95cc8c87cac0f3ac4d9f24f94ada960f");
+        params.add("client_secret", "XXX");
 
         // 使用 RestTemplate 發送 POST 請求
         RestTemplate restTemplate = new RestTemplate();
