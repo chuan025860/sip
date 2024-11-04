@@ -74,12 +74,15 @@ git clone https://github.com/chuan025860/sip.git
 * MS SQL 中創建名為 SIP 的資料庫。
 * 執行 SIP.sql 文件中的 SQL 語句。
 
-3. 修改資料庫配置：
-在 src/main/resources/application.properties 中，修改資料庫連接的用戶名和密碼。
+3. 設定配置：
+* src/main/resources/application.properties 中，設定資料庫連接的用戶名和密碼。
+* src/main/resources/application.properties 中，設定 spring.mail.username 和spring.mail.password (需聯繫作者)
+* src/main/resources/application.properties 中，自定義 app.jwt-secret 金鑰
+* src/main/java/com/sip/sipproject/controller/CustomerLoginController 中，設定Line登入金鑰 client_secret (需聯繫作者)
+* src/main/java/com/sip/sipproject/controller/HotelLoginController 中，設定Line登入金鑰 client_secret (需聯繫作者)
+5. 編譯並運行專案
 
-4. 編譯並運行專案
-
-5. 在瀏覽器中訪問：
+6. 在瀏覽器中訪問：
 ```
 首頁:http://localhost:8080/sip/sipIndex
 後台登入:http://localhost:8080/sip/hotel/login
