@@ -35,7 +35,7 @@ public class CustomerController {
     @ModelAttribute
     public void addAttributes(Model model, @CookieValue(value = "Authorization", required = false) String token) {
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 从 token 中提取用户名并添加到模型
+            // 從 token 中提取使用者名稱
             String customerLoginName = jwtTokenProvider.getCustomerNameFromToken(token);
             Integer customerLoginId = Integer.valueOf(jwtTokenProvider.getLoginIdFromToken(token));
             model.addAttribute("customerLoginName", customerLoginName);
