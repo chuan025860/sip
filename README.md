@@ -31,13 +31,13 @@
 3. 一對多（One-to-Many）：訂單與飯店的關聯
 4. 多對一（Many-to-One）：訂單明細與房間的關聯
 5. 諸多其他關聯
-* 並發處理：使用悲觀鎖進行資源保護
+* 併發處理：使用悲觀鎖進行資源保護
 * Maven: 使用 pom.xml 進行版本控制和依賴管理
 * JWT 身份驗證：基於 JWT（JSON Web Token）進行身份驗證，提升用戶資料安全性與跨域存取便捷性。
   
 
 ### 前端：
-* Thymeleaf：模板引擎，用於服務端渲染 HTML。
+* Thymeleaf：模板引擎。
 * HTML5 & CSS3：頁面結構和樣式。
 * Bootstrap：響應式佈局和 UI 元件。
 * SweetAlert：美觀的彈出提示框，提升用戶體驗。
