@@ -77,7 +77,7 @@ git clone https://github.com/chuan025860/sip.git
 3. 設定配置：
 * src/main/resources/application.properties 中，設定資料庫連接的用戶名和密碼。
 * src/main/resources/application.properties 中，設定 spring.mail.username 和spring.mail.password (需聯繫作者)
-* src/main/resources/application.properties 中，自定義 app.jwt-secret 金鑰
+* src/main/resources/application.properties 中，自定義 app.jwt-secret 私鑰
 * src/main/java/com/sip/sipproject/controller/CustomerLoginController 中，設定Line登入金鑰 client_secret (需聯繫作者)
 * src/main/java/com/sip/sipproject/controller/HotelLoginController 中，設定Line登入金鑰 client_secret (需聯繫作者)
 5. 編譯並運行專案
@@ -89,5 +89,26 @@ git clone https://github.com/chuan025860/sip.git
 用戶登入:http://localhost:8080/sip/customer/login
 ```
 ### 截圖展示
+![image](https://github.com/user-attachments/assets/a4581e04-8b99-4967-abb9-c35943805e48)
+![image](https://github.com/user-attachments/assets/9f574a45-fbe2-4022-9b4b-c7c9a6cc0934)
+![image](https://github.com/user-attachments/assets/7e46b27c-728b-4f7d-9a61-d2f2da47d581)
+![image](https://github.com/user-attachments/assets/a0e5004c-92f9-4a74-9457-247e06d6784f)
+![image](https://github.com/user-attachments/assets/3bdf7d2e-d834-45c3-a451-88636e46aee2)
+![image](https://github.com/user-attachments/assets/63a1b77b-3874-4664-899d-b690853e4c5a)
+![image](https://github.com/user-attachments/assets/0bf6e57b-46e5-43b2-a145-3a58aeb4fa2c)
+![image](https://github.com/user-attachments/assets/d05577c3-67a6-45be-935b-f538ca5ec229)
+![image](https://github.com/user-attachments/assets/fee40944-a967-4fb6-8ba3-6e800474b802)
+![image](https://github.com/user-attachments/assets/81d7f459-a341-4d27-aaf2-e73ea2a4e70f)
+![image](https://github.com/user-attachments/assets/2e6d645c-bad7-4a25-9e8c-4c19664db5e0)
+![image](https://github.com/user-attachments/assets/4df2a0ed-8a8f-4bbc-9887-798c35c28e7f)
+![image](https://github.com/user-attachments/assets/86549ab7-1e22-4397-bbe9-cf2c8676626b)
+![image](https://github.com/user-attachments/assets/9b24546d-5c10-4fe9-a497-6bab2d86b86d)
+
+
+
+
+
+
+
 
 
