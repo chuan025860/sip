@@ -88,14 +88,14 @@ git clone https://github.com/chuan025860/sip.git
 後台登入:http://localhost:8080/sip/hotel/login
 用戶登入:http://localhost:8080/sip/customer/login
 ```
-### 截圖展示
+### 部分截圖展示
 ![image](https://github.com/user-attachments/assets/a4581e04-8b99-4967-abb9-c35943805e48)
 ![image](https://github.com/user-attachments/assets/9f574a45-fbe2-4022-9b4b-c7c9a6cc0934)
 ![image](https://github.com/user-attachments/assets/7e46b27c-728b-4f7d-9a61-d2f2da47d581)
 ![image](https://github.com/user-attachments/assets/a0e5004c-92f9-4a74-9457-247e06d6784f)
 ![image](https://github.com/user-attachments/assets/3bdf7d2e-d834-45c3-a451-88636e46aee2)
-![image](https://github.com/user-attachments/assets/63a1b77b-3874-4664-899d-b690853e4c5a)
-![image](https://github.com/user-attachments/assets/0bf6e57b-46e5-43b2-a145-3a58aeb4fa2c)
+![image](https://github.com/user-attachments/assets/e451a66a-3027-4c8b-8af9-e1bbe16341cb)
+![image](https://github.com/user-attachments/assets/b9cf1623-d99b-4b6d-8878-d7aab6105aea)
 ![image](https://github.com/user-attachments/assets/d05577c3-67a6-45be-935b-f538ca5ec229)
 ![image](https://github.com/user-attachments/assets/fee40944-a967-4fb6-8ba3-6e800474b802)
 ![image](https://github.com/user-attachments/assets/81d7f459-a341-4d27-aaf2-e73ea2a4e70f)
