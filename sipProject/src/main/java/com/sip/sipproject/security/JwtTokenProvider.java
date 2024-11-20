@@ -68,6 +68,17 @@ public class JwtTokenProvider {
         return claims.get("customerName", String.class); //從 claims 取得 customerName
     }
 
+    // 登出使用黑名單 後端排除Token
+    public boolean invlaidate_Token(String token) {
+        try {
+
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            // Token 驗證失敗
+            return false;
+        }
+    }
+
     // 驗證 Token 方法
     public boolean validateToken(String token) {
         try {
