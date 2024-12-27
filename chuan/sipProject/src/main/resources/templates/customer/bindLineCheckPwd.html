@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com - Line綁定帳號</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <div th:replace="~{customerNavbar/customerNavbar_1}"></div>
+</head>
+
+<body style="background-image: url('../img/customer.jpg'); background-repeat: no-repeat; background-size: cover;">
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Sign In Start -->
+        <div class="container-fluid">
+            <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
+                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                    <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <a href="#">
+                                <h3 class="text-primary">SIP.com</h3>
+                            </a>
+                            <h3>Line綁定帳號</h3>
+                        </div>
+                        <form id="bindLineID">
+                            <div class="form-floating mb-3">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <input type="email" name="email" class="form-control" id="floatingInput"
+                                    placeholder="name@example.com" th:value="${session.customerEmail}" readonly
+                                    required>
+                                <input type="number" name="lineID" th:value="${session.lineID}" readonly hidden>
+                                <label for="floatingInput">帳號</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                <input type="password" name="password" class="form-control" id="floatingPassword"
+                                    placeholder="Password" required>
+                                <label for="floatingPassword">密碼</label>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <a th:href="@{/customer/forget_password}">忘記密碼</a>
+                            </div>
+                            <input type="submit" class="btn btn-primary py-3 w-100 mb-4" value="登入" />
+                        </form>
+                        <!-- 登入錯誤提示 -->
+                        <p style="color:red ;text-align: center;" id="errMsg" th:text="${errMsg}?${errMsg}"></p>
+                        <p class="text-center mb-0"> 沒有帳號嗎? <a th:href="@{/customer/startRegister}">註冊帳號</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sign In End -->
+
+    </div>
+    <div th:replace="~{customerNavbar/customerNavbar_5}"></div>
+    <script>
+
+        $(document).ready(function () {
+
+            $('#bindLineID').submit(function (event) {
+                event.preventDefault();  // 取消submit預設動作
+                // 取得Form資料
+                const formData = $(this).serialize();
+                $.ajax({
+                    type: 'PUT',
+                    url: '/sip/customer/bindLineID',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    success: function (response) {
+                        console.log('loginForm success:', response);
+                        if (response === 'Y') {
+                            //清空錯誤訊息
+                            $('#errMsg').html(null);
+                            // 顯示彈跳視窗
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Line',
+                                text: '綁定成功-Line登入',
+                                showCancelButton: false,
+                            }).then((result) => {
+                                //導入登入頁 使用LINE登入
+                                window.location.href = '/sip/customer/login';
+                            })
+
+                        }
+                        if (response === 'N') {
+                            $('#errMsg').html('用戶帳號或密碼錯誤');
+                        }
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

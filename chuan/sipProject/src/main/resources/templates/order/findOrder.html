@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 飯店後台-搜尋訂單</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <form class="selectOrder">
+                    <input type="hidden" name="hotelID" th:value="${hotelID}" id="hotelID" />
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="Search" class="col-form-label px-0 text-dark">訂單編號:&nbsp;&nbsp;</label>
+                        </div>
+                        <input class="form-control" type="search" id="orderID" name="orderID" style="width: 500px;">
+                    </div>
+                    <br>
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="Search" class="col-form-label px-0 text-dark">日期搜尋:&nbsp;&nbsp;</label>
+                        </div>
+                        <input type="search" class="form-control  text-dark" id="selectedDate" readonly
+                            style="background-color: white; width: 500px;" name="selectedDate">
+                    </div>
+                    <br>
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="status" class="col-form-label px-0 text-dark">訂單狀態:&nbsp;&nbsp;</label>
+                        </div>
+                        <select id="status" class="form-select text-dark" style="width: 500px;">
+                            <option value="">-- 請選擇 --</option>
+                            <option value="有效">有效</option>
+                            <option value="進行中">進行中</option>
+                            <option value="過期">過期</option>
+                            <option value="取消">取消</option>
+                        </select>
+                        <input type="submit" class="btn btn-primary ms-3" value="搜尋">
+                    </div>
+                    <br>
+
+                </form>
+                <hr>
+                <div class="table-responsive border">
+                    <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <th scope="col"><input class="form-check-input" type="checkbox"></th>
+                                <th scope="col">訂單編號</th>
+                                <th scope="col">住客姓名</th>
+                                <th scope="col">房間名稱</th>
+                                <th scope="col">數量</th>
+                                <th scope="col">住宿日期</th>
+                                <th scope="col">退房日期</th>
+                                <th scope="col">訂單金額</th>
+                                <th scope="col">訂單狀態</th>
+                                <th scope="col">付款方式</th>
+                                <th scope="col">訂單明細</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+            $('.selectOrder').submit(function (event) {
+                //取消預設動作
+                event.preventDefault();
+                console.log('啟動')
+                //拿取hotelID 
+                var hotelID = $("#hotelID").val();
+                console.log($("#hotelID").val())
+                //拿取orderID
+                var orderID = $("#orderID").val();
+                console.log("拿取id:  " + orderID)
+                //拿取日期
+                console.log("拿取日期")
+                var selectedDate = $("#selectedDate").val();
+                console.log("拿取日期: " + selectedDate);
+                //拿取狀態 
+                var status = $("#status").val();
+                console.log("狀態的值: " + status);
+                var requestOrder = {
+                    hotelID: hotelID,
+                    orderID: orderID,
+                    selectedDate, selectedDate,
+                    status, status
+                };
+                //ajax傳送
+                $.ajax({
+                    type: 'POST',
+                    url: '/sip/hotel/selectorder',
+                    data: JSON.stringify(requestOrder),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    //成功重新導向
+                    success: function (response) {
+                        console.log("success")
+                        console.log(response)
+                        var tableBody = $("#order-table");
+                        tableBody.empty();
+                        for (var i = 0; i < response.length; i++) {
+                            var orderList = response[i];
+                            console.log(orderList.orderID)
+                            var startTimeStamp = orderList.checkInDate;
+                            var endTimeStamp = orderList.checkOutDate;
+                            var startDate = new Date(startTimeStamp);
+                            var endDate = new Date(endTimeStamp);
+                            var options = { year: 'numeric', month: 'long', day: 'numeric' };
+                            var formattedStartDate = startDate.toLocaleString(undefined, options);
+                            var formattedEndDate = endDate.toLocaleString(undefined, options);
+                            var newRow = $("<tr>");
+                            newRow.append("<th scope='col'><input class='form-check-input' type='checkbox'></th>");
+                            newRow.append("<td class='text-dark'>" + orderList.orderID + "</td>");
+                            newRow.append("<td class='text-dark'>" + orderList.firstName + '&nbsp' + orderList.lastName + "</td>");
+                            newRow.append("<td class='text-dark'><div class='room-name'></div></td>");
+                            for (var j = 0; j < orderList.orderItems.length; j++) {
+                                var orderItem = orderList.orderItems[j];
+                                newRow.find('div.room-name').append("<span class='text-dark'>" + orderItem.productName + "</span><br>");
+
+                            }
+                            newRow.append("<td class='text-dark'><div class='room-quantity'></div></td>");
+                            for (var k = 0; k < orderList.orderItems.length; k++) {
+                                var orderItem = orderList.orderItems[k];
+                                newRow.find('div.room-quantity').append("<span class='text-dark'>" + orderItem.quantity + "</span><br>");
+                            }
+                            newRow.append("<td class='text-dark'>" + formattedStartDate + "</td>");
+                            newRow.append("<td class='text-dark'>" + formattedEndDate + "</td>");
+                            newRow.append("<td class='text-dark'>" + orderList.orderPrice + "</td>");
+                            newRow.append("<td class='text-dark'>" + orderList.orderStatus + "</td>");
+                            newRow.append("<td class='text-dark'>" + (orderList.payment === "cash" ? "現金" : orderList.payment) + "</td>");
+                            newRow.append("<td><a class='btn btn-sm btn-primary' href='/sip/hotel/orderdetail?hotelID=" + $('#hotelID').val() + "&orderID=" + orderList.orderID + "'>Detail</a></td>");
+                            tableBody.append(newRow);
+                        }
+                    },
+                    error: function (error) {
+                        var tableBody = $("#order-table");
+                        tableBody.empty();
+                        console.error('AJAX error:', error);
+                    }
+                });
+            }
+            );
+        });
+
+        $(function () {
+            function cb(start, end) {
+                $('#selectedDate span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+            $('#selectedDate').daterangepicker({
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '昨天': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '前 7 天': [moment().subtract(6, 'days'), moment()],
+                    '前 30 天': [moment().subtract(29, 'days'), moment()],
+                    '這個月': [moment().startOf('month'), moment().endOf('month')],
+                    '上個月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }, "locale": {
+                    "format": "YYYY年MM月DD日",
+                    "separator": " - ",
+                    "applyLabel": "確認",
+                    "cancelLabel": "取消",
+                    "customRangeLabel": "自訂義範圍",
+                    "daysOfWeek": [
+                        "日",
+                        "一",
+                        "二",
+                        "三",
+                        "四",
+                        "五",
+                        "日"
+                    ],
+                    "monthNames": [
+                        "1 月",
+                        "2 月",
+                        "3 月",
+                        "4 月",
+                        "5 月",
+                        "6 月",
+                        "7 月",
+                        "8 月",
+                        "9 月",
+                        "10 月",
+                        "11 月",
+                        "12 月"
+                    ],
+                    "firstDay": 1
+                }, "autoUpdateInput": false
+            }, cb);
+            $('#selectedDate').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY年MM月DD日') + ' - ' + picker.endDate.format('YYYY年MM月DD日'));
+            });
+
+            $('#selectedDate').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+            });
+        })
+    </script>
+</body>
+
+</html>

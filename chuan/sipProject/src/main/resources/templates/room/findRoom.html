@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+	<meta charset="UTF-8">
+	<title>SIP.com -房間管理</title>
+	<div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+</head>
+
+<body>
+	<div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+	<div class="content">
+		<div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+		<div class="container-fluid pt-4 px-4">
+			<div class="bg-light text-center rounded p-4">
+				<div class="table-responsive border">
+					<table class="table text-start align-middle table-bordered table-hover mb-0">
+						<thead>
+							<tr>
+								<th>房間名稱</th>
+								<th>房間類型</th>
+								<th>房間定價</th>
+								<th>管理庫存數量、售價</th>
+								<th>預覽</th>
+								<th>編輯</th>
+								<th>狀態</th>
+							</tr>
+						</thead>
+						<tbody>
+							<th:block th:each="room : ${rooms}">
+								<tr>
+									<td class='text-dark' th:text="${room.productName}"></td>
+									<td class='text-dark' th:text="${room.productType}"></td>
+									<td class='text-dark' th:text="${room.price}"></td>
+									<td><a class='btn btn-sm btn-primary'
+											th:href="@{'/room/roomquantity?productID='+ ${room.productID}+ '&hotelID=' + ${hotelID}}">庫存數量、售價</a>
+									</td>
+									<td><a class='btn btn-sm btn-secondary'
+											th:href="@{'/room/previewRoom?productID='+ ${room.productID}+ '&hotelID=' + ${hotelID}}">預覽</a>
+									</td>
+									<td><a class='btn btn-sm btn-primary'
+											th:href="@{'/room/updateroom?productID=' + ${room.productID} + '&hotelID=' + ${hotelID}}">編輯</a>
+									</td>
+									<td>
+										<a class="btn btn-sm "
+											th:classappend="${room.state} ? 'btn-success' : 'btn-danger'"
+											th:text="${room.state} ? '開啟中' : '停用中'">
+										</a>
+									</td>
+								</tr>
+							</th:block>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Footer --><!-- Back to Top -->
+	<div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+	<!-- scriptNavbar -->
+	<div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+	<script>
+	</script>
+</body>
+
+</html>

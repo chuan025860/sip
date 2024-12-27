@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 飯店後台-飯店資料</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <style>
+        .small-input {
+            width: 300px;
+            /* 自定義的寬度，可以根據需要調整 */
+        }
+
+        .form-check-input:disabled:checked {
+            background-color: hsl(203, 98%, 52%);
+            /* Use your preferred color */
+            border-color: hsl(203, 98%, 52%);
+            /* Use your preferred color */
+        }
+    </style>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+
+        <!-- Sale & Revenue Start -->
+        <form th:action="@{/hotel/updatehotel}" method="post">
+            <div class="container-fluid pt-4 px-4">
+                <div class="row g-4 h6">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="bg-light rounded h-100 p-5 ">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6>飯店基本資料</h6>
+                                <div th:if="${hotel.state}" class="status-button btn btn-primary">營業中</div>
+                                <div th:if="${!hotel.state}" class="status-button btn btn-danger">停業中</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="hotelName" class="form-label">飯店</label>
+                                <input type="text" class="form-control small-input text-dark" id="hotelName"
+                                    name="hotelName" th:value="${hotel.hotelName}" readonly>
+                                <input type="hidden" name="hotelID" th:value="${hotel.hotelID}" id="hotelID" />
+
+                            </div>
+                            <div class="mb-3">
+                                <label for="hotelType" class="form-label">飯店類型</label>
+                                <input type="text" class="form-control small-input text-dark" id="hotelType"
+                                    name="hotelType" th:value="${hotel.hotelType}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="hotelStar" class="form-label">飯店星級</label>
+                                <input type="text" class="form-control small-input text-dark" id="hotelStar"
+                                    name="hotelStar" th:value="${hotel.hotelStar}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="guiNumber" class="form-label">統一編號</label>
+                                <input type="text" class="form-control small-input text-dark" id="guiNumber"
+                                    name="guiNumber" th:value="${hotelDetail.guiNumber}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="businessName" class="form-label">營業負責人</label>
+                                <input type="text" class="form-control small-input text-dark" id="businessName"
+                                    name="businessName" th:value="${hotelDetail.businessName}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="openYear" class="form-label">開業年份</label>
+                                <input type="text" class="form-control small-input text-dark" id="openYear"
+                                    name="openYear" th:value="${hotelDetail.openYear}" readonly>
+                            </div>
+                            <br>
+                            <div class="mb-3 text-dark">
+                                <h6>飯店設施服務</h6>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="cleanService"
+                                        th:checked="${hotelDetail.cleaningService}" disabled>
+                                    <label class="check-label" for="cleanService">每日清潔服務
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="expressCheckin"
+                                        th:checked="${hotelDetail.expressCheckin}" disabled>
+                                    <label class="check-label" for="expressCheckin">快速入住
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="counter24hr"
+                                        th:checked="${hotelDetail.counter24hr}" disabled>
+                                    <label class="check-label" for="counter24hr">24 小時接待櫃檯
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="freeWiFi"
+                                        th:checked="${hotelDetail.freeWiFi}" disabled>
+                                    <label class="check-label" for="freeWiFi">
+                                        免費WiFi
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="roomCard"
+                                        th:checked="${hotelDetail.roomCard}" disabled>
+                                    <label class="check-label" for="roomCard">房卡進出
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="noSmoking"
+                                        th:checked="${hotelDetail.noSmoking}" disabled>
+                                    <label class="check-label" for="noSmoking">全面禁菸
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="petFriendly"
+                                        th:checked="${hotelDetail.petFriendly}" disabled>
+                                    <label class="check-label" for="petFriendly">可攜帶寵物
+                                    </label>
+                                </div>
+                                <div class="addpetmoney" method="post" style="display: none;" id="addpetmoney">
+                                    <input type="hidden" name="hotelID" th:value="${hotel.hotelID}" id="hotelID" />
+                                    <div class="mb-3">
+                                        <label for="petDeposit">攜帶寵物 房間押金</label>
+                                        <input type="text" name="petDeposit"
+                                            class="form-control small-input text-dark text-dark" id="petDeposit"
+                                            th:value="${hotelDetail.petDeposit}" disabled />
+                                        <span class="Error" id="petDepositError"></span> <!-- 顯示錯誤訊息 -->
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="petCleaningFee">寵物清潔費</label>
+                                        <input type="text" name="petCleaningFee"
+                                            class="form-control small-input text-dark text-dark" id="petCleaningFee"
+                                            th:value="${hotelDetail.petCleaningFee}" readonly />
+                                        <span class="Error" id="petCleaningFeeError"></span> <!-- 顯示錯誤訊息 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="bg-light rounded h-100 p-5">
+                            <div class="mb-3">
+                                <label for="tel" class="form-label">電話</label>
+                                <input type="text" class="form-control small-input text-dark" id="tel" name="tel"
+                                    th:value="${hotel.tel}" readonly />
+                            </div>
+                            <div class="mb-3">
+                                <label for="country" class="form-label">國家</label>
+                                <input type="text" class="form-control small-input text-dark" id="country"
+                                    name="country" th:value="${hotel.country}" readonly />
+                            </div>
+                            <div class="mb-3">
+                                <label for="city" class="form-label">城市</label>
+                                <input type="text" class="form-control small-input text-dark" id="city" name="country"
+                                    th:value="${hotel.city}" readonly /><br>
+                                <label for="region" class="form-label">鄉鎮</label>
+                                <input type="text" class="form-control small-input text-dark" id="region" name="country"
+                                    th:value="${hotel.region}" readonly /><br>
+                                <label for="postalCode" class="form-label small-input">郵遞區號</label>
+                                <input type="text" class="form-control small-input text-dark" id="postalCode"
+                                    name="country" th:value="${hotel.postalCode}" readonly />
+                            </div>
+                            <div class="mb-3">
+                                <label for="street">街區</label>
+                                <input type="text" name="street" placeholder="街區" id="street"
+                                    class="form-control small-input text-dark" th:value="${hotel.street}" readonly />
+                            </div>
+                            <div class="mb-3">
+                                <label for="street">飯店介紹</label>
+                                <textarea class="form-control" name="hotelIntroduction" style="width: 694.5px; height: 150px; 
+                                   " th:text="${hotel.hotelIntroduction}" id="hotelIntroduction" readonly></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="street">預訂須知</label>
+                                <textarea class="form-control" name="reservationNotice" style="width: 694.5px; height: 150px; 
+                                   " th:text="${hotelDetail.reservationNotice}" id="reservationNotice"
+                                    readonly></textarea>
+                            </div>
+                            <button type="submit" class="submit btn btn-primary m-2">修改</button>
+                            <!-- 預覽按鈕 -->
+                            <button type="button" class="preview btn btn-secondary m-2" id="preview">預覽</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
+    </div>
+    <!-- Content End -->
+
+
+    <!-- Footer --><!-- Back to Top -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        var petFriendlyInput = document.getElementById('petFriendly');
+        var addpetmoneyInput = document.getElementById('addpetmoney');
+        var petFriendly = petFriendlyInput.checked;
+        console.log(petFriendly)
+        if (petFriendly === true) {
+            addpetmoneyInput.style.display = 'block';
+        }
+        $(document).ready(function () {
+            $("#preview").on("click", function (event) {
+                event.preventDefault();
+                window.location.href = '/sip/hotel/preview?hotelID=' + $("#hotelID").val();
+            })
+        })
+    </script>
+</body>
+
+</html>

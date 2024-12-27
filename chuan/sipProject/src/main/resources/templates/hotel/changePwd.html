@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>SIP.com 飯店後台-更改密碼</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <style>
+        .my-span {
+            display: none;
+            font-size: 15px;
+            font-weight: bold;
+            color: rgb(249, 117, 117);
+            margin-top: 0px;
+            margin-left: 160px;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <!-- Form Start -->
+        <div class="container-fluid pt-4 px-4">
+            <div class="row g-4">
+
+                <div class="col-sm-12 col-xl-6">
+                    <div class="bg-light rounded h-100 p-4">
+                        <h6 class="mb-4">更改密碼</h6>
+                        <p>輸入信箱驗證碼</p>
+                        <form id="changeReset_password" th:method="PUT">
+                            <div class="row mb-3">
+                                <label for="floatingInput1" class="col-sm-2 col-form-label">驗證碼</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="verificationCode" class="form-control" id="floatingInput1"
+                                        value="" required>
+                                </div>
+                                <label for="newPwd" class="col-sm-2 col-form-label">新密碼</label>
+                                <div class="col-sm-10">
+                                    <input type="password" name="newPwd" class="form-control" id="newPwd" value=""
+                                        required>
+                                    <span class="my-span" id="showErroPassword"></span>
+                                </div>
+                                <label for="confirmPassword" class="col-sm-2 col-form-label">確認新密碼</label>
+                                <div class="col-sm-10">
+                                    <input type="password" name="confirmPassword" class="form-control"
+                                        id="confirmPassword" value="" required>
+                                    <span class="my-span" id="passwordMatchError"></span>
+                                </div>
+                            </div>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <button id="submitBtn" type="button" class="submit btn btn-primary m-2">修改</button>
+                        </form>
+                        <!-- 提示 -->
+                        <p style="color:green;text-align: center;"
+                            th:text="${session.resetMail}?'驗證碼已發送至'+${session.resetMail}"></p>
+                        <p class="text-center mb-0"> 沒有驗證碼? <a
+                                th:href="@{'/hotel/resendVerificationCode_password?hotelID='+ ${hotelID}}">取得驗證碼</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Form End -->
+    </div>
+    <!-- Content End -->
+
+
+    <!-- Footer --><!-- Back to Top -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        var passwordInput = document.getElementById('newPwd');
+        var confirmPasswordInput = document.getElementById('confirmPassword');
+        var showErroPassword = document.getElementById('showErroPassword');
+        var passwordMatchError = document.getElementById('passwordMatchError');
+        var passwordRequirements = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
+        var submitButton = document.getElementById('submitBtn');
+        passwordInput.addEventListener('input', validatePassword);
+        confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+
+        function validatePassword() {
+            var password = passwordInput.value;
+            var isValid = true;
+            if (password.trim() === '') {
+                showErroPassword.style.display = 'block';
+                showErroPassword.textContent = '請輸入密碼';
+                isValid = false;; //輸入錯誤
+            } else if (!passwordRequirements.test(password)) {
+                showErroPassword.style.display = 'block';
+                showErroPassword.textContent = '必須包含至少一個數字和一個字母和一個大寫字母，且至少6個字符';
+                isValid = false; //輸入錯誤
+            } else {
+                showErroPassword.style.display = 'none';
+                showErroPassword.textContent = '';
+                // 正確
+            }
+            checkPasswordsMatch();
+            return isValid; // 返回布林值-密碼是否有效 
+        }
+
+        function validateConfirmPassword() {
+            var password = passwordInput.value;
+            var confirmPassword = confirmPasswordInput.value;
+            var isValid = true;
+            if (confirmPassword.trim() === '') {
+                passwordMatchError.style.display = 'block';
+                passwordMatchError.textContent = '確認密碼';
+                isValid = false;; //輸入錯誤
+            } else if (password !== confirmPassword) {
+                passwordMatchError.style.display = 'block';
+                passwordMatchError.textContent = '確認密碼錯誤';
+                isValid = false;; //輸入錯誤
+            } else {
+                passwordMatchError.style.display = 'none';
+                passwordMatchError.textContent = '';
+                // 正確
+            }
+            checkPasswordsMatch();
+            return isValid; // 返回布林值-密碼是否有效 
+        }
+
+        function checkPasswordsMatch() {
+            var password = passwordInput.value;
+            var confirmPassword = confirmPasswordInput.value;
+
+            if (password === confirmPassword && password !== '' && passwordRequirements.test(password)) {
+                passwordInput.style.borderColor = 'green';
+                confirmPasswordInput.style.borderColor = 'green';
+                submitButton.removeAttribute('disabled');
+            } else {
+                passwordInput.style.borderColor = 'red';
+                confirmPasswordInput.style.borderColor = 'red';
+                submitButton.setAttribute('disabled', 'true');
+            }
+        }
+        $(document).ready(function () {
+            $('#submitBtn').click(function (event) {
+                event.preventDefault();
+                // 取得Form資料
+                const formData = $('#changeReset_password').serialize();
+                Swal.fire({
+                    title: "修改中...",
+                    text: "請稍候",
+                    icon: "info",
+                    allowOutsideClick: false, // 禁止點擊背景關閉
+                    allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                    allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading(); // 顯示Loading
+                    }
+                });
+                $.ajax({
+                    type: 'PUT',
+                    url: '/sip/hotel/changereset_password',
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                    },
+                    success: function (response) {
+                        console.log('loginForm success:', response);
+                        if (response === "Y") {
+                            Swal.fire({
+                                icon: "success",
+                                title: "設定完成",
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.href = '/sip/hotel/login';
+                            });
+                        } else if (response === "N") {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Oops...",
+                                text: "驗證碼錯誤",
+                            });
+                        } else if (response === "errMsg") {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Oops...",
+                                text: "驗證碼驗證碼正確,密碼更新失敗",
+                            });
+                        }
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                    }
+                });
+
+            })
+        })
+    </script>
+</body>
+
+</html>
