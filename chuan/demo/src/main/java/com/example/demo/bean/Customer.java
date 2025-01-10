@@ -24,8 +24,6 @@ public class Customer {
     @Column(name = "CustomerName")
     private String customerName;
 
-    @Column(name = "sex")
-    private String sex;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "birthday")
@@ -38,26 +36,12 @@ public class Customer {
     @Column(name = "headshot")
     private byte[] headshot;
 
-    @Column(name = "country")
-    private String country;
 
     @Column(name = "city")
     private String city;
 
-    @Column(name = "region")
-    private String region;
-
     @Column(name = "street")
     private String street;
-
-    @Column(name = "postalCode")
-    private String postalCode;
-
-    @Column(name = "googleID")
-    private String googleID;
-
-    @Column(name = "LineID")
-    private String LineID;
 
 
     public Customer() {
@@ -67,15 +51,9 @@ public class Customer {
         this.email = email;
         this.password = password;
         this.customerName = customerName;
-        this.sex = sex;
         this.birthday = birthday;
         this.phone = phone;
-        this.country = country;
-        this.city = city;
-        this.region = region;
         this.street = street;
-        this.postalCode = postalCode;
-        this.LineID = LineID;
     }
 
 }

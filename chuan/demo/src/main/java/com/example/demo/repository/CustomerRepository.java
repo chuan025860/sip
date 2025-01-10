@@ -10,21 +10,11 @@ import org.springframework.data.repository.query.Param;
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     @Query(value="from Customer where customerName = :n")
      Customer findCustomerByCustomerName(@Param("n") String name);
-    @Query(value="from Customer where email = :email")
-    Customer findCustomerByEmail(@Param("email") String email);
 
-    @Query("FROM Customer WHERE LineID = :lineID")
-    Customer findByLineID(@Param("lineID") String lineID);
+    @Query(value="from Customer where phone = :phone")
+    Customer findCustomerByPhone(@Param("phone") String phone);
 
-    @Query(value="FROM Customer WHERE googleID = :googleID")
-    Customer findByGoogleID(@Param("googleID") String googleID);
-
-    @Modifying
-    @Query(value="UPDATE Customer c SET c.googleID = NULL WHERE c.loginID = :loginID")
-    void clearGoogleID(@Param("loginID") String loginID);
-
-    @Modifying
-    @Query(value="UPDATE Customer SET googleID = :newGoogleID WHERE loginID = :loginID")
-    void bindGoogleID(@Param("loginID") String loginID, @Param("newGoogleID") String newGoogleID);
+    @Query(value="from Customer where phone = :phone")
+    boolean checkUserExists(@Param("phone") String phone);
 
 }

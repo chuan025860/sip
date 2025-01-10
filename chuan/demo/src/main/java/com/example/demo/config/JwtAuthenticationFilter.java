@@ -25,57 +25,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-//        // 提取 token
-//        Cookie[] cookies = request.getCookies();
-//        String token = null;
-//        if (cookies != null) {
-//            for (Cookie cookie : cookies) {
-//                if (cookie.getName().equals("Authorization")) {
-//                    token = cookie.getValue();
-//                    break;
-//                }
-//            }
-//        }
-//
-//        // 獲取請求的 URI
-//        String requestURI = request.getRequestURI();
-//
-//        // 如果請求需要身份驗證
-//        if (token != null && jwtTokenProvider.validateToken(token)) {
-//            try {
-//                // 已有token 如果使用者要求的是登入頁面，導向到頁面
-//                if (requestURI.equals("/sip/customer/login")) {
+        String token = request.getHeader("Authorization");
+
+        // 獲取請求的 URI
+        String requestURI = request.getRequestURI();
+
+        // 如果請求需要身份驗證
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            try {
+                // 已有token 如果使用者要求的是登入頁面，導向到頁面
+                if (requestURI.equals("/customer/login")) {
 //                    response.sendRedirect("/sip/customer/index");
-//                    return;  // 停止過濾鏈
-//                }
-//            } catch (JwtException e) {
-//            // 無效 token，重新導向至登入頁面
-//                response.sendRedirect("/sip/customer/login");
-//                return;  // 停止過濾鏈
-//            }
-//        }else if (isProtectedPath(requestURI)) {
-//            // 若無 token 且訪問受保護的頁面，重新導向至登入頁面
-//            response.sendRedirect("/sip/customer/login");
-//            return;
-//        }
-//
-//        // 若無重定向需求，轉交給下一個過濾器或 API 控制器。
-//        filterChain.doFilter(request, response);
-//    }
-//
-//    // 檢查路徑是否需要身份驗證
-//    private boolean isProtectedPath(String requestURI) {
-//        // 請求路徑 "/sip/customer/index"
-//        if (requestURI.equals("/sip/customer/index")) {
-//            return true;
-//        }
-//
-//        // 請求路徑是以 "/sip/customer/index/" 開頭
-//        if (requestURI.startsWith("/sip/customer/index/")) {
-//            return true;
-//        }
-//        return false;
+                    return;  // 停止過濾鏈
+                }
+            } catch (JwtException e) {
+            // 無效 token，重新導向至登入頁面
+                response.sendRedirect("/customer/errorToken");
+                return;  // 停止過濾鏈
+            }
+        }else if (isProtectedPath(requestURI)) {
+            // 若無 token 且訪問受保護的頁面，重新導向至登入頁面
+            response.sendRedirect("/customer/needToken");
+            return;
+        }
+
+        // 若無重定向需求，轉交給下一個過濾器或 API 控制器。
         filterChain.doFilter(request, response);
+    }
+
+    // 檢查路徑是否需要身份驗證
+    private boolean isProtectedPath(String requestURI) {
+        // 請求路徑 "/sip/customer/index"
+        if (requestURI.equals("/customer/index")) {
+            return true;
+        }
+
+        // 請求路徑是以 "/sip/customer/index/" 開頭
+        if (requestURI.startsWith("/customer/index/")) {
+            return true;
+        }
+        return false;
+//        filterChain.doFilter(request, response);
     }
 
 }

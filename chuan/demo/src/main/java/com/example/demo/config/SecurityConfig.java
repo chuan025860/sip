@@ -5,10 +5,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
 
 @Configuration
 public class SecurityConfig  {
@@ -30,15 +33,20 @@ public class SecurityConfig  {
                 // 授權請求設置
                 .authorizeHttpRequests(authorize -> authorize
                         // 公開訪問的路徑
-                        .requestMatchers("/customer/**").permitAll()
+                        .requestMatchers("/**").permitAll()
                         // 其他任何請求都必須經過身份驗證
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // 配置 CSRF Token 存储为 Cookie
+                .csrf(AbstractHttpConfigurer::disable
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+//                        .csrfTokenRequestHandler(createCsrfHandler ())
                 );
 
         return http.build();
     }
-
+private CsrfTokenRequestAttributeHandler createCsrfHandler (){
+        CsrfTokenRequestAttributeHandler csrfHandler=new CsrfTokenRequestAttributeHandler();
+        csrfHandler.setCsrfRequestAttributeName(null);
+        return csrfHandler;
+}
 }

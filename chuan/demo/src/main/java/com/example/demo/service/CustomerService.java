@@ -27,59 +27,44 @@ public class CustomerService {
             return null;
         }
     }
-    //是否有googleID
-    public boolean checkGoogleIdExistByLoginId(Integer loginId) {
-        Optional<Customer> optional = customerRepository.findById(loginId);
-        if (optional.isPresent()) {
-            Customer customer = optional.get();
-            return customer.getGoogleID() != null;
-        } else {
-            return false;
-        }
-    }
-    //是否有LineID
-    public boolean checkLineIdExistByLoginId(Integer loginId) {
-        Optional<Customer> optional = customerRepository.findById(loginId);
-        if (optional.isPresent()) {
-            Customer customer = optional.get();
-            return customer.getLineID() != null;
-        } else {
-            return false;
-        }
-    }
-    public Customer findCustomerByEmail(String email) {
-        Customer customer = customerRepository.findCustomerByEmail(email);
-        return customer;
-    }
 
-    public Boolean checkCustomerByEmail(String email) {
-        Customer customer = customerRepository.findCustomerByEmail(email);
-        return customer != null;
-    }
 
-    public void insert(Customer customer) {
-        String encodedPwd = pwdEncoder.encode(customer.getPassword());
-        customer.setPassword(encodedPwd);
-        customerRepository.save(customer);
-    }
+//    public Customer findCustomerByEmail(String email) {
+//        Customer customer = customerRepository.findCustomerByEmail(email);
+//        return customer;
+//    }
+//
+//    public Boolean checkCustomerByEmail(String email) {
+//        Customer customer = customerRepository.findCustomerByEmail(email);
+//        return customer != null;
+//    }
 
-    public Boolean resetPwd(String resetMail, String newPwd) {
-        Customer customer = customerRepository.findCustomerByEmail(resetMail);
-        if (customer != null) {
-            String encodedPwd = pwdEncoder.encode(newPwd);
+    public boolean insert(Customer customer) {
+        try {
+            String encodedPwd = pwdEncoder.encode(customer.getPassword());
             customer.setPassword(encodedPwd);
             customerRepository.save(customer);
-            return true;
+            return true; // 成功保存時回傳 true
+        } catch (Exception e) {
+            e.printStackTrace(); // 可選：處理異常並記錄錯誤
+            return false; // 發生錯誤時回傳 false
         }
-        return false;
     }
 
-    public Customer findLineID(String LineID) {
-        return customerRepository.findByLineID(LineID);
-    }
+//    public Boolean resetPwd(String resetMail, String newPwd) {
+//        Customer customer = customerRepository.findCustomerByEmail(resetMail);
+//        if (customer != null) {
+//            String encodedPwd = pwdEncoder.encode(newPwd);
+//            customer.setPassword(encodedPwd);
+//            customerRepository.save(customer);
+//            return true;
+//        }
+//        return false;
+//    }
 
-    public Customer checkLogin(String email, String inputPwd) {
-        Customer customer = customerRepository.findCustomerByEmail(email);
+
+    public Customer checkLogin(String phone, String inputPwd) {
+        Customer customer = customerRepository.findCustomerByPhone(phone);
         //比對加密
         if (customer != null) {
             if (pwdEncoder.matches(inputPwd, customer.getPassword())) {
@@ -89,25 +74,14 @@ public class CustomerService {
         return null;
     }
 
+    public boolean  checkUserExists(String phone) {
+        return  customerRepository.checkUserExists(phone);
+    }
+
     public void updateCustomer(Customer customer) {
         customerRepository.save(customer);
     }
 
-    //使用googleID 取得Customer
-    public Customer oauth2CheckLogin(String googleID) {//google登入
-        return customerRepository.findByGoogleID(googleID);
-    }
 
-
-
-    @Transactional //清除googleID
-    public void clearGoogleID(String loginID) {//清除googleID
-        customerRepository.clearGoogleID(loginID);
-    }
-
-    @Transactional //新增googleID
-    public void bindGoogleID(String loginID, String newGoogleID) {
-        customerRepository.bindGoogleID(loginID, newGoogleID);
-    }
 
 }
