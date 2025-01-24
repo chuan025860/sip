@@ -1,0 +1,24 @@
+CREATE DATABASE Inventory 
+
+CREATE TABLE inventory (
+    audit_status VARCHAR(10), -- 查核 
+    property_id VARCHAR(20), -- 財產編號 
+    management_id VARCHAR(20), -- 列管編號
+    final_property_id VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    scrapped VARCHAR(20), -- 報廢
+    category VARCHAR(20), -- 類別
+    name VARCHAR(255), -- 名稱
+    remarks VARCHAR(255), -- 備註	
+    size_serial VARCHAR(50), -- 尺寸_序號
+    quantity_unit VARCHAR(10), -- 數量_單位
+    purchase_date VARCHAR(20), -- 購買日期
+    supplier VARCHAR(50), -- 購入廠商
+    purchase_amount INT , -- 購買金額
+    tax VARCHAR(255) , -- 稅金
+    location VARCHAR(20), -- 放置處
+    custodian VARCHAR(10), -- 保管人
+    contact_window VARCHAR(20), -- 聯繫窗口
+    change_record TEXT, -- 異動記錄
+    state BOOLEAN DEFAULT FALSE, -- 盤點狀態，預設為 FALSE
+    is_updated BOOLEAN DEFAULT FALSE  --  檢查是否有更新過
+);

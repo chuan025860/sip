@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="utf-8">
+    <title>放置處搜尋</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+
+    <style>
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            background-color: #18a383;
+            border-color: #18a383;
+        }
+
+        .readonly-field {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .data-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .data-card .field-title {
+            font-size: 58px;
+            color: #333;
+        }
+
+        .data-card .field-value {
+            font-size: 48px;
+            color: #555;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Content Start -->
+    <div class="container-fluid pt-4 px-4">
+        <div class="bg-light text-center rounded p-4">
+            <form class="selectLocation">
+                <!-- 搜索欄 -->
+                <div class="row mb-3 align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="select_location" class="col-form-label px-0 text-dark" style="font-size:58px;">
+                            放置處:&nbsp;&nbsp;
+                        </label>
+                    </div>
+                    <div class="col-12">
+                        <select class="form-select text-dark" id="select_location" name="location"
+                            style="height: 150px; font-size:58px;">
+                            <option value="" disabled selected>請選擇放置處</option>
+                            <option value="204資訊">204資訊</option>
+                            <option value="217資訊機房">217資訊機房</option>
+                            <option value="117財會">117財會</option>
+                            <option value="114人事總務">114人事總務</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-start">
+                        <label for="select_location" class="col-form-label px-0 text-dark" style="font-size:58px;">
+                            狀態:&nbsp;&nbsp;
+                        </label>
+                    </div>
+                    <div class="col-12">
+                        <select class="form-select text-dark" id="select_state" name="state"
+                            style="height: 150px; font-size:58px;">
+                            <option value="">請選擇狀態</option>
+                            <option value="true">已盤點</option>
+                            <option value="false">未盤點</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="button" id="searchLocationButton" class="btn custom-btn w-100"
+                            style="font-size: 58px; height: 100px;">
+                            搜尋
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <hr>
+            <!-- 搜尋結果 -->
+            <div class="container-fluid mt-4">
+                <div class="bg-light rounded p-4">
+                    <div class="table-responsive">
+                        <table class="table text-start align-middle table-bordered table-hover">
+                            <thead>
+                                <tr style="font-size:50px;">
+                                    <th>財產編號</th>
+                                    <th>名稱</th>
+                                    <th>放置處</th>
+                                    <th>保管人</th>
+                                </tr>
+                            </thead>
+                            <tbody id="location-table" style="font-size:50px;">
+                                <!-- 動態填充資料的位置 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+            // 檢測是否通過返回上一頁進入
+            // window.addEventListener("pageshow", function (event) {
+            //     if (event.persisted) {
+            //         // 如果是返回上一頁，刷新頁面
+            //         window.location.reload();
+            //     }
+            // });
+
+            // 當搜尋按鈕被點擊時
+            $("#searchLocationButton").on("click", function () {
+                const selectedLocation = $("#select_location").val();
+                const state = $("#select_state").val();
+                console.log(state)
+                // 如果用戶沒有選擇放置處，顯示錯誤提示
+                if (!selectedLocation) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "請選擇放置處",
+                    });
+                    return;
+                }
+
+                // 發送 AJAX 請求，將選擇的放置處傳給後端
+                $.ajax({
+                    url: "/chyunn/invertory_search_location",  // 請求後端接口
+                    method: "POST",  // 請求方式
+                    data: {
+                        location: selectedLocation,
+                        stateString: state
+                    },
+                    success: function (response) {
+                        if (response.code === 200) {
+                            // 清空表格，準備填入新資料
+                            $("#location-table").empty();
+                            if (Array.isArray(response.data.inventories) && response.data.inventories.length > 0) {
+                                // 根據回傳資料動態生成表格行
+                                response.data.inventories.forEach(function (item) {
+                                    const linkStyle = item.state === false ? 'style="color: red;"' : '';
+                                    const row = `<tr>
+                              <td><a href="/chyunn/inventory?final_property_id=${item.final_property_id}" ${linkStyle}>${item.final_property_id}</a></td>
+                                    <td>${item.name}</td>
+                                    <td>${item.location}</td>
+                                    <td>${item.custodian}</td>
+                                </tr>`;
+                                    $("#location-table").append(row);
+                                });
+                                // 顯示成功提示
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: "success",
+                                    heightAuto: false,  // 禁用自動高度計算
+                                    padding: '20px', // 增加內邊距
+                                    showCancelButton: false,
+                                    customClass: {
+                                        popup: 'swal-popup-large', // 自訂類別
+                                        content: 'swal-content-large' // 自訂內容字體
+                                    },
+                                });
+                            } else {
+                                // 如果 inventories 是空陣列或者不存在
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '查無已盤點資料',
+                                });
+                            }
+                        } else if (response.code === 404) {
+                            // 如果查無資料，顯示查無資料提示
+                            Swal.fire({
+                                icon: 'error',
+                                title: '查無資料',
+                            });
+                        } else {
+                            // 其他錯誤情況
+                            Swal.fire({
+                                icon: 'error',
+                                title: '錯誤',
+                            });
+                        }
+                    },
+                    error: function (error) {
+                        // AJAX 請求失敗
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "發生錯誤，請稍後再試",
+                        });
+                        console.error(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

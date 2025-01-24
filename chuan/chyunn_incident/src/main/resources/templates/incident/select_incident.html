@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運事件問題-反應追蹤</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <style>
+        .event-content {
+            word-wrap: break-word;
+            /* 遇到長字會換行 */
+            word-break: break-word;
+            /* 強制打斷字詞換行 */
+            white-space: normal;
+            /* 允許文字換行 */
+            max-width: 400px;
+            /* 設定寬度控制換行 */
+        }
+
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+            /* transition: color 0.3s ease, text-shadow 0.3s ease; */
+            /* 平滑效果 */
+        }
+
+        .custom-btn:hover {
+            color: white;
+            /* 字體保持白色 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            /* 發光效果 */
+            background-color: #18a383;
+            /* 懸停時略微變化背景色 */
+            border-color: #18a383;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <form class="selectOrder">
+                    <!--                    <input type="hidden" name="hotelID" th:value="${hotelID}" id="hotelID" />-->
+                    <!--                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="Search" class="col-form-label px-0 text-dark">事件編號:&nbsp;&nbsp;</label>
+                        </div>
+                        <input class="form-control" type="search" id="orderID" name="orderID" style="width: 500px;">
+                    </div>
+                    <br>
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="Search" class="col-form-label px-0 text-dark">日期搜尋:&nbsp;&nbsp;</label>
+                        </div>
+                        <input type="search" class="form-control  text-dark" id="selectedDate" readonly
+                            style="background-color: white; width: 500px;" name="selectedDate">
+                    </div>
+                    <br>
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="status" class="col-form-label px-0 text-dark">事件狀態:&nbsp;&nbsp;</label>
+                        </div>
+                        <select id="status" class="form-select text-dark" style="width: 500px;">
+                            <option value="">-- 請選擇 --</option>
+                            <option value="未開始">未開始</option>
+                            <option value="待處理">待處理</option>
+                            <option value="處理中">處理中</option>
+                            <option value="已轉交他人">已轉交他人</option>
+                            <option value="延期">延期</option>
+                            <option value="待結案">待結案</option>
+                            <option value="退件">退件</option>
+                            <option value="已結案">已結案</option>
+                            <option value="已作廢">已作廢</option>
+                        </select>
+                        <button id="filter-btn" class="btn ms-3 custom-btn">搜尋</button>
+                    </div>
+                    <br>
+
+                </form>
+                <hr>
+                <div class="table-responsive border">
+                    <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <!-- <th scope="col"><input class="form-check-input" type="checkbox"></th> -->
+                                <th scope="col">反應人</th>
+                                <th scope="col">最後回報時間</th>
+                                <th scope="col">工作事項</th>
+                                <th scope="col">事件內容</th>
+                                <th scope="col">回報數</th>
+                                <th scope="col">重要性</th>
+                                <th scope="col">預設處理部門/人</th>
+                                <th scope="col">反應日期</th>
+                                <th scope="col">當前處理人</th>
+                                <th scope="col">處理狀態</th>
+                                <th scope="col">檢視</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incident-table">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: 'POST',
+                url: '/chyunn/incident/select_incident',
+                // data: JSON.stringify(requestOrder),
+                // contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('input[name=_csrf]').val()
+                },
+                //成功重新導向
+                success: function (response) {
+                    console.log("success")
+                    console.log(response)
+                    var tableBody = $("#incident-table");
+                    tableBody.empty();
+                    for (var i = 0; i < response.length; i++) {
+                        var incident = response[i];
+                        console.log(incident.incidentId)
+                        var newRow = $("<tr>");
+                        newRow.append("<td class='text-dark'>" + incident.reporter + "</td>");
+                        newRow.append("<td class='text-dark'>" + incident.lastReportTime + "</td>");
+                        newRow.append("<td class='text-dark'>" + incident.task + "</td>");
+                        newRow.append("<td class='text-dark  event-content'>" + incident.eventContent + "</td>");
+                        newRow.append("<td class='text-dark'>" + incident.reportCount + "</td>");
+                        if (incident.importance === "特急件") {
+                            newRow.append("<td class='text-danger fw-bold'>" + incident.importance + "</td>");
+                        } else {
+                            newRow.append("<td class='text-dark'>" + incident.importance + "</td>");
+                        }
+                        newRow.append("<td class='text-dark'>" + incident.department + '/' + incident.handler + "</td>");
+                        newRow.append("<td class='text-dark'>" + incident.reportDate + "</td>");
+                        newRow.append("<td class='text-dark'>" + incident.handler + "</td>");
+                        newRow.append("<td class='text-dark'>" + incident.status + "</td>");
+                        newRow.append("<td><a class='btn btn-sm btn-primary' href='/chyunn/incident/incident_Detail?incidentId=" + incident.incidentId + "'>檢視</a></td>");
+                        tableBody.append(newRow);
+                    }
+                },
+                error: function (error) {
+                    var tableBody = $("#order-table");
+                    tableBody.empty();
+                    console.error('AJAX error:', error);
+                }
+            });
+
+            // 當搜尋按鈕被點擊
+            $('#filter-btn').click(function () {
+                event.preventDefault();
+                var selectedStatus = $('#status').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/incident/filter_status',
+                    data: { selectedStatus: selectedStatus },
+                    success: function (response) {
+                        var tableBody = $("#incident-table");
+                        tableBody.empty(); // 清空表格
+                        for (var i = 0; i < response.data.incidentDtos.length; i++) {
+                            var incident = response.data.incidentDtos[i];
+                            var newRow = $("<tr>");
+                            newRow.append("<td class='text-dark'>" + incident.reporter + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.lastReportTime + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.task + "</td>");
+                            newRow.append("<td class='text-dark  event-content'>" + incident.eventContent + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.reportCount + "</td>");
+                            if (incident.importance === "特急件") {
+                                newRow.append("<td class='text-danger fw-bold'>" + incident.importance + "</td>");
+                            } else {
+                                newRow.append("<td class='text-dark'>" + incident.importance + "</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.department + '/' + incident.handler + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.reportDate + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.handler + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.status + "</td>");
+                            newRow.append("<td><a class='btn btn-sm btn-primary' href='/chyunn/incident/incident_Detail?incidentId=" + incident.incidentId + "'>Detail</a></td>");
+                            tableBody.append(newRow);
+                        }
+                    },
+                    error: function (error) {
+                        console.error('AJAX error:', error);
+                    }
+                });
+            });
+        }
+        );
+
+        $(function () {
+            function cb(start, end) {
+                $('#selectedDate span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+            $('#selectedDate').daterangepicker({
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '昨天': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '前 7 天': [moment().subtract(6, 'days'), moment()],
+                    '前 30 天': [moment().subtract(29, 'days'), moment()],
+                    '這個月': [moment().startOf('month'), moment().endOf('month')],
+                    '上個月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }, "locale": {
+                    "format": "YYYY年MM月DD日",
+                    "separator": " - ",
+                    "applyLabel": "確認",
+                    "cancelLabel": "取消",
+                    "customRangeLabel": "自訂義範圍",
+                    "daysOfWeek": [
+                        "日",
+                        "一",
+                        "二",
+                        "三",
+                        "四",
+                        "五",
+                        "日"
+                    ],
+                    "monthNames": [
+                        "1 月",
+                        "2 月",
+                        "3 月",
+                        "4 月",
+                        "5 月",
+                        "6 月",
+                        "7 月",
+                        "8 月",
+                        "9 月",
+                        "10 月",
+                        "11 月",
+                        "12 月"
+                    ],
+                    "firstDay": 1
+                }, "autoUpdateInput": false
+            }, cb);
+            $('#selectedDate').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY年MM月DD日') + ' - ' + picker.endDate.format('YYYY年MM月DD日'));
+            });
+
+            $('#selectedDate').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+            });
+        })
+    </script>
+</body>
+
+</html>

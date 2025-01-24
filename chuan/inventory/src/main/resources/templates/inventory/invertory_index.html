@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="utf-8">
+    <title>首頁</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <style>
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            background-color: #18a383;
+            border-color: #18a383;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Content Start -->
+    <div class="container-fluid pt-4 px-4">
+        <div class="bg-light text-center rounded p-4">
+            <h1 style="font-size: 72px; color: #343a40;">我是首頁</h1>
+            <div class="row mt-5">
+                <!-- 放置處搜尋按鈕 -->
+                <div class="col-12 mt-4">
+                    <a th:href="@{/invertory_select_location}" class="btn custom-btn w-100"
+                        style="font-size: 58px; height: 100px;">
+                        放置處搜尋
+                    </a>
+                </div>
+                <!-- 財產編號搜尋按鈕 -->
+                <div class="col-12 mt-4">
+                    <a th:href="@{/inventory}" class="btn custom-btn w-100" style="font-size: 58px; height: 100px;">
+                        財產編號搜尋
+                    </a>
+                </div>
+                <!-- 財產編號搜尋按鈕 -->
+                <div class="col-12 mt-4">
+                    <a th:href="@{/downloadInventory}" class="btn custom-btn w-100"
+                        style="font-size: 58px; height: 100px;">
+                        匯出Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
