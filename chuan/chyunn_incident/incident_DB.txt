@@ -3,11 +3,12 @@ USE Incident
 
 CREATE TABLE incident(
     incidentId INT NOT NULL AUTO_INCREMENT PRIMARY KEY, -- 事件編號，主鍵，自動遞增
-    belongingType VARCHAR(20)NOT  NULL,                -- 歸屬類型
-    customer VARCHAR(20),                              -- 事件相關客戶，字串
-    car VARCHAR(20) L,                                 -- 事件相關車輛，字串
+    belongingType VARCHAR(20)NOT  NULL,                	-- 歸屬類型
+    customer VARCHAR(20),                             	 -- 事件相關客戶，字串
+    car VARCHAR(20) ,                                 	-- 事件相關車輛，字串
     reporter VARCHAR(20) NOT NULL,                     -- 反應人，字串
     task VARCHAR(30) NOT NULL,                         -- 工作事項，字串
+    eventPurpose TEXT NOT NULL,	 		       -- 事件主旨	
     eventContent TEXT NOT NULL,                        -- 事件內容，長文字
     reportCount INT NOT NULL,                          -- 回報數，整數
     importance VARCHAR(20) NOT NULL,                   -- 重要性
@@ -16,7 +17,8 @@ CREATE TABLE incident(
     status VARCHAR(20) NOT NULL,                       -- 處理狀態
     lastReportTime DATETIME NOT NULL,                  -- 最後回報時間
     reportDate DATE  NOT NULL,                         -- 反應日期
-    invalid BOOLEAN DEFAULT FALSE                      -- 作廢
+    invalid BOOLEAN DEFAULT FALSE,                      -- 作廢
+    creator VARCHAR(20) NOT NULL                        -- 製表人，字串
 );
 
 CREATE TABLE report(
@@ -35,8 +37,24 @@ CREATE TABLE report(
 );
 
 
-CREATE TABLE testuser(
-   `id` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_bin',
-    password VARCHAR(100) NOT NULL--密碼
+CREATE TABLE user (
+    `loginId` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_bin',  	-- 主鍵登入帳號 (LOGINID)
+    `userId` VARCHAR(50)     COLLATE 'utf8mb4_bin',  		-- 串接員工USERID (USERID)
+    `username` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_bin', 	-- 使用者名稱 (USERNAME)
+    `password` VARCHAR(255) NOT NULL,  				-- 密碼 (應加密)
+    PRIMARY KEY (`loginId`)  -- 設定 USERID 為主鍵
 );
 
+CREATE TABLE incident_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,    -- 圖片ID，UUID
+    incidentId INT NOT NULL,                    -- 關聯的事件ID
+    filePath VARCHAR(255) NOT NULL,              -- 檔案儲存路徑
+    FOREIGN KEY (incidentId) REFERENCES incident(incidentId)  -- 外鍵關聯incident表
+);
+
+CREATE TABLE report_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 文件 ID UUID
+    reportId INT NOT NULL,                     -- 關聯的回報 ID
+    filePath VARCHAR(255) NOT NULL,            -- 檔案儲存路徑
+    FOREIGN KEY (reportId) REFERENCES report(reportId)  -- 外鍵關聯 report 表
+);

@@ -33,15 +33,16 @@
             </div>
         </div>
         <div class="nav-item dropdown">
-            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                <img id="userImage" class="rounded-circle" src="../assets/logo/logo.ico" alt="User Image"
-                    style="width: 40px; height: 40px;"> <span class="d-none d-lg-inline-flex text-dark"
-                    th:text="${session.loginID}">User</span>
+            <button id="logoutBtn" class="btn nav-link"> <i class="fas fa-sign-out-alt"></i> 登出</button>
+            <!-- <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <img id="userImage" class="rounded-circle" src="../img/logo.ico" alt="User Image"
+                    style="width: 40px; height: 40px;"><span id="username-display"
+                    class="d-none d-lg-inline-flex text-dark"></span>
             </a>
             <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
                 <a href="#" class="dropdown-item">設定</a>
-                <a th:href="@{/logout}" class="dropdown-item">登出</a>
-            </div>
+                <button id="logoutBtn" class="dropdown-item">登出</button>
+            </div> -->
         </div>
     </div>
 </nav>

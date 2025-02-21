@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+
+<head>
+    <meta charset="utf-8">
+    <title>放置處搜尋</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+
+    <style>
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            background-color: #18a383;
+            border-color: #18a383;
+        }
+
+        .readonly-field {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .data-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .data-card .field-title {
+            font-size: 58px;
+            color: #333;
+        }
+
+        .data-card .field-value {
+            font-size: 48px;
+            color: #555;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .swal2-popup {
+            font-size: 40px !important;
+        }
+
+        .swal2-styled {
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Content Start -->
+    <div class="container-fluid pt-4 px-4">
+        <div class="bg-light text-center rounded p-4">
+            <form class="selectLocation">
+                <!-- 搜索欄 -->
+                <div class="row mb-3 align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="select_location" class="col-form-label px-0 text-dark" style="font-size:58px;">
+                            放置處:&nbsp;&nbsp;
+                        </label>
+                    </div>
+                    <div class="col-12">
+                        <select class="form-select text-dark" id="select_location_1" name="location"
+                            style="height: 150px; font-size:58px;">
+                            <option value="">放置處(安港)</option>
+                            <option value="204資訊">204資訊</option>
+                            <option value="217資訊機房">217資訊機房</option>
+                            <option value="102茶水室">102茶水室</option>
+                            <option value="103會議室">103會議室</option>
+                            <option value="104控制室">104控制室</option>
+                            <option value="105洽談室">105洽談室</option>
+                            <option value="106營業">106營業</option>
+                            <option value="108茶水室">108茶水室</option>
+                            <option value="110儲藏室">110儲藏室</option>
+                            <option value="114人事總務">114人事總務</option>
+                            <option value="115總經理">115總經理</option>
+                            <option value="116會議室">116會議室</option>
+                            <option value="117財會">117財會</option>
+                            <option value="118檔案室">118檔案室</option>
+                            <option value="201">201</option>
+                            <option value="202洽談室">202洽談室</option>
+                            <option value="203運動室">203運動室</option>
+                            <option value="206哺乳室">206哺乳室</option>
+                            <option value="207茶水室">207茶水室</option>
+                            <option value="208文書室">208文書室</option>
+                            <option value="209共享">209共享</option>
+                            <option value="213董事長">213董事長</option>
+                            <option value="216稽核">216稽核</option>
+                            <option value="218會議室">218會議室</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <select class="form-select text-dark" id="select_location_2" name="location"
+                            style="height: 150px; font-size:58px;">
+                            <option value="">放置處(安明、嘉義、高雄)</option>
+                            <option value="安明-A棟1樓">安明-A棟1樓</option>
+                            <option value="安明-A棟2樓">安明-A棟2樓</option>
+                            <option value="安明-B棟1樓">安明-B棟1樓</option>
+                            <option value="安明-B棟2樓">安明-B棟2樓</option>
+                            <option value="安明-土資廠">安明-土資廠</option>
+                            <option value="安明-1F機房">安明-1F機房</option>
+                            <option value="安明-司機休息室">安明-司機休息室</option>
+                            <option value="安明-守衛室">安明-守衛室</option>
+                            <option value="安明-會議室">安明-會議室</option>
+                            <option value="安明-停車場">安明-停車場</option>
+                            <option value="安明-中庭">安明-中庭</option>
+                            <option value="安明-外勞宿舍">安明-外勞宿舍</option>
+                            <option value="安明-保修廠">安明-保修廠</option>
+                            <option value="安明-倉庫">安明-倉庫</option>
+                            <option value="高雄_辦公室1樓">高雄_辦公室1樓</option>
+                            <option value="高雄_辦公室2樓">高雄_辦公室2樓</option>
+                            <option value="顯宮段">顯宮段</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-start">
+                        <label for="select_location" class="col-form-label px-0 text-dark" style="font-size:58px;">
+                            狀態:&nbsp;&nbsp;
+                        </label>
+                    </div>
+                    <div class="col-12">
+                        <select class="form-select text-dark" id="select_state" name="state"
+                            style="height: 150px; font-size:58px;">
+                            <option value="">請選擇狀態</option>
+                            <option value="true">已盤點</option>
+                            <option value="false">未盤點</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="button" id="searchLocationButton" class="btn custom-btn w-100"
+                            style="font-size: 58px; height: 100px;">
+                            搜尋
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <hr>
+            <!-- 搜尋結果 -->
+            <div class="container-fluid mt-4">
+                <div class="bg-light rounded p-4">
+                    <div class="table-responsive">
+                        <table class="table text-start align-middle table-bordered table-hover">
+                            <thead>
+                                <tr style="font-size:50px;">
+                                    <th>財產編號</th>
+                                    <th>名稱</th>
+                                    <th>放置處</th>
+                                    <th>保管人</th>
+                                </tr>
+                            </thead>
+                            <tbody id="location-table" style="font-size:50px;">
+                                <!-- 動態填充資料的位置 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+
+            // 當搜尋按鈕被點擊時
+            $("#searchLocationButton").on("click", function () {
+                const selectedLocation1 = $("#select_location_1").val();
+                const selectedLocation2 = $("#select_location_2").val();
+                const state = $("#select_state").val();
+
+                console.log(state);
+
+                // 確保只選擇一個放置處
+                if (selectedLocation1 && selectedLocation2) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "請勿同時選擇兩個放置處",
+                    });
+                    return;
+                }
+
+                // 確保至少選擇一個放置處
+                if (!selectedLocation1 && !selectedLocation2) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "請選擇放置處",
+                    });
+                    return;
+                }
+
+                // 獲取最終選擇的放置處
+                const selectedLocation = selectedLocation1 || selectedLocation2;
+
+
+                // 發送 AJAX 請求，將選擇的放置處傳給後端
+                $.ajax({
+                    url: "/chyunn/inventory_equipment/search_location",  // 請求後端接口
+                    method: "POST",  // 請求方式
+                    data: {
+                        location: selectedLocation,
+                        stateString: state
+                    },
+                    success: function (response) {
+                        if (response.code === 200) {
+                            // 清空表格，準備填入新資料
+                            $("#location-table").empty();
+                            if (Array.isArray(response.data.inventories) && response.data.inventories.length > 0) {
+                                // 根據回傳資料動態生成表格行
+                                response.data.inventories.forEach(function (item) {
+                                    const linkStyle = item.state === false ? 'style="color: red;"' : '';
+                                    const row = `<tr>
+                              <td><a href="/chyunn/inventory_equipment/select_number?final_property_id=${item.final_property_id}" ${linkStyle}>${item.final_property_id}</a></td>
+                                    <td>${item.name}</td>
+                                    <td>${item.location}</td>
+                                    <td>${item.custodian}</td>
+                                </tr>`;
+                                    $("#location-table").append(row);
+                                });
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: "success",
+                                    heightAuto: false, // 禁用自動高度計算
+                                    padding: '20px', // 增加內邊距
+                                    width: '80%',
+                                    showCancelButton: false,
+                                    customClass: {
+                                        popup: 'swal-popup-large', // 彈出框
+                                    },
+                                });
+                            } else {
+                                // 如果 inventories 是空陣列或者不存在
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '查無已盤點資料',
+                                });
+                            }
+                        } else if (response.code === 404) {
+                            // 如果查無資料，顯示查無資料提示
+                            Swal.fire({
+                                icon: 'error',
+                                title: '查無資料',
+                            });
+                        } else {
+                            // 其他錯誤情況
+                            Swal.fire({
+                                icon: 'error',
+                                title: '錯誤',
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr); // 確保錯誤資訊被記錄
+                        let errorMessage = "發生錯誤";
+                        try {
+                            // 嘗試解析 JSON 回應，避免解析錯誤
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            // 若解析失敗，直接使用原始 responseText
+                            errorMessage = xhr.responseText || errorMessage;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操做失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

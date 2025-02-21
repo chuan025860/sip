@@ -78,7 +78,7 @@
     top: 0;
     left: 0;
     bottom: 0;
-    width: 250px;
+    width: 10%;
     height: 100vh;
     overflow-y: auto;
     background: var(--light);
@@ -133,9 +133,11 @@
     padding: 7px 20px;
     color: var(--dark);
     font-weight: 500;
+    font-size: 15px;
     border-left: 3px solid var(--light);
     border-radius: 0 30px 30px 0;
     outline: none;
+
 }
 
 .sidebar .navbar .navbar-nav .nav-link:hover,
@@ -204,7 +206,7 @@
 }
 
 .content .navbar .dropdown-toggle::after {
-    margin-left: 6px;
+    margin-left: 0px;
     vertical-align: middle;
     border: none;
     content: "\f107";

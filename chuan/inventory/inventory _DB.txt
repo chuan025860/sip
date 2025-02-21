@@ -1,6 +1,6 @@
 CREATE DATABASE Inventory 
 
-CREATE TABLE inventory (
+CREATE TABLE inventory_equipment (
     audit_status VARCHAR(10), -- 查核 
     property_id VARCHAR(20), -- 財產編號 
     management_id VARCHAR(20), -- 列管編號
@@ -21,4 +21,39 @@ CREATE TABLE inventory (
     change_record TEXT, -- 異動記錄
     state BOOLEAN DEFAULT FALSE, -- 盤點狀態，預設為 FALSE
     is_updated BOOLEAN DEFAULT FALSE  --  檢查是否有更新過
+);
+
+CREATE TABLE general_catalog(
+    asset_id VARCHAR(50) PRIMARY KEY,        -- 財產編號
+    category VARCHAR(100),                   -- 類別
+    name VARCHAR(100),                       -- 名稱
+    model VARCHAR(100),                      -- 型號
+    serial_or_size VARCHAR(100),             -- 尺寸/序號
+    quantity_or_unit VARCHAR(100),           -- 數量/單位
+    purchase_date VARCHAR(20),                      -- 購買日期
+    supplier VARCHAR(100),                   -- 購入廠商
+    purchase_price int,           -- 購買金額
+    tax VARCHAR(20),                      -- 稅金
+    storage_location VARCHAR(100),           -- 放置處
+    custodian VARCHAR(100),                  -- 保管人
+    contact VARCHAR(100),                    -- 聯繫窗口
+    change_log TEXT ,                         -- 異動記錄
+    state BOOLEAN DEFAULT FALSE,       -- 盤點狀態，預設為 FALSE
+    is_updated BOOLEAN DEFAULT FALSE     --  檢查是否有更新過
+);
+
+
+
+CREATE TABLE inventory_equipment_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 圖片ID，使用時間戳 + 隨機數（唯一）
+    final_property_id VARCHAR(20) NOT NULL,                    -- 關聯的事件ID
+    filePath VARCHAR(255) NOT NULL,              -- 檔案儲存路徑
+    FOREIGN KEY (final_property_id) REFERENCES inventory_equipment(final_property_id)  -- 外鍵關聯incident表
+);
+
+CREATE TABLE general_catalog_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 文件 ID（時間戳 + 隨機數，唯一）
+    asset_id VARCHAR(50) NOT NULL,                     -- 關聯的回報 ID
+    filePath VARCHAR(255) NOT NULL,            -- 檔案儲存路徑
+    FOREIGN KEY (asset_id) REFERENCES general_catalog(asset_id)  -- 外鍵關聯 report 表
 );

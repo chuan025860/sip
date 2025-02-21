@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>總目錄財產編號搜尋</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <style>
+        .event-content {
+            word-wrap: break-word;
+            /* 遇到長字會換行 */
+            word-break: break-word;
+            /* 強制打斷字詞換行 */
+            white-space: normal;
+            /* 允許文字換行 */
+            max-width: 400px;
+            /* 設定寬度控制換行 */
+        }
+
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+            /* transition: color 0.3s ease, text-shadow 0.3s ease; */
+            /* 平滑效果 */
+        }
+
+        .custom-btn:hover {
+            color: white;
+            /* 字體保持白色 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            /* 發光效果 */
+            background-color: #18a383;
+            /* 懸停時略微變化背景色 */
+            border-color: #18a383;
+        }
+
+        /* 給只讀狀態的欄位設置灰色背景 */
+        .readonly-field {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+
+        }
+
+        /* 可編輯時的樣式 */
+        .editable-field {
+            background-color: #ffffff;
+            color: #212529;
+            cursor: text;
+        }
+
+        .swal2-popup {
+            font-size: 40px !important;
+        }
+
+        .swal2-styled {
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Content Start -->
+    <div class="container-fluid pt-4 px-4">
+        <div class="bg-light text-center rounded p-4">
+            <form class="selectOrder">
+                <!-- 搜索欄 -->
+                <div class="row mb-3 align-items-center" style="height: 500px;">
+                    <div class="col-12 text-start">
+                        <label for="Search" class="col-form-label px-0 text-dark" style="font-size:58px;">
+                            財產編號:&nbsp;&nbsp;
+                        </label>
+                    </div>
+                    <div class="col-12">
+                        <input class="form-control text-dark" type="search" id="select_propertyID" name="propertyID"
+                            placeholder="輸入財產編號" style="height: 150px; font-size:58px;" th:value="${propertyID}">
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="button" id="searchButton" class="btn custom-btn w-100"
+                            style="font-size: 58px; height: 100px;">
+                            搜尋
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <hr>
+            <div class="container-fluid mt-4">
+                <div class="bg-light rounded p-4">
+                    <div class="row text-start">
+                        <!-- 盤點狀態 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">盤點狀態:</span> <i id="lockIcon" class="fa-solid fa-lock  text-danger"
+                                style="cursor: pointer;"></i>
+                            <button type="button" id="checkButton" class="btn custom-btn w-100"
+                                style="font-size: 58px; height: 100px; display:none;">
+                            </button>
+                        </div>
+                        <!-- 最終財產編號 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">財產編號:</span>
+                            <input type="text" id="asset_id" readonly class="readonly-field">
+                        </div>
+                        <!-- 名稱 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">名稱:</span>
+                            <textarea id="name" rows="2" readonly
+                                style="width: 100%;  resize: none; overflow-wrap: break-word;"
+                                class="readonly-field"></textarea>
+                        </div>
+                        <!-- 放置處 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">放置處:</span>
+                            <input type="text" id="location" readonly class="readonly-field">
+                            <div id="imageContainer"></div>
+                        </div>
+                        <!-- 型號 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">型號:</span>
+                            <textarea id="model" rows="2" readonly
+                                style="width: 100%; resize: none; overflow-wrap: break-word;"
+                                class="readonly-field"></textarea>
+                        </div>
+                        <!-- 保管人 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">保管人:</span>
+                            <input type="text" id="custodian" readonly class="readonly-field">
+                        </div>
+                        <!-- 異動記錄 -->
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">異動記錄:</span>
+                            <textarea id="change_log" rows="2" readonly
+                                style="width: 100%;   resize: none; overflow-wrap: break-word;"
+                                class="readonly-field"></textarea>
+                        </div>
+                        <div class="col-12 mb-3 text-dark" style="font-size:58px;">
+                            <span class="ms-2">拍照上傳:</span>
+                            <img id="photoPreview" style="max-width: 100%; margin-top: 20px; display: none;">
+                            <input type="file" id="cameraInput" capture="environment" class="form-control" multiple
+                                accept="image/png, image/jpeg" style="font-size: 40px; padding: 10px;">
+                        </div>
+                        <div class="col-12 mt-4"> <!--解鎖更新按鈕 -->
+                            <button type="button" id="unlockUpdateButton" class="btn custom-btn w-100"
+                                style="font-size: 58px; height: 100px;display:none;">
+                                更新
+                            </button>
+                        </div>
+                        <div class="col-12 mt-4"> <!-- 更新按鈕 -->
+                            <button type="button" id="updateButton" class="btn custom-btn w-100"
+                                style="font-size: 58px; height: 100px; display: none;">
+                                點擊更新
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+
+            // 鎖頭點擊切換鎖定/解鎖
+            $("#lockIcon").on("click", function () {
+                let $lockIcon = $(this);
+
+                if ($lockIcon.hasClass("fa-lock")) {
+                    // 變成解鎖（綠色）
+                    $lockIcon.removeClass("fa-lock text-danger")
+                        .addClass("fa-lock-open text-success");
+                } else {
+                    // 變回上鎖（紅色）
+                    $lockIcon.removeClass("fa-lock-open text-success")
+                        .addClass("fa-lock text-danger");
+                }
+            });
+
+            // 更新狀態事件
+            $("#checkButton").on("click", function () {
+                const propertyID = $("#select_propertyID").val(); // 每次點擊時重新讀取 propertyID
+
+                // 先檢查按鈕文本是否為 "已盤點"
+                if ($(this).text() === "已盤點" && $("#lockIcon").hasClass("fa-lock")) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '未解鎖',
+                        text: '請先點擊解鎖按鈕再進行狀態更改',
+                    });
+                    return; // 退出，不繼續執行後面的代碼
+                }
+                // 檢查解鎖按鈕是否開啟 只能更新成已盤點
+                else if ($("#lockIcon").hasClass("fa-lock")) {
+                    $.ajax({
+                        url: "/chyunn/inventory_generalCatalog/updateState",
+                        method: "PUT",
+                        data: { asset_id: propertyID },
+                        success: function (response) {
+                            if (response.code === 200) {
+                                // 更新成功後，修改按鈕文本和顏色
+                                $("#checkButton").text("已盤點");
+                                $("#checkButton").css({
+                                    "background-color": "green",
+                                    "color": "white"
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '更新失敗',
+                                    text: '請稍後再試。',
+                                });
+                            }
+                        },
+                        error: function (error) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '發生錯誤',
+                                text: '請稍後再試。',
+                            });
+                            console.error(error);
+                        }
+                    });
+                    return;
+                } else if ($("#lockIcon").hasClass("fa-lock-open")) {
+                    //解鎖開關已隱藏 表示已解鎖 可再次更新成未盤點
+                    $.ajax({
+                        url: "/chyunn/inventory_generalCatalog/updateState",
+                        method: "PUT",
+                        data: { asset_id: propertyID },
+                        success: function (response) {
+                            if (response.code === 200) {
+                                console.log(response)
+                                if (response.state === false) {
+                                    // 更新成功後，修改按鈕文本和顏色
+                                    $("#checkButton").text("未盤點");
+                                    $("#checkButton").css({
+                                        "background-color": "red",
+                                        "color": "white"
+                                    });
+                                } else {
+                                    // 更新成功後，修改按鈕文本和顏色
+                                    $("#checkButton").text("已盤點");
+                                    $("#checkButton").css({
+                                        "background-color": "green",
+                                        "color": "white"
+                                    });
+                                }
+
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '更新失敗',
+                                    text: '請稍後再試。',
+                                });
+                            }
+                        },
+                        error: function (error) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '發生錯誤',
+                                text: '請稍後再試。',
+                            });
+                            console.error(error);
+                        }
+                    });
+                    return; // 如果隱藏，則退出
+                }
+
+            })
+
+            // 頁面加載時檢查是否已有 propertyID
+            var propertyID = $("#select_propertyID").val();
+            if (propertyID) {
+                // 發送 AJAX 請求
+                $.ajax({
+                    url: "/chyunn/inventory_generalCatalog/search_number",
+                    method: "POST",
+                    data: { asset_id: propertyID },
+                    success: function (response) {
+                        if (response.code === 200) {
+                            console.log(response)
+                            $("#asset_id").val(response.data.generalCatalogDto.asset_id);
+                            $("#name").val(response.data.generalCatalogDto.name);
+                            $("#location").val(response.data.generalCatalogDto.storage_location);
+                            $("#model").val(response.data.generalCatalogDto.model);
+                            $("#custodian").val(response.data.generalCatalogDto.custodian);
+                            $("#change_log").val(response.data.generalCatalogDto.change_log);
+                            // 顯示解鎖按鈕
+                            $("#unlockUpdateButton").show();
+                            // 更新圖片
+                            updateImageGallery(response.data.generalCatalogDto.final_property_id, response.data.generalCatalogDto.generalCatalogFileDtos);
+                            // 根據盤點狀態更新按鈕顯示
+                            if (response.data.generalCatalogDto.state === false) {
+                                // 盤點狀態為 false，顯示 "未盤點"
+                                $("#checkButton").text("未盤點");
+                                $("#checkButton").css({
+                                    "background-color": "red",
+                                    "color": "white"
+                                });
+                            } else if (response.data.generalCatalogDto.state === true) {
+                                // 盤點狀態為 true，顯示 "已盤點"
+                                $("#checkButton").text("已盤點");
+                                $("#checkButton").css({
+                                    "background-color": "green",
+                                    "color": "white"
+                                });
+                            }
+
+                            // 顯示盤點狀態按鈕
+                            $("#checkButton").show();
+                        } else if (response.code === 404) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '查無資料',
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '錯誤',
+                            });
+                        }
+                    },
+                    error: function (error) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                        });
+                        console.error(error);
+                    }
+                });
+
+            }
+
+
+            $("#searchButton").on("click", function () {
+                const propertyID = $("#select_propertyID").val(); // 每次點擊時重新讀取 propertyID
+                if (!propertyID) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: "請輸入財產編號",
+                    });
+                    return;
+                }
+
+                // 發送 AJAX 請求
+                $.ajax({
+                    url: "/chyunn/inventory_generalCatalog/search_number",
+                    method: "POST",
+                    data: { asset_id: propertyID },
+                    success: function (response) {
+                        if (response.code === 200) {
+                            console.log(response)
+                            $("#asset_id").val(response.data.generalCatalogDto.asset_id);
+                            $("#name").val(response.data.generalCatalogDto.name);
+                            $("#location").val(response.data.generalCatalogDto.storage_location);
+                            $("#model").val(response.data.generalCatalogDto.model);
+                            $("#custodian").val(response.data.generalCatalogDto.custodian);
+                            $("#change_log").val(response.data.generalCatalogDto.change_log);
+
+                            // 鎖頭變回「上鎖」
+                            let $lockIcon = $("#lockIcon");
+                            $lockIcon.removeClass("fa-lock-open text-success")
+                                .addClass("fa-lock text-danger");
+
+                            // 根據盤點狀態更新按鈕顯示
+                            if (response.data.generalCatalogDto.state === false) {
+                                console.log("test")
+                                // 盤點狀態為 false，顯示 "未盤點"
+                                $("#checkButton").text("未盤點");
+                                $("#checkButton").css({
+                                    "background-color": "red",
+                                    "color": "white"
+                                });
+                            } else if (response.data.generalCatalogDto.state === true) {
+                                // 盤點狀態為 true，顯示 "已盤點"
+                                $("#checkButton").text("已盤點");
+                                $("#checkButton").css({
+                                    "background-color": "green",
+                                    "color": "white"
+                                });
+                            }
+                            // 顯示盤點狀態按鈕
+                            $("#checkButton").show();
+                            // // 更新圖片
+                            updateImageGallery(response.data.generalCatalogDto.asset_id, response.data.generalCatalogDto.generalCatalogFileDtos);
+                            // 顯示解鎖按鈕
+                            $("#unlockUpdateButton").show();
+                            Swal.fire({
+                                icon: 'success',
+                                text: "success",
+                                heightAuto: false, // 禁用自動高度計算
+                                padding: '20px', // 增加內邊距
+                                width: '80%',
+                                showCancelButton: false,
+                                customClass: {
+                                    popup: 'swal-popup-large', // 彈出框
+                                },
+                            })
+                        } else if (response.code === 404) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '查無資料',
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '錯誤',
+                            });
+                        }
+                    },
+                    error: function (error) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                        });
+                        console.error(error);
+                    }
+                });
+            });
+
+            // 解鎖更新按鈕事件
+            $("#unlockUpdateButton").on("click", function () {
+                // 移除 readonly 屬性並修改樣式
+                $(" #name, #location, #model, #custodian, #change_log")
+                    .prop("readonly", false)
+                    .removeClass("readonly-field")
+                    .addClass("editable-field");
+                // 隱藏解鎖按鈕
+                $("#unlockUpdateButton").hide();
+                // 顯示更新按鈕
+                $("#updateButton").show();
+            });
+            // 監聽圖片選擇事件，預覽圖片
+            $("#cameraInput").on("change", function (event) {
+                let file = event.target.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        $("#photoPreview").attr("src", e.target.result).show();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 更新按鈕事件
+            $("#updateButton").on("click", function () {
+                // 取得表單中的值
+                const updatedData = {
+                    asset_id: $("#asset_id").val(),
+                    name: $("#name").val(),
+                    storage_location: $("#location").val(),
+                    model: $("#model ").val(),
+                    custodian: $("#custodian").val(),
+                    change_log: $("#change_log").val(),
+                };
+                // 準備 FormData 來包含圖片
+                const formData = new FormData();
+
+                // 檢查是否選擇了圖片
+                let files = $("#cameraInput")[0].files;
+                for (let i = 0; i < files.length; i++) {
+                    formData.append("files", files[i]);
+                }
+
+                formData.append("updatedData", JSON.stringify(updatedData));
+
+                // 發送更新請求
+                $.ajax({
+                    url: "/chyunn/inventory_generalCatalog/update",
+                    method: "PUT",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.code === 200) {
+                            $("#asset_id").val(response.data.generalCatalogDto.asset_id);
+                            $("#name").val(response.data.generalCatalogDto.name);
+                            $("#location").val(response.data.generalCatalogDto.location);
+                            $("#model ").val(response.data.generalCatalogDto.model);
+                            $("#custodian").val(response.data.generalCatalogDto.custodian);
+                            $("#change_log").val(response.data.generalCatalogDto.change_log);
+                            $("#name, #location, #model, #custodian, #change_log")
+                                .prop("readonly", true)
+                                .addClass("readonly-field")
+                                .removeClass("editable-field");
+                            // 更新圖片
+                            updateImageGallery(response.data.generalCatalogDto.asset_id, response.data.generalCatalogDto.generalCatalogFileDtos);
+                            // 顯示更新按鈕
+                            $("#unlockUpdateButton").show();
+                            $("#updateButton").hide();
+                            // **清除上傳的圖片**
+                            $("#cameraInput").val(""); // 清除 input file 的值
+                            $("#photoPreview").attr("src", "").hide(); // 清除預覽圖片並隱藏
+                            Swal.fire({
+                                icon: "success",
+                                title: "更新成功",
+                                text: "資料已更新",
+                                width: 800,
+                                heightAuto: false,
+                                padding: '20px',
+                                showCancelButton: false,
+                                customClass: {
+                                    popup: 'swal-popup-large',
+                                }
+                            });
+                        } else if (response.code === 400) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Oops...",
+                                text: response.message
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Oops...",
+                                text: response.message
+                            });
+                        }
+
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr); // 確保錯誤資訊被記錄
+                        let errorMessage = "發生錯誤";
+                        try {
+                            // 嘗試解析 JSON 回應，避免解析錯誤
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            // 若解析失敗，直接使用原始 responseText
+                            errorMessage = xhr.responseText || errorMessage;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操做失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            })
+
+            function updateImageGallery(final_property_id, files) {
+
+                let imageContainer = $("#imageContainer");
+                imageContainer.empty(); // 清空舊圖片
+                if (files.length > 0) {
+                    files.forEach(file => {
+                        let imgElement = $("<img>")
+                            .attr("src", "/chyunn/generalcatalog/image/" + file.fileId)
+                            .attr("alt", "設備圖片")
+                            .css({
+                                "max-width": "100%",
+                                "margin-top": "20px",
+                                "border-radius": "8px",
+                                "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.2)"
+                            })
+                            .on("click", function () {
+                                // 使用 SweetAlert2 顯示放大圖片
+                                Swal.fire({
+                                    imageUrl: "/chyunn/generalcatalog/image/" + file.fileId,
+                                    imageAlt: "設備圖片",
+                                    showCloseButton: true,
+                                    showConfirmButton: false, // 移除確認按鈕
+                                    background: "#fff",
+                                    padding: "10px",
+                                    width: "auto",
+                                    heightAuto: true,
+                                    footer: '<button id="deleteImageBtn" class="btn btn-danger btn-lg">刪除</button>',
+                                    customClass: {
+                                        popup: 'swal-popup-large',
+                                        closeButton: 'swal-close-small', // 自定義「關閉按鈕」
+                                        footer: 'swal-footer-custom', // 自訂footer
+                                    }
+                                });
+                                // 註冊刪除按鈕的點擊事件
+                                $("#deleteImageBtn").off("click").on("click", function () {
+
+                                    Swal.fire({
+                                        title: "確定刪除嗎？",
+                                        text: "刪除後將無法恢復！",
+                                        icon: "warning",
+                                        showCancelButton: true,
+                                        confirmButtonColor: "#d33",
+                                        cancelButtonColor: "#3085d6",
+                                        confirmButtonText: "確定刪除",
+                                        cancelButtonText: "取消"
+                                    }).then(function (result) {
+                                        if (result.isConfirmed) {
+                                            $.ajax({
+                                                url: "/chyunn/generalcatalog/delete_image",
+                                                method: "DELETE",
+                                                data: {
+                                                    fileId: file.fileId,
+                                                    final_property_id: final_property_id  // 確保 final_property_id 被正確帶入
+                                                },
+                                                success: function (response) {
+                                                    if (response.code === 200) {
+                                                        Swal.fire("已刪除！", "圖片已成功刪除。", "success");
+                                                        updateImageGallery(final_property_id, response.data.generalCatalogFileDtos); // 重新載入圖片
+                                                    } else {
+                                                        Swal.fire("錯誤", "刪除失敗，請稍後再試。", "error");
+                                                    }
+                                                },
+                                                error: function () {
+                                                    Swal.fire("錯誤", "刪除失敗，請稍後再試。", "error");
+                                                }
+                                            });
+                                        }
+                                    });
+                                })
+                            });
+
+                        imageContainer.append(imgElement);
+                    });
+                } else {
+                    imageContainer.html("<p>無可用圖片</p>");
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>

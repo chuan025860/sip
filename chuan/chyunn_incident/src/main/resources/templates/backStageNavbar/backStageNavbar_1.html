@@ -19,10 +19,35 @@
 <link th:href="@{/css/daterangepicker.css}" rel="stylesheet">
 
 <!-- logo -->
-<link rel="shortcut icon" type="image/x-icon" th:href="@{/assets/logo/logo.ico}" />
+<link rel="shortcut icon" type="image/x-icon" th:href="@{/img/logo.ico}" />
 
 <!-- sweetalert2 -->
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 
 <!-- flatpickr -->
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+
+<!-- ckeditor -->
+<link rel="stylesheet" th:href="@{/ckeditor5/ckeditor5.css}">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+    #username-display {
+        font-size: 18px;
+        /* 字體大小 */
+        font-weight: 600;
+        /* 字體粗細 */
+        color: #333;
+        /* 字體顏色 */
+        font-family: 'Roboto', sans-serif;
+        /* 使用 Roboto 字型，預設為 sans-serif */
+        text-transform: capitalize;
+        /* 首字母大寫 */
+        /* background-color: #f0f0f0; */
+        /* 背景顏色 */
+        padding: 5px 10px;
+        /* 內邊距 */
+        border-radius: 8px;
+        /* 邊框圓角 */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+</style>

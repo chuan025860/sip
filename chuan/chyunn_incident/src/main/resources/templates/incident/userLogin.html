@@ -2,12 +2,69 @@
 
 <head>
     <meta charset="utf-8">
-    <title>臨時登入頁</title>
+    <title>登入</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
     <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <script>
+        $(document).ready(function () {
+            // 解析 URL 參數的函數
+            function getQueryParam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+            const userId = getQueryParam("USERID");
+            const loginId = getQueryParam("LOGINID");
+            const username = getQueryParam("USERNAME");
+            if (userId && loginId && username) {
+                console.log("USERID:", userId);
+                console.log("LOGINID:", loginId);
+                console.log("USERNAME:", username);
+                // 發送 AJAX 請求到後端 /register
+                $.ajax({
+                    type: "POST",
+                    url: "/chyunn/user/easyRegister",
+                    data: {
+                        USERID: userId,
+                        LOGINID: loginId,
+                        USERNAME: username// 解碼中文
+                    },
+                    success: function (response) {
+                        console.log("註冊成功，獲取的 Token:", response.token);
 
+                        // 將 Token 存入 localStorage
+                        if (response.token) {
+                            localStorage.setItem("authToken", response.token);
+                            localStorage.setItem("userName", response.userName);
+                            window.location.href = "/chyunn/incident/select_incident"; // 轉跳事件頁
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("錯誤:", xhr.responseText);
+                    }
+                })
+            } else {
+                const token = localStorage.getItem('authToken');
+                console.log(token);
+                $.ajax({
+                    type: 'GET',
+                    url: '/chyunn/incident/auth/validate-token',
+                    headers: {
+                        'Authorization': token
+                    },
+                    success: function (response) {
+                        window.location.href = "/chyunn/incident/select_incident"; // 重新登入
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("錯誤訊息:", xhr.responseText);
+                        localStorage.removeItem('authToken');
+                        return;
+                    }
+                });
+            }
+        });
+    </script>
 </head>
 
 <body style="background-image: url('/chyunn/img/IMG_9852.jpg'); background-repeat: no-repeat; background-size: cover;">
@@ -18,7 +75,7 @@
                 <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
                     <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h3>臨時登入頁</h3>
+                            <h3>登入</h3>
                         </div>
                         <form id="loginForm" method="post">
                             <div class="form-floating mb-3">
@@ -77,10 +134,12 @@
                 const formData = $(this).serialize();
                 $.ajax({
                     type: 'POST',
-                    url: '/chyunn/login',
+                    url: '/chyunn/user/login',
                     data: formData,
                     success: function (response) {
+                        // 將 token 存入 localStorage   
                         if (response.code === 200) {
+                            localStorage.setItem('authToken', response.token);
                             window.location.href = "/chyunn/incident/select_incident";
                         }
                     },
