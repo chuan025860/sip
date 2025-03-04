@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運事件問題-反應追蹤</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content">
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <form class="selectOrder">
+                    <div class="d-none d-md-flex  ml-4">
+                        <div class="d-flex align-items-center">
+                            <label for="Search"
+                                class="col-form-label px-0 text-dark">&nbsp;&nbsp;&nbsp;日期搜尋:&nbsp;&nbsp;</label>
+                        </div>
+                        <input type="search" class="form-control  text-dark" id="selectedDate" readonly
+                            style="background-color: white; width: 500px;" name="selectedDate">
+                        <div class="d-flex align-items-center">
+                            <label for="status"
+                                class="col-form-label px-0 text-dark">&nbsp;&nbsp;&nbsp;事件狀態:&nbsp;&nbsp;</label>
+                        </div>
+                        <select id="status" class="form-select text-dark" style="width: 500px;">
+                            <option value="">-- 請選擇 --</option>
+                            <option value="未開始">未開始</option>
+                            <option value="待處理">待處理</option>
+                            <option value="處理中">處理中</option>
+                            <option value="延期">延期</option>
+                            <option value="待結案(待收款)">待結案(待收款)</option>
+                            <option value="退件">退件</option>
+                            <option value="已結案">已結案</option>
+                            <option value="已作廢">已作廢</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="d-none d-md-flex ml-4 align-items-center">
+                        <!-- 關鍵字搜尋 -->
+                        <label for="searchInput" class="col-form-label px-0 text-dark">關鍵字搜尋:&nbsp;&nbsp;</label>
+                        <input class="form-control text-dark" type="search" id="searchInput" style="width: 500px;">
+
+                        <!-- 重要性 -->
+                        <label for="importance" class="col-form-label px-0 text-dark ms-4">重要性:&nbsp;&nbsp;</label>
+                        <select id="importance" class="form-select text-dark" style="width: 500px;">
+                            <option value="">-- 請選擇 --</option>
+                            <option value="特急件">特急件</option>
+                            <option value="急件">急件</option>
+                            <option value="重要">重要</option>
+                            <option value="普通">普通</option>
+                        </select>
+
+                        <!-- 按鈕組 -->
+                        <button id="filter-btn" class="btn btn-primary ms-3">🔍 搜尋</button>
+                        <button id="reset-btn" class="btn btn-secondary ms-3">🔄 重置</button>
+                    </div>
+                    <br>
+                    <!-- 快速篩選事件狀態 -->
+                    <div class="d-none d-md-flex ml-4">
+                        <label class="col-form-label text-dark">&nbsp;&nbsp;&nbsp;&nbsp;快速篩選:</label>
+                        <button class="btn btn-warning ms-3 filter-status" data-status="最新回報">
+                            <span class="count-badge" id="count-recent-reports">0</span> 最新回報
+                        </button>
+                        <button class="btn btn-warning ms-3 filter-status" data-status="未開始">
+                            <span class="count-badge" id="count-unstarted"></span>未開始
+                        </button>
+                        <button class="btn btn-warning ms-3 filter-status" data-status="待處理"><span class="count-badge"
+                                id="count-pending"></span>待處理</button>
+                        <button class="btn btn-info ms-3 filter-status" data-status="處理中"><span class="count-badge"
+                                id="count-in-progress"></span>處理中</button>
+                        <button class="btn btn-secondary ms-3 filter-status" data-status="延期"><span class="count-badge"
+                                id="count-delayed"></span> 延期</button>
+                        <button class="btn btn-danger ms-3 filter-status" data-status="待結案(待收款)"><span
+                                class="count-badge" id="count-awaiting-settlement"></span>待結案</button>
+                        <button class="btn btn-success ms-3 filter-status" data-status="已結案">✅ 已結案</button>
+                    </div>
+                    <br>
+                </form>
+                <hr>
+                <div class="table-responsive border">
+                    <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <!-- <th scope="col"><input class="form-check-input" type="checkbox"></th> -->
+                                <th scope="col">反應人</th>
+                                <th scope="col">處理狀態</th>
+                                <th scope="col">預設處理部門/人</th>
+                                <th scope="col">反應日期</th>
+                                <th scope="col">工作事項</th>
+                                <th scope="col">事件主旨</th>
+                                <th scope="col">重要性</th>
+                                <th scope="col">回報數</th>
+                                <th scope="col">最後回報時間</th>
+                                <th scope="col">當前處理人</th>
+                                <th scope="col">檢視</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incident-table">
+
+                        </tbody>
+                    </table>
+                    <div id="pagination">
+                        <!-- 分頁控制會由 JavaScript 填充 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+
+        $(document).ready(function () {
+            function updateStatusCounts() {
+                const token = localStorage.getItem('authToken');
+                $.ajax({
+                    url: "/chyunn/incident/status_counts",
+                    method: "GET",
+                    headers: {
+                        'Authorization': token
+                    },
+                    success: function (response) {
+                        $("#count-recent-reports").text(response.recent || 0);
+                        $("#count-unstarted").text(response.unstarted || 0);
+                        $("#count-pending").text(response.pending || 0);
+                        $("#count-in-progress").text(response.inProgress || 0);
+                        $("#count-delayed").text(response.delayed || 0);
+                        $("#count-awaiting-settlement").text(response.awaitingSettlement || 0);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("無法獲取事件數量");
+                        console.error("錯誤回應: ", xhr.responseText); // 打印錯誤回應
+
+                        // 如果錯誤狀態為 401（未授權），則移除 token 並跳轉到登入頁
+                        if (xhr.status === 401) {
+                            localStorage.removeItem('authToken');
+                            window.location.href = "/chyunn/login"; // 跳轉到登入頁
+                        }
+                    }
+                });
+            }
+
+            // 頁面載入時更新數據
+            updateStatusCounts();
+
+            $("#reset-btn").click(function () {
+                event.preventDefault();
+                // 清空搜尋欄位
+                $("#searchInput, #selectedDate").val("");
+
+                // 重置下拉選單
+                $("#status").prop("selectedIndex", 0);
+                $("#importance").prop("selectedIndex", 0);
+
+                // 移除 sessionStorage 內的篩選條件
+                sessionStorage.removeItem("filterRecentPage");
+                sessionStorage.removeItem("selectedStatus");
+                sessionStorage.removeItem("searchInput");
+                sessionStorage.removeItem("selectedDate");
+                sessionStorage.removeItem("selectImportance");
+                sessionStorage.removeItem("filterPage");
+                sessionStorage.removeItem("currentPage");
+
+                // 重新整理頁面
+                location.reload();
+            });
+
+            var savedPage = sessionStorage.getItem("currentPage");
+            var filterPage = sessionStorage.getItem("filterPage");
+            var filterRecentPage = sessionStorage.getItem("filterRecentPage");
+            console.log(savedPage)
+            console.log(filterPage)
+            console.log(filterRecentPage)
+            if (savedPage !== null) {
+                loadIncidents(parseInt(savedPage));
+                console.log("1")
+            } else if (savedPage === null && filterPage !== null && filterRecentPage === null) {
+                filterIncidents(parseInt(filterPage));
+                console.log("2")
+            } else if (savedPage === null && filterPage === null && filterRecentPage !== null) {
+                filterRecentReports(parseInt(filterRecentPage));
+                console.log("3")
+            } else {
+                loadIncidents(0);
+                console.log("4")
+            }
+
+
+            function loadIncidents(page) {
+                const token = localStorage.getItem('authToken');  // 從 localStorage 獲取 token
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/incident/select_incident',
+                    data: { page: page, size: 10 },
+                    headers: {
+                        'Authorization': token
+                    },
+                    success: function (response) {
+                        var tableBody = $("#incident-table");
+                        tableBody.empty();
+                        // **步驟 1: 找出最新的日期**
+                        let latestDate = "";
+                        response.content.forEach(function (incident) {
+                            if (!latestDate || new Date(incident.reportDate) > new Date(latestDate)) {
+                                latestDate = incident.reportDate;
+                            }
+                        });
+                        // **取得今天的日期 (YYYY-MM-DD)**
+                        let today = new Date().toISOString().split('T')[0];
+
+                        response.content.forEach(function (incident) {
+                            var newRow = $("<tr>");
+                            newRow.append("<td class='text-dark'>" + incident.reporter + "</td>");
+                            let statusClass = '';
+                            switch (incident.status) {
+                                case '未開始': statusClass = 'status-unstarted'; break;
+                                case '待處理': statusClass = 'status-pending'; break;
+                                case '處理中': statusClass = 'status-in-progress'; break;
+                                case '已轉交他人': statusClass = 'status-transferred'; break;
+                                case '延期': statusClass = 'status-delayed'; break;
+                                case '待結案(待收款)': statusClass = 'status-awaiting-settlement'; break;
+                                case '退件': statusClass = 'status-returned'; break;
+                                case '已結案': statusClass = 'status-closed'; break;
+                                case '已作廢': statusClass = 'status-cancelled'; break;
+                                default: statusClass = 'text-dark';
+                            }
+                            newRow.append("<td class='" + statusClass + "'>" + incident.status + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.department + '/' + incident.handler + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.reportDate + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.task + "</td>");
+                            newRow.append("<td class='text-dark event-content'>" + incident.eventPurpose + "</td>");
+                            if (incident.importance === "特急件") {
+                                newRow.append("<td class='text-danger fw-bold'>" + incident.importance + "</td>");
+                            } else {
+                                newRow.append("<td class='text-dark'>" + incident.importance + "</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.reportCount + "</td>");
+                            // **處理 lastReportTime**
+                            let lastReportDate = incident.lastReportTime ? new Date(incident.lastReportTime.split(' ')[0]) : null;
+                            let tenDaysAgo = new Date();
+                            tenDaysAgo.setDate(tenDaysAgo.getDate() - 10); // 取得 10 天前的日期
+                            if (incident.reportCount > 0 && lastReportDate) {
+                                let lastReportCell = $("<td class='text-dark'>" + incident.lastReportTime + "</td>");
+
+                                // **修正比較方式**
+                                if (lastReportDate >= tenDaysAgo) {
+                                    lastReportCell.addClass("new-row"); // 10 天內加上 new-row 樣式
+                                }
+
+                                newRow.append(lastReportCell);
+                            } else {
+                                newRow.append("<td class='text-dark'>未開始</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.handler + "</td>");
+                            newRow.append("<td><a class='btn btn-sm btn-primary' href='/chyunn/incident/incident_Detail?incidentId=" + incident.incidentId + "'>檢視</a></td>");
+                            tableBody.append(newRow);
+                        });
+
+                        // 更新分頁控制
+                        var pagination = $("#pagination");
+                        pagination.empty();
+
+                        // 使用 Bootstrap 樣式的分頁按鈕
+                        var paginationContainer = $('<nav aria-label="Page navigation"><ul class="pagination justify-content-center"></ul></nav>');
+                        var paginationList = paginationContainer.find('ul');
+
+                        // 上一頁按鈕
+                        if (response.currentPage > 0) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark prev-page">上一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">上一頁</span></li>');
+                        }
+
+                        // 當前頁數
+                        paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">第 ' + (response.currentPage + 1) + ' 頁 / ' + response.totalPages + ' 頁</span></li>');
+
+                        // 下一頁按鈕
+                        if (response.currentPage < response.totalPages - 1) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark next-page">下一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">下一頁</span></li>');
+                        }
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 查詢特定頁數
+                        paginationList.append('<li class="page-item"><input type="number" id="pageInput" class="form-control" style="width: 80px; margin-left: 10px;" min="1" max="' + response.totalPages + '" placeholder="頁數"></li>');
+                        paginationList.append('<li class="page-item"><button class="page-link text-dark" id="goToPage">跳轉</button></li>');
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 點擊分頁按鈕
+                        $(".prev-page").click(function () {
+                            loadIncidents(response.currentPage - 1);
+                            sessionStorage.setItem("currentPage", response.currentPage - 1);
+                        });
+                        $(".next-page").click(function () {
+                            loadIncidents(response.currentPage + 1);
+                            sessionStorage.setItem("currentPage", response.currentPage + 1);
+                        });
+
+                        // 點擊跳轉按鈕
+                        $("#goToPage").click(function () {
+                            var pageInput = $("#pageInput").val();
+                            if (pageInput >= 1 && pageInput <= response.totalPages) {
+                                loadIncidents(pageInput - 1);  // 分頁從0開始
+                                sessionStorage.setItem("currentPage", pageInput - 1);
+                            } else {
+                                alert("請輸入有效的頁數！");
+                            }
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("無法獲取事件數量");
+                        console.error("錯誤回應: ", xhr.responseText); // 打印錯誤回應
+
+                        // 如果錯誤狀態為 401（未授權），則移除 token 並跳轉到登入頁
+                        if (xhr.status === 401) {
+                            localStorage.removeItem('authToken');
+                            window.location.href = "/chyunn/login"; // 跳轉到登入頁
+                        }
+                    }
+
+                });
+            }
+
+
+            function filterIncidents(page) {
+                const token = localStorage.getItem('authToken');  // 從 localStorage 獲取 token
+                // 清除 sessionStorage 中的 currentPage
+                sessionStorage.removeItem("currentPage");
+                sessionStorage.removeItem("filterRecentPage");
+                sessionStorage.setItem("filterPage", 0);
+
+                // 取得 UI 或 sessionStorage 內的值
+                var searchInput = $('#searchInput').val() || sessionStorage.getItem("searchInput") || "";
+                var selectedDate = $('#selectedDate').val() || sessionStorage.getItem("selectedDate") || "";
+                var selectedStatus = $('#status').val() || sessionStorage.getItem("selectedStatus") || "";
+                var selectImportance = $('#importance').val() || sessionStorage.getItem("selectImportance") || "";
+
+                $("#searchInput").val(searchInput);
+                $("#selectedDate").val(selectedDate);
+                $("#status").val(selectedStatus);
+                $("#importance").val(selectImportance);
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/incident/filter_select',
+                    headers: {
+                        'Authorization': token
+                    },
+                    data: {
+                        searchInput: searchInput,  // 發送搜尋條件
+                        selectedDate: selectedDate,
+                        selectedStatus: selectedStatus,
+                        selectImportance: selectImportance,
+                        page: page, size: 10
+                    },
+                    success: function (response) {
+                        console.log(response);
+                        var tableBody = $("#incident-table");
+                        tableBody.empty();
+                        // **取得今天的日期 (YYYY-MM-DD)**
+                        let today = new Date().toISOString().split('T')[0];
+                        response.data.incidentDtos.forEach(function (incident) {
+                            var newRow = $("<tr>");
+                            newRow.append("<td class='text-dark'>" + incident.reporter + "</td>");
+                            let statusClass = ''; // 用來儲存顏色的類別
+
+                            switch (incident.status) {
+                                case '未開始':
+                                    statusClass = 'status-unstarted';
+                                    break;
+                                case '待處理':
+                                    statusClass = 'status-pending';
+                                    break;
+                                case '處理中':
+                                    statusClass = 'status-in-progress';
+                                    break;
+                                case '已轉交他人':
+                                    statusClass = 'status-transferred';
+                                    break;
+                                case '延期':
+                                    statusClass = 'status-delayed';
+                                    break;
+                                case '待結案(待收款)':
+                                    statusClass = 'status-awaiting-settlement';
+                                    break;
+                                case '退件':
+                                    statusClass = 'status-returned';
+                                    break;
+                                case '已結案':
+                                    statusClass = 'status-closed';
+                                    break;
+                                case '已作廢':
+                                    statusClass = 'status-cancelled';
+                                    break;
+                                default:
+                                    statusClass = 'text-dark'; // 預設為深色
+                            }
+
+                            newRow.append("<td class='" + statusClass + "'>" + incident.status + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.department + '/' + incident.handler + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.reportDate + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.task + "</td>");
+                            newRow.append("<td class='text-dark event-content'>" + incident.eventPurpose + "</td>");
+                            if (incident.importance === "特急件") {
+                                newRow.append("<td class='text-danger fw-bold'>" + incident.importance + "</td>");
+                            } else {
+                                newRow.append("<td class='text-dark'>" + incident.importance + "</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.reportCount + "</td>");
+                            // **處理 lastReportTime**
+                            let lastReportDate = incident.lastReportTime ? new Date(incident.lastReportTime.split(' ')[0]) : null;
+                            let tenDaysAgo = new Date();
+                            tenDaysAgo.setDate(tenDaysAgo.getDate() - 10); // 取得 10 天前的日期
+                            if (incident.reportCount > 0 && lastReportDate) {
+                                let lastReportCell = $("<td class='text-dark'>" + incident.lastReportTime + "</td>");
+
+                                // **修正比較方式**
+                                if (lastReportDate >= tenDaysAgo) {
+                                    lastReportCell.addClass("new-row"); // 10 天內加上 new-row 樣式
+                                }
+
+                                newRow.append(lastReportCell);
+                            } else {
+                                newRow.append("<td class='text-dark'>未開始</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.handler + "</td>");
+                            newRow.append("<td><a class='btn btn-sm btn-primary' href='/chyunn/incident/incident_Detail?incidentId=" + incident.incidentId + "'>檢視</a></td>");
+                            tableBody.append(newRow);
+                        });
+
+                        // 更新分頁控制
+                        var pagination = $("#pagination");
+                        pagination.empty();
+
+                        // 使用 Bootstrap 樣式的分頁按鈕
+                        var paginationContainer = $('<nav aria-label="Page navigation"><ul class="pagination justify-content-center"></ul></nav>');
+                        var paginationList = paginationContainer.find('ul');
+
+                        // 上一頁按鈕
+                        if (response.currentPage > 0) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark prev-page">上一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">上一頁</span></li>');
+                        }
+
+                        // 當前頁數
+                        paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">第 ' + (response.currentPage + 1) + ' 頁 / ' + response.totalPages + ' 頁</span></li>');
+
+                        // 下一頁按鈕
+                        if (response.currentPage < response.totalPages - 1) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark next-page">下一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">下一頁</span></li>');
+                        }
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 查詢特定頁數
+                        paginationList.append('<li class="page-item"><input type="number" id="pageInput" class="form-control" style="width: 80px; margin-left: 10px;" min="1" max="' + response.totalPages + '" placeholder="頁數"></li>');
+                        paginationList.append('<li class="page-item"><button class="page-link text-dark" id="goToPage">跳轉</button></li>');
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 點擊分頁按鈕
+                        $(".prev-page").click(function () {
+                            filterIncidents(response.currentPage - 1);
+                            sessionStorage.setItem("filterPage", response.currentPage - 1);
+                        });
+                        $(".next-page").click(function () {
+                            filterIncidents(response.currentPage + 1);
+                            sessionStorage.setItem("filterPage", response.currentPage + 1);
+                        });
+
+                        // 點擊跳轉按鈕
+                        $("#goToPage").click(function () {
+                            var pageInput = $("#pageInput").val();
+                            if (pageInput >= 1 && pageInput <= response.totalPages) {
+                                filterIncidents(pageInput - 1);  // 分頁從0開始
+                                sessionStorage.setItem("filterPage", pageInput - 1);
+                            } else {
+                                alert("請輸入有效的頁數！");
+                            }
+                        });
+                    }, error: function (xhr, status, error) {
+                        // 移除 sessionStorage 內的篩選條件
+                        sessionStorage.removeItem("selectedStatus");
+                        sessionStorage.removeItem("searchInput");
+                        sessionStorage.removeItem("selectedDate");
+                        sessionStorage.removeItem("selectImportance");
+                        sessionStorage.removeItem("filterPage");
+                        // 如果錯誤狀態為 401（未授權），則移除 token 並跳轉到登入頁
+                        if (xhr.status === 401) {
+                            localStorage.removeItem('authToken');
+                            window.location.href = "/chyunn/login"; // 跳轉到登入頁
+                        }
+                        let errorMessage = "發生錯誤";
+                        try {
+                            // 嘗試解析 JSON 回應，避免解析錯誤
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            // 若解析失敗，直接使用原始 responseText
+                            errorMessage = xhr.responseText || errorMessage;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操做失敗',
+                            text: errorMessage,
+                        });
+                    }
+
+                });
+            }
+            // 當搜尋按鈕被點擊
+            $('#filter-btn').click(function () {
+                event.preventDefault();
+
+                // 取得 UI 的最新輸入值
+                var selectedStatus = $('#status').val();
+                var searchInput = $('#searchInput').val();
+                var selectedDate = $('#selectedDate').val();
+                var selectImportance = $('#importance').val();
+
+                // 儲存最新值到 sessionStorage
+                sessionStorage.setItem("selectedStatus", selectedStatus);
+                sessionStorage.setItem("searchInput", searchInput);
+                sessionStorage.setItem("selectedDate", selectedDate);
+                sessionStorage.setItem("selectImportance", selectImportance);
+                sessionStorage.setItem("filterPage", 0);
+                // 觸發過濾
+                filterIncidents(0);
+            });
+            $(".filter-status").click(function (event) {
+                event.preventDefault();
+                var selectedStatus = $(this).data("status"); // 取得按鈕上的 data-status
+
+                if (selectedStatus === "最新回報") {
+                    $("#status").val("");
+                    console.log(selectedStatus);
+                    filterRecentReports(0); // 執行「最新回報」篩選
+                } else {
+                    $("#status").val(selectedStatus); // 設定狀態篩選選單的值
+                    sessionStorage.setItem("selectedStatus", selectedStatus);
+                    filterIncidents(0); // 觸發搜尋，從第 0 頁開始
+                }
+            });
+
+            // **「最新回報」篩選方法**
+            function filterRecentReports(page) {
+                const token = localStorage.getItem('authToken');  // 從 localStorage 獲取 token
+
+                sessionStorage.removeItem("currentPage");
+                sessionStorage.removeItem("filterPage");
+                sessionStorage.setItem("filterRecentPage", 0);
+                let tenDaysAgo = new Date();
+                tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/incident/filter_recent',
+                    data: {
+                        page: page, size: 10
+                    },
+                    headers: {
+                        'Authorization': token
+                    },
+                    success: function (response) {
+                        var tableBody = $("#incident-table");
+                        tableBody.empty();
+                        // **取得今天的日期 (YYYY-MM-DD)**
+                        let today = new Date().toISOString().split('T')[0];
+                        response.data.incidentDtos.forEach(function (incident) {
+                            var newRow = $("<tr>");
+                            newRow.append("<td class='text-dark'>" + incident.reporter + "</td>");
+                            let statusClass = ''; // 用來儲存顏色的類別
+
+                            switch (incident.status) {
+                                case '未開始':
+                                    statusClass = 'status-unstarted';
+                                    break;
+                                case '待處理':
+                                    statusClass = 'status-pending';
+                                    break;
+                                case '處理中':
+                                    statusClass = 'status-in-progress';
+                                    break;
+                                case '已轉交他人':
+                                    statusClass = 'status-transferred';
+                                    break;
+                                case '延期':
+                                    statusClass = 'status-delayed';
+                                    break;
+                                case '待結案(待收款)':
+                                    statusClass = 'status-awaiting-settlement';
+                                    break;
+                                case '退件':
+                                    statusClass = 'status-returned';
+                                    break;
+                                case '已結案':
+                                    statusClass = 'status-closed';
+                                    break;
+                                case '已作廢':
+                                    statusClass = 'status-cancelled';
+                                    break;
+                                default:
+                                    statusClass = 'text-dark'; // 預設為深色
+                            }
+
+                            newRow.append("<td class='" + statusClass + "'>" + incident.status + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.department + '/' + incident.handler + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.reportDate + "</td>");
+                            newRow.append("<td class='text-dark'>" + incident.task + "</td>");
+                            newRow.append("<td class='text-dark event-content'>" + incident.eventPurpose + "</td>");
+                            if (incident.importance === "特急件") {
+                                newRow.append("<td class='text-danger fw-bold'>" + incident.importance + "</td>");
+                            } else {
+                                newRow.append("<td class='text-dark'>" + incident.importance + "</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.reportCount + "</td>");
+                            // **處理 lastReportTime**
+                            let lastReportDate = incident.lastReportTime ? new Date(incident.lastReportTime.split(' ')[0]) : null;
+                            let tenDaysAgo = new Date();
+                            tenDaysAgo.setDate(tenDaysAgo.getDate() - 10); // 取得 10 天前的日期
+                            if (incident.reportCount > 0 && lastReportDate) {
+                                let lastReportCell = $("<td class='text-dark'>" + incident.lastReportTime + "</td>");
+                                // // **修正比較方式**
+                                // if (lastReportDate >= tenDaysAgo) {
+                                lastReportCell.addClass("new-row"); // 10 天內加上 new-row 樣式
+                                // }
+                                newRow.append(lastReportCell);
+                            } else {
+                                newRow.append("<td class='text-dark'>未開始</td>");
+                            }
+                            newRow.append("<td class='text-dark'>" + incident.handler + "</td>");
+                            newRow.append("<td><a class='btn btn-sm btn-primary' href='/chyunn/incident/incident_Detail?incidentId=" + incident.incidentId + "'>檢視</a></td>");
+                            tableBody.append(newRow);
+                        });
+
+                        // 更新分頁控制
+                        var pagination = $("#pagination");
+                        pagination.empty();
+
+                        // 使用 Bootstrap 樣式的分頁按鈕
+                        var paginationContainer = $('<nav aria-label="Page navigation"><ul class="pagination justify-content-center"></ul></nav>');
+                        var paginationList = paginationContainer.find('ul');
+
+                        // 上一頁按鈕
+                        if (response.currentPage > 0) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark prev-page">上一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">上一頁</span></li>');
+                        }
+
+                        // 當前頁數
+                        paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">第 ' + (response.currentPage + 1) + ' 頁 / ' + response.totalPages + ' 頁</span></li>');
+
+                        // 下一頁按鈕
+                        if (response.currentPage < response.totalPages - 1) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark next-page">下一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">下一頁</span></li>');
+                        }
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 查詢特定頁數
+                        paginationList.append('<li class="page-item"><input type="number" id="pageInput" class="form-control" style="width: 80px; margin-left: 10px;" min="1" max="' + response.totalPages + '" placeholder="頁數"></li>');
+                        paginationList.append('<li class="page-item"><button class="page-link text-dark" id="goToPage">跳轉</button></li>');
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 點擊分頁按鈕
+                        $(".prev-page").click(function () {
+                            filterRecentReports(response.currentPage - 1);
+                            sessionStorage.setItem("filterRecentPage", response.currentPage - 1);
+                        });
+                        $(".next-page").click(function () {
+                            filterRecentReports(response.currentPage + 1);
+                            sessionStorage.setItem("filterRecentPage", response.currentPage + 1);
+                        });
+
+                        // 點擊跳轉按鈕
+                        $("#goToPage").click(function () {
+                            var pageInput = $("#pageInput").val();
+                            if (pageInput >= 1 && pageInput <= response.totalPages) {
+                                filterRecentReports(pageInput - 1);  // 分頁從0開始
+                                sessionStorage.setItem("filterRecentPage", pageInput - 1);
+                            } else {
+                                alert("請輸入有效的頁數！");
+                            }
+                        });
+                    }, error: function (xhr, status, error) {
+                        // 移除 sessionStorage 內的篩選條件
+                        sessionStorage.removeItem("selectedStatus");
+                        sessionStorage.removeItem("searchInput");
+                        sessionStorage.removeItem("selectedDate");
+                        sessionStorage.removeItem("selectImportance");
+                        sessionStorage.removeItem("filterPage");
+                        // 如果錯誤狀態為 401（未授權），則移除 token 並跳轉到登入頁
+                        if (xhr.status === 401) {
+                            localStorage.removeItem('authToken');
+                            window.location.href = "/chyunn/login"; // 跳轉到登入頁
+                        }
+                        let errorMessage = "發生錯誤";
+                        try {
+                            // 嘗試解析 JSON 回應，避免解析錯誤
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            // 若解析失敗，直接使用原始 responseText
+                            errorMessage = xhr.responseText || errorMessage;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操做失敗',
+                            text: errorMessage,
+                        });
+                    }
+
+                });
+
+            }
+        }
+        );
+        $(function () {
+            function cb(start, end) {
+                $('#selectedDate span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+            }
+            $('#selectedDate').daterangepicker({
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '昨天': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '前 7 天': [moment().subtract(6, 'days'), moment()],
+                    '前 30 天': [moment().subtract(29, 'days'), moment()],
+                    '這個月': [moment().startOf('month'), moment().endOf('month')],
+                    '上個月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                }, "locale": {
+                    "format": "YYYY年MM月DD日",
+                    "separator": " - ",
+                    "applyLabel": "確認",
+                    "cancelLabel": "取消",
+                    "customRangeLabel": "自訂義範圍",
+                    "daysOfWeek": [
+                        "日",
+                        "一",
+                        "二",
+                        "三",
+                        "四",
+                        "五",
+                        "日"
+                    ],
+                    "monthNames": [
+                        "1 月",
+                        "2 月",
+                        "3 月",
+                        "4 月",
+                        "5 月",
+                        "6 月",
+                        "7 月",
+                        "8 月",
+                        "9 月",
+                        "10 月",
+                        "11 月",
+                        "12 月"
+                    ],
+                    "firstDay": 1
+                }, "autoUpdateInput": false
+            }, cb);
+            $('#selectedDate').on('apply.daterangepicker', function (ev, picker) {
+                $(this).val(picker.startDate.format('YYYY年MM月DD日') + ' - ' + picker.endDate.format('YYYY年MM月DD日'));
+            });
+
+            $('#selectedDate').on('cancel.daterangepicker', function (ev, picker) {
+                $(this).val('');
+            });
+        })
+    </script>
+</body>
+
+</html>
