@@ -1,0 +1,192 @@
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>登入</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <script>
+        $(document).ready(function () {
+            // 解析 URL 參數的函數
+            function getQueryParam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+            const userId = getQueryParam("USERID");
+            const loginId = getQueryParam("LOGINID");
+            const username = getQueryParam("USERNAME");
+            if (userId && loginId && username) {
+                console.log("USERID:", userId);
+                console.log("LOGINID:", loginId);
+                console.log("USERNAME:", username);
+                // 發送 AJAX 請求到後端 /register
+                $.ajax({
+                    type: "POST",
+                    url: "/chyunn/user/easyRegister",
+                    data: {
+                        USERID: userId,
+                        LOGINID: loginId,
+                        USERNAME: username// 解碼中文
+                    },
+                    success: function (response) {
+                        console.log("註冊成功，獲取的 Token:", response.token);
+
+                        // 將 Token 存入 localStorage
+                        if (response.token) {
+                            localStorage.setItem("authToken", response.token);
+                            localStorage.setItem("userName", response.userName);
+                            window.location.href = `/chyunn/incident/select_incident?userName=${encodeURIComponent(response.userName)}`
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("錯誤:", xhr.responseText);
+                    }
+                })
+            } else {
+                const token = localStorage.getItem('authToken');
+                console.log(token);
+                $.ajax({
+                    type: 'GET',
+                    url: '/chyunn/incident/auth/validate-token',
+                    headers: {
+                        'Authorization': token
+                    },
+                    success: function (response) {
+                        window.location.href = "/chyunn/incident/select_incident"; // 重新登入
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("錯誤訊息:", xhr.responseText);
+                        localStorage.removeItem('authToken');
+                        return;
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+
+<body style="background-image: url('/chyunn/img/IMG_9852.jpg'); background-repeat: no-repeat; background-size: cover;">
+    <div class="container-fluid position-relative d-flex p-0">
+        <!-- Sign In Start -->
+        <div class="container-fluid">
+            <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
+                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                    <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h3>登入</h3>
+                        </div>
+                        <form id="loginForm" method="post">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="id" class="form-control" id="id" placeholder="請輸入帳號" required>
+                                <label for="id">帳號</label>
+                            </div>
+                            <div class="form-floating mb-4">
+                                <input type="password" name="password" class="form-control" id="floatingPassword"
+                                    placeholder="請輸入密碼" required autocomplete="current-password">
+                                <label for="floatingPassword">密碼</label>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">記住帳號</label>
+                                </div>
+                                <a href="">忘記密碼</a>
+                            </div>
+                            <input type="submit" class="btn btn-primary py-3 w-100 mb-4" value="登入" />
+                        </form>
+                        <button id="lineLoginBtn" type="submit" class="btn py-3 w-100 mb-4"
+                            style="background-color: #06C755; color: #fff;">Line登入</button>
+
+                        <!-- <a class="btn btn-primary py-3 w-100 mb-4" th:href="@{/oauth2/authorization/google}">Login with Google</a>-->
+                        <!-- <a class="btn btn-primary py-3 w-100 mb-4" th:href="@{/oauth2/authorization/facebook}">Login with Facebook</a>-->
+                        <!--第三方登入 Google-->
+                        <!-- <div style="text-align: center;">
+                            <div id="g_id_onload"
+                                data-client_id="163327713304-db6bqvp88aunith7rk9k6mijn34asjs1.apps.googleusercontent.com"
+                                data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse"
+                                data-nonce="" data-auto_select="true" data-itp_support="true">
+                            </div>
+                            <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline"
+                                data-text="signin_with" data-size="large" data-logo_alignment="center" data-width="350">
+                            </div>
+                        </div> -->
+                        <!--第三方登入 Google END-->
+                        <br>
+                        <p class="text-center mb-0"> 沒有帳號嗎? <a href="">註冊 </a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Sign In End -->
+    </div>
+
+    <!-- scriptNavbar -->
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+
+
+        $(document).ready(function () {
+            $('#loginForm').submit(function (event) {
+                event.preventDefault();  // 取消submit預設動作
+                // 取得Form資料
+                const formData = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/user/login',
+                    data: formData,
+                    success: function (response) {
+                        // 將 token 存入 localStorage   
+                        if (response.code === 200) {
+                            localStorage.setItem("userName", response.userName);
+                            localStorage.setItem('authToken', response.token);
+                            window.location.href = "/chyunn/incident/select_incident";
+                        }
+                    },
+                    error: function (error) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "帳號密碼錯誤 ",
+                        });
+                        console.error('AJAX error:', error);
+                    }
+                });
+            });
+        });
+
+        //Google 登入
+        function handleCredentialResponse(response) {<!--Google 登入-->
+            const responsePayload = decodeJwtResponse(response.credential);
+            // console.log("ID: " + responsePayload.sub);
+            // console.log('Full Name: ' + responsePayload.name);
+            // console.log('Given Name: ' + responsePayload.given_name);
+            // console.log('Family Name: ' + responsePayload.family_name);
+            // console.log("Image URL: " + responsePayload.picture);
+            // console.log("Email: " + responsePayload.email);
+            const formData = JSON.stringify(responsePayload);
+            // < !--Google Login AJAX-- >
+        }
+        // < !--解碼-->
+        function decodeJwtResponse(token) {
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split("")
+                    .map(function (c) {
+                        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+                    })
+                    .join("")
+            );
+
+            return JSON.parse(jsonPayload);
+        }
+
+    </script>
+
+
+</body>
+
+</html>

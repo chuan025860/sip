@@ -1,0 +1,157 @@
+<style>
+    .event-content {
+        word-wrap: break-word;
+        /* 遇到長字會換行 */
+        word-break: break-word;
+        /* 強制打斷字詞換行 */
+        white-space: normal;
+        /* 允許文字換行 */
+        max-width: 400px;
+        /* 設定寬度控制換行 */
+    }
+
+    .custom-btn {
+        background-color: #1ab394;
+        border-color: #1ab394;
+        color: white;
+        /* transition: color 0.3s ease, text-shadow 0.3s ease; */
+        /* 平滑效果 */
+    }
+
+    .custom-btn:hover {
+        color: white;
+        /* 字體保持白色 */
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        /* 發光效果 */
+        background-color: #18a383;
+        /* 懸停時略微變化背景色 */
+        border-color: #18a383;
+    }
+
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    ul {
+        padding: 0;
+        margin: 0;
+    }
+
+    /* 設置狀態顏色 */
+    .status-unstarted {
+        color: #f0ad4e;
+    }
+
+    /* 未開始 */
+    .status-pending {
+        color: #ff6600;
+    }
+
+    /* 待處理 */
+    .status-in-progress {
+        color: #5bc0de;
+    }
+
+    /* 處理中 */
+    .status-transferred {
+        color: #0275d8;
+    }
+
+    /* 已轉交他人 */
+    .status-delayed {
+        color: #d9534f;
+    }
+
+    /* 延期 */
+    .status-awaiting-settlement {
+        color: #ffc107;
+    }
+
+    /* 待結案(待收款) */
+    .status-returned {
+        color: #6c757d;
+    }
+
+    /* 退件 */
+    .status-closed {
+        color: #28a745;
+    }
+
+    /* 已結案 */
+    .status-cancelled {
+        color: #dc3545;
+    }
+
+    /* 標記最新行的 NEW 標籤 */
+    .new-row {
+        position: relative;
+    }
+
+    /* NEW 標籤的樣式 */
+    .new-row::before {
+        content: "NEW";
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        background-color: red;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-radius: 5px;
+    }
+
+    .count-badge {
+        background: rgb(226, 89, 35);
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 3px;
+        border: 2px solid white;
+        transform: translateY(-1px);
+        /* Move the badge up */
+        /* Adding white border */
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        const token = localStorage.getItem('authToken');
+        console.log(token);
+
+        if (!token) {
+            window.location.href = "/chyunn/login"; // 如果沒有 Token，直接回登入頁
+        } else {
+            $.ajax({
+                type: 'GET',
+                url: '/chyunn/incident/auth/validate-token',
+                headers: {
+                    'Authorization': token
+                },
+                success: function (response) {
+                    console.log("Token 驗證成功：", response.message);
+                    // 🔥 更新前端顯示 userName
+                    if (response.userName) {
+                        $("#username-display").text(response.userName);
+                        $("#username-h6").text(response.userName);
+                        $("#creator").val(response.userName);
+
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log("錯誤訊息:", xhr.responseText);
+                    localStorage.removeItem('authToken');
+                    window.location.href = "/chyunn/login"; // 重新登入
+                }
+            });
+
+        }
+    });
+</script>
