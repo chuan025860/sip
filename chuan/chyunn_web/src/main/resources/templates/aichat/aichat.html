@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>智能搜尋與聊天</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .search-results {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 50px;
+        }
+
+        .chat-box {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .form-group label {
+            /* font-weight: bold; */
+            /* 設定為粗體 */
+            color: black;
+            /* 設定為黑色 */
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            /* 增加每個表單項目的間距 */
+        }
+
+        .form-group input {
+            width: 85%;
+            padding: 10px;
+            margin-top: 5px;
+            /* 給輸入框一些間距 */
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+
+    <div class="content" style="width: auto; margin-top: 80px; margin-left: 5%;">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+
+        <div class="container">
+            <h2>填寫AI詢問格式</h2>
+
+            <!-- 填寫身份 -->
+            <div class="form-group">
+                <label for="identity">1. 你是誰 (例如: 業務員、職安專員)</label>
+                <input type="text" id="identity" placeholder="例如: 業務員">
+            </div>
+
+            <!-- 填寫問題主題 -->
+            <div class="form-group">
+                <label for="topic">2. 問題主題 (例如: 市場調查、安全規範)</label>
+                <input type="text" id="topic" placeholder="例如: 市場調查">
+            </div>
+
+            <!-- 填寫任務 -->
+            <div class="form-group">
+                <label for="task">3. 要解決什麼問題 (例如: 做報告、分析數據)</label>
+                <input type="text" id="task" placeholder="例如: 做報告">
+            </div>
+
+            <!-- 填寫細節 -->
+            <div class="form-group">
+                <label for="details">4. 限制條件是什麼 (例如: 時間、地點)</label>
+                <input type="text" id="details" placeholder="例如: 時間內完成">
+            </div>
+
+            <!-- 填寫輸出格式 -->
+            <div class="form-group">
+                <label for="outputFormat">5. 你希望結果的格式是什麼 (例如: 報告、表格)</label>
+                <input type="text" id="outputFormat" placeholder="例如: 報告">
+            </div>
+
+            <button id="submitQuery" class="btn custom-btn">產生查詢語句</button>
+
+            <h2>產生查詢語句</h2>
+            <div class="search-results" id="searchResults"></div>
+
+            <h2>AI 聊天</h2>
+            <div class="chat-box" id="chatBox"></div>
+            <input type="text" class="chat-input" id="chatInput" placeholder="輸入訊息...">
+        </div>
+    </div>
+
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        $(document).ready(function () {
+            // 即時搜尋（當用戶填寫並提交表單）
+            $('#submitQuery').on('click', function () {
+                let identity = $('#identity').val();
+                let topic = $('#topic').val();
+                let task = $('#task').val();
+                let details = $('#details').val();
+                let outputFormat = $('#outputFormat').val();
+
+                // 檢查必填欄位
+                if (identity && topic && task && details && outputFormat) {
+                    let query = `我是${identity}，關於${topic}，請提供${task}，限制條件: ${details}，格式: ${outputFormat}`;
+
+                    // 發送至後端進行搜尋
+                    $.get('/search', { q: query }, function (data) {
+                        $('#searchResults').html(data);
+                    });
+                } else {
+                    alert("請完整填寫所有欄位！");
+                }
+            });
+
+            // AI 聊天
+            $('#chatInput').on('keypress', function (e) {
+                if (e.which == 13) { // Enter 鍵
+                    let message = $(this).val();
+                    $('#chatBox').append('<div>你: ' + message + '</div>');
+                    $(this).val('');
+
+                    $.post('/chat', { message: message }, function (response) {
+                        $('#chatBox').append('<div>AI: ' + response + '</div>');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
