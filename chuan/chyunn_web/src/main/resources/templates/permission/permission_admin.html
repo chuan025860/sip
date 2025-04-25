@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運權限管理</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        .final_property_id-column {
+            width: 10%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .name-column {
+            width: 15%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .remarks-column {
+            width: 30%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .custodian-column {
+            width: 15%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .location-column {
+            width: 15%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .change_record-column {
+            width: 15%;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <!-- 使用者權限設定表單 -->
+                <form id="permissionForm">
+                    <!-- 搜尋使用者 -->
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="userSearch" class="form-label mb-0 fw-semibold">搜尋使用者：</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="userSearch" class="form-control" placeholder="請輸入使用者帳號">
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-secondary" id="searchUserBtn">查詢</button>
+                        </div>
+                    </div>
+
+                    <!-- 權限表格 -->
+                    <table class="table table-bordered align-middle text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>模組</th>
+                                <th>初級權限</th>
+                                <th>管理權限</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-start">事件反應</td>
+                                <td><input type="checkbox" name="permissions" value="ROLE_USER" id="perm-ROLE_USER">
+                                    初級編輯</td>
+                                <td><input type="checkbox" name="permissions" value="ROLE_INCIDENT_ADMIN"
+                                        id="perm-ROLE_INCIDENT_ADMIN"> 管理</td>
+                            </tr>
+
+                            <tr>
+                                <td class="text-start">財產管理</td>
+                                <td><input type="checkbox" name="permissions" value="ROLE_ASSET_VIEW"
+                                        id="perm-ROLE_ASSET_VIEW">
+                                    檢視</td>
+                                <td><input type="checkbox" name="permissions" value="ROLE_ASSET_ADMIN"
+                                        id="perm-ROLE_ASSET_ADMIN">
+                                    管理</td>
+                            </tr>
+
+                            <tr>
+                                <td class="text-start">使用者帳號</td>
+                                <td><input type="checkbox" name="permissions" value="ROLE_USER_VIEW"
+                                        id="perm-USER_VIEW"> 檢視
+                                </td>
+                                <td><input type="checkbox" name="permissions" value="ROLE_USER_ADMIN"
+                                        id="perm-USER_ADMIN">
+                                    管理</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- 儲存按鈕 -->
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">💾 儲存權限</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+
+            function fetchUserPermissions() {
+                const loginId = $("#userSearch").val().trim();
+                if (!loginId) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '請輸入使用者帳號',
+                        confirmButtonText: '確定'
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: "/chyunn/permission/selectuser",
+                    type: "POST",
+                    data: { loginId: loginId },
+                    success: function (data) {
+                        console.log(data);
+                        $("input[name='permissions']").prop("checked", false);
+
+                        // 全選邏輯（如有需要）
+                        if (Array.isArray(data.permissions) && data.permissions.includes("ROLE_ADMIN")) {
+                            $("input[name='permissions']").prop("checked", true);
+                            return;
+                        }
+
+                        // 根據 permissions 亮燈
+                        if (Array.isArray(data.permissions)) {
+                            data.permissions.forEach(function (perm) {
+                                $("#perm-" + perm).prop("checked", true);
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 404) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '使用者不存在',
+                                text: '請確認輸入的帳號是否正確'
+                            });
+                        } else {
+                            Swal.fire("錯誤", "查詢使用者權限時發生錯誤！", "error");
+                        }
+                    }
+                });
+            }
+            $("#searchUserBtn").click(fetchUserPermissions);
+            $("#userSearch").on("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    fetchUserPermissions();
+                }
+            });
+            $("#permissionForm").on("submit", function (e) {
+                e.preventDefault();
+                const loginId = $("#userSearch").val().trim();
+                const selectedPermissions = [];
+                $("input[name='permissions']:checked").each(function () {
+                    selectedPermissions.push($(this).val());
+                });
+                console.log(selectedPermissions)
+                $.ajax({
+                    url: "/chyunn/permission/updateuser",
+                    type: "POST",
+                    data: {
+                        loginId: loginId,
+                        permissions: selectedPermissions // 這會自動傳成多值陣列：permissions=PERM1&permissions=PERM2...
+                    },
+                    success: function () {
+                        Swal.fire("成功", "使用者權限已更新！", "success");
+                    },
+                    error: function (xhr) {
+                        // 根據不同的錯誤狀態碼顯示對應的錯誤訊息
+                        if (xhr.status === 400) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '錯誤',
+                                text: '該使用者已是最高管理者，無法修改權限'
+                            });
+                        } else if (xhr.status === 401) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '無效的登入資訊',
+                                text: '請重新登入或檢查您的登入資訊'
+                            });
+                        } else if (xhr.status === 404) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '使用者不存在',
+                                text: '請確認輸入的帳號是否正確'
+                            });
+                        } else if (xhr.status === 500) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '系統錯誤',
+                                text: '請稍後再試'
+                            });
+                        } else {
+                            Swal.fire("錯誤", "查詢使用者權限時發生錯誤！", "error");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+</html>
