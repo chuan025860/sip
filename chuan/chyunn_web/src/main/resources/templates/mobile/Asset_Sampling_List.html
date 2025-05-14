@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>資訊抽樣清單</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+
+    <style>
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            background-color: #18a383;
+            border-color: #18a383;
+        }
+
+        .readonly-field {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .data-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .data-card .field-title {
+            font-size: 58px;
+            color: #333;
+        }
+
+        .data-card .field-value {
+            font-size: 48px;
+            color: #555;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .swal2-popup {
+            font-size: 40px !important;
+        }
+
+        .swal2-styled {
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 主要內容 -->
+    <div class="container-fluid p-2">
+        <div class="bg-white rounded shadow-sm p-2">
+            <div class="container-fluid p-3">
+                <div class="bg-white rounded shadow-sm p-2">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <!-- 標題 -->
+                        <h2 class="m-0" style="font-size: 1.8rem;">
+                            資訊抽樣清單
+                        </h2>
+
+                        <!-- 返回主頁按鈕 -->
+                        <a th:href="@{'/mobile/asset/invertory_Index'}" class="btn btn-secondary btn-sm">
+                            返回主頁
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered  text-center align-middle">
+                    <thead class="table-light">
+                        <tr style="font-size:1rem;">
+                            <th class="text-nowrap" style="width:auto;">財產編號</th>
+                            <th class="text-nowrap" style="width: auto;">名稱</th>
+                            <th class="text-nowrap" style="width: auto;">放置處</th>
+                            <th class="text-nowrap" style="width: auto;">保管人</th>
+                        </tr>
+                    </thead>
+                    <tbody id="location-table" style="font-size:0.95rem;">
+                        <tr th:each="item : ${Asset_Sampling_List}" th:classappend="${item.state} ? 'table-success'">
+                            <td>
+                                <a th:href="@{/mobile/asset/mobile_select_number(final_property_id=${item.final_property_id})}"
+                                    th:text="${item.final_property_id}"></a>
+                            </td>
+                            <td th:text="${item.name}" style="word-break: break-word;">名稱</td>
+                            <td th:text="${item.location}">放置處</td>
+                            <td th:text="${item.custodian}">保管人</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(Asset_Sampling_List)}">
+                            <td colspan="4" class="text-muted">尚無資料</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        function showAssetDetail(element) {
+            const id = element.dataset.id;
+            const name = element.dataset.name;
+            const location = element.dataset.location;
+            const custodian = element.dataset.custodian;
+
+            Swal.fire({
+                title: '<span style="font-size:1.2rem;">資產詳情</span>',
+                html: `
+            <div style="font-size:1rem; text-align:left;">
+                <strong>財產編號：</strong> ${id}<br>
+                <strong>名稱：</strong> ${name}<br>
+                <strong>放置處：</strong> ${location}<br>
+                <strong>保管人：</strong> ${custodian}
+            </div>
+        `,
+                icon: 'info',
+                confirmButtonText: '關閉',
+                customClass: {
+                    popup: 'swal2-mobile-popup',
+                    icon: 'swal2-mobile-icon',
+                    confirmButton: 'swal2-mobile-btn'
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

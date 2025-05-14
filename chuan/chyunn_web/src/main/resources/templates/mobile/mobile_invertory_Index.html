@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>首頁</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <style>
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            background-color: #18a383;
+            border-color: #18a383;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Content Start -->
+    <div class="container-fluid pt-4 px-4">
+        <div class="bg-light text-center rounded p-4">
+
+            <div class="row mt-5">
+                <!-- 財產編號搜尋按鈕 -->
+                <div class="col-12 mt-4">
+                    <a th:href="@{/mobile/asset/Asset_Sampling_List}" class="btn custom-btn w-100"
+                        style="font-size: 58px; height: 100px;">
+                        資訊抽樣清單
+                    </a>
+                </div>
+                <div class="col-12 mt-4">
+                    <a th:href="@{/mobile/asset/Asset_Sampling_All_List}" class="btn custom-btn w-100"
+                        style="font-size: 58px; height: 100px;">
+                        總目錄抽樣清單
+                    </a>
+                </div>
+                <!-- 財產編號搜尋按鈕 -->
+                <div class="col-12 mt-4">
+                    <a th:href="@{/mobile/asset/select_IT}" class="btn custom-btn w-100"
+                        style="font-size: 58px; height: 100px;">
+                        資訊財產搜尋
+                    </a>
+                </div>
+                <!-- 總目錄財產編號搜尋按鈕 -->
+                <div class="col-12 mt-4">
+                    <a th:href="@{/mobile/asset/select_All}" class="btn custom-btn w-100"
+                        style="font-size: 58px; height: 100px;">
+                        總目錄財產搜尋
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
