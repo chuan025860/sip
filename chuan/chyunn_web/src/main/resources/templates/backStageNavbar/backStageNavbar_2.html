@@ -12,6 +12,7 @@
             <div class="ms-3">
                 <h6 class="mb-0 text-dark" id="username-h6" th:text="${userName}">
                     使用者</h6>
+                <input type="hidden" id="loginId" th:value="${loginId}" />
                 <!-- 顯示角色（只有 ROLE_ADMIN 才會顯示） -->
                 <small class="text-muted"
                     th:if="${userRoles != null and #lists.contains(userRoles, 'ROLE_ADMIN')}">系統管理員</small>
@@ -19,6 +20,22 @@
         </div>
         <!-- 選單項目 -->
         <div class="navbar-nav w-100">
+            <a th:href="@{'/index/index'}" class="nav-link  text-dark fw-semibold px-1 py-1">
+                <i class="fa fa-file-alt me-2"></i>首頁
+            </a>
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link text-dark dropdown-toggle fw-semibold px-1 py-1" data-bs-toggle="dropdown">
+                    <i class="fa fa-file-alt me-2"></i>資源管理
+                </a>
+                <div class="dropdown-menu bg-transparent border-0 py-1">
+                    <a th:href="@{'/resource/calendar'}" class="nav-item nav-link px-1 py-1"><i
+                            class="fa fa-laptop me-2"></i>行事曆</a>
+                    <a th:href="@{'/resource/bulletin'}" class="nav-item nav-link px-1 py-1"><i
+                            class="fa fa-laptop me-2"></i>公佈欄</a>
+                    <a th:href="@{'/resource/resources'}" class="nav-item nav-link px-1 py-1"><i
+                            class="fa fa-laptop me-2"></i>資源管理</a>
+                </div>
+            </div>
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle text-dark fw-semibold px-1 py-1" data-bs-toggle="dropdown">
                     <i class="fa fa-file-alt me-2"></i>事件反應

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-公佈欄</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* 修改標題文字顏色 */
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem;
+            /* 字體縮小一點 */
+        }
+
+        /* header toolbar 排版與間距優化 */
+        .fc-header-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* 選中日期顏色 */
+        .fc-daygrid-event {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 當天日期高亮顏色 */
+        .fc-day-today {
+            background-color: #e6f7f3 !important;
+        }
+
+        /* 滿版邊框統一 */
+        .fc {
+            --fc-border-color: #d9f3ed;
+        }
+
+        /* 藍字（連結、日期）變成綠色 */
+        .fc a {
+            color: #1ab394 !important;
+            text-decoration: none;
+        }
+
+        .fc-toolbar-chunk .fc-button {
+            background-color: #666666;
+            border-color: #666666;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+
+
+    </div>
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+    </script>

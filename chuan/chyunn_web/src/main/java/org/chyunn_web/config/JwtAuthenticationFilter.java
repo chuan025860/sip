@@ -72,7 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 System.out.println("test1");
                 if (requestURI.equals("/chyunn/login")) {
-                    response.sendRedirect("/chyunn/incident/select_incident");
+                    response.sendRedirect("/chyunn/index/index");
                     return;
                 }else  if (requestURI.equals("/chyunn/loginMobile")) {
                     response.sendRedirect("/chyunn/mobile/asset/invertory_Index");
@@ -110,7 +110,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private boolean isProtectedPath(String requestURI) {
         return requestURI.startsWith("/chyunn/incident/") ||
                 requestURI.startsWith("/chyunn/asset/") ||
-                requestURI.startsWith("/chyunn/mobile/incident/") ||
+                requestURI.startsWith("/chyunn/asset_manage/") ||
+                requestURI.startsWith("/chyunn/index/index") ||
                 requestURI.startsWith("/chyunn/mobile/asset/");
     }
 

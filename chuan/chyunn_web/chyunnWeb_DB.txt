@@ -170,6 +170,22 @@ CREATE TABLE asset_history_All (
         ON DELETE CASCADE                              -- 若財產刪除，歷史紀錄也會刪除
 );
 
+-- 資源借用請求
+CREATE TABLE resource_borrow_request (
+    id INT AUTO_INCREMENT PRIMARY KEY,              -- 資源借用主鍵
+    content VARCHAR(255) NOT NULL,                 -- 內容（必填）
+    start_time DATETIME NOT NULL,                  -- 開始時間（必填）
+    end_time DATETIME NOT NULL,                    -- 結束時間（必填）
+    category VARCHAR(100) NOT NULL,                -- 類別（必填，ex: 會議室）
+    item VARCHAR(255) NOT NULL,                    -- 項目（必填）
+    location VARCHAR(255),                         -- 位置
+    note TEXT,                                     -- 備註
+    creator VARCHAR(100) NOT NULL,                 -- 建立者（關聯 user.loginId）
+    participants TEXT,                             -- 參與人員
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- 建立時間
+    CONSTRAINT fk_creator FOREIGN KEY (creator) REFERENCES user(loginId)
+);
+
 
 INSERT INTO location (name) VALUES
 ('204資訊'), ('217資訊機房'), ('102茶水室'), ('103會議室'), 

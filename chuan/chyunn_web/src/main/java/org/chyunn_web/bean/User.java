@@ -12,7 +12,7 @@ import java.util.List;
 public class User {
         @Id
         @Column(name = "loginId", nullable = false, unique = true, length = 100)
-        private String loginId;  // 主鍵登入帳號 (LOGINID)
+                private String loginId;  // 主鍵登入帳號 (LOGINID)
         private String userId;  // 串接員工 USERID (USERID)
         private String username;  // 使用者名稱 (USERNAME)
         private String password;  // 密碼 (應加密)
@@ -21,5 +21,9 @@ public class User {
 
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<UserRole> roles;  // 使用者的角色
+
+        // 一對多：一個使用者可建立多筆借用紀錄
+        @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<ResourceBorrowRequest> borrowRequests;
 
 }

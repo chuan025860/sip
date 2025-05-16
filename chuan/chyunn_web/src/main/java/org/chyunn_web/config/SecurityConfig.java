@@ -36,9 +36,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
             http
                     .csrf(csrf -> csrf.disable()) // 關閉 CSRF（不關會擋 AJAX）
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/user/**", "/login/**", "/aichat/**","/inventory/**","/loginMobile/**",
+                            .requestMatchers("/user/**", "/login/**","/loginMobile/**","/resource/**",
                                     "/css/**", "/lib/**", "/js/**", "/img/**", "/ckeditor5/**", "/jquery-ui-1.13.2/**").permitAll()
                             // 只有登入過的使用者（任何角色）才能進入 /incident/**
+                            .requestMatchers("/index/**").authenticated()
                             .requestMatchers("/uploads/**").authenticated()
                             .requestMatchers("/incident/**").authenticated()
                             .requestMatchers("/asset/**").hasAnyRole("ADMIN", "ASSET_ADMIN","ASSET_VIEW")

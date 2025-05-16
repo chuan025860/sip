@@ -70,20 +70,24 @@
                     </div>
 
                     <!-- 顯示使用者資訊 -->
-                    <div id="userInfoSection" class="mb-3 fs-5 text-secondary">
+                    <div id="userInfoSection" class="mb-3 fs-5">
+                        <hr>
+                        <div class="row mb-2">
+                            <div class="section-title text-start">使用者資訊</div>
+                        </div>
                         <div class="row mb-2">
                             <div class="col-12 text-start">
-                                <span class="fw-semibold text-dark">姓名：</span><span id="userName"></span>
+                                <span class="info-label">姓名：</span><span id="userName" class="info-value"></span>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-12 text-start">
-                                <span class="fw-semibold text-dark">職稱：</span><span id="userTitle"></span>
+                                <span class="info-label">職稱：</span><span id="userTitle" class="info-value"></span>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-12 text-start">
-                                <span class="fw-semibold text-dark">Email：</span><span id="email"></span>
+                                <span class="info-label">Email：</span><span id="email" class="info-value"></span>
                             </div>
                         </div>
                     </div>
@@ -99,21 +103,21 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="text-start text-dark">事件反應</td>
+                                <td class=" text-dark">事件反應</td>
                                 <td><input type="checkbox" name="permissions" value="ROLE_USER" id="perm-ROLE_USER">
                                     初級編輯</td>
                                 <td><input type="checkbox" name="permissions" value="ROLE_INCIDENT_ADMIN"
                                         id="perm-ROLE_INCIDENT_ADMIN"> 管理</td>
                             </tr>
                             <tr>
-                                <td class="text-start text-dark">財產管理</td>
+                                <td class=" text-dark">財產管理</td>
                                 <td><input type="checkbox" name="permissions" value="ROLE_ASSET_VIEW"
                                         id="perm-ROLE_ASSET_VIEW"> 檢視</td>
                                 <td><input type="checkbox" name="permissions" value="ROLE_ASSET_ADMIN"
                                         id="perm-ROLE_ASSET_ADMIN"> 管理</td>
                             </tr>
                             <tr>
-                                <td class="text-start text-dark">使用者帳號</td>
+                                <td class=" text-dark">使用者帳號</td>
                                 <td><input type="checkbox" name="permissions" value="ROLE_USER_VIEW"
                                         id="perm-USER_VIEW"> 檢視</td>
                                 <td><input type="checkbox" name="permissions" value="ROLE_USER_ADMIN"
@@ -199,7 +203,7 @@
                     selectedPermissions.push($(this).val());
                 });
                 console.log(selectedPermissions)
-                // ✅ 檢查是否有輸入帳號
+                // 檢查是否有輸入帳號
                 if (!loginId) {
                     Swal.fire({
                         icon: 'warning',
