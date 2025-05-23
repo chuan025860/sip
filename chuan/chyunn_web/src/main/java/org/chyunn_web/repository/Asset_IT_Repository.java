@@ -1,6 +1,6 @@
 package org.chyunn_web.repository;
 
-import org.chyunn_web.bean.Inventory_Equipment;
+import org.chyunn_web.bean.Asset.Inventory_Equipment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

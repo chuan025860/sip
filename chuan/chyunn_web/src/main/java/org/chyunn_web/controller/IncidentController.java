@@ -4,10 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.chyunn_web.bean.Incident;
-import org.chyunn_web.bean.IncidentFile;
-import org.chyunn_web.bean.Report;
-import org.chyunn_web.bean.ReportFile;
+import org.chyunn_web.bean.incident.Incident;
+import org.chyunn_web.bean.incident.IncidentFile;
+import org.chyunn_web.bean.incident.Report;
+import org.chyunn_web.bean.incident.ReportFile;
 import org.chyunn_web.dto.IncidentDto;
 import org.chyunn_web.dto.IncidentFileDto;
 import org.chyunn_web.dto.ReportDto;
@@ -242,6 +242,7 @@ public class IncidentController {
             response.put("message", "事件不存在");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+        existingIncident.setHandler(report.getReporter());
         existingIncident.setStatus(report.getProgress());
         existingIncident.setLastReportTime(LocalDateTime.now());
         report.setReportTime(LocalDateTime.now());

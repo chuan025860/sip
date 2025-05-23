@@ -1,7 +1,6 @@
 package org.chyunn_web.repository;
 
-import org.chyunn_web.bean.RandomSampling_All;
-import org.chyunn_web.bean.RandomSampling_IT;
+import org.chyunn_web.bean.Asset.RandomSampling_All;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

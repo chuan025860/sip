@@ -1,9 +1,6 @@
 package org.chyunn_web.repository;
 
-import jakarta.transaction.Transactional;
-import org.chyunn_web.bean.Inventory_Equipment;
-import org.chyunn_web.bean.Location;
-import org.chyunn_web.bean.RandomSampling_IT;
+import org.chyunn_web.bean.Asset.RandomSampling_IT;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

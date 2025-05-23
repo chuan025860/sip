@@ -1,8 +1,6 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.IncidentFile;
-import org.chyunn_web.bean.Report;
-import org.chyunn_web.bean.ReportFile;
+import org.chyunn_web.bean.incident.ReportFile;
 import org.chyunn_web.dto.ReportFileDto;
 import org.chyunn_web.repository.ReportFilesRepository;
 import org.modelmapper.ModelMapper;

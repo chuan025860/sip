@@ -1,8 +1,8 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.Incident;
-import org.chyunn_web.bean.Report;
-import org.chyunn_web.bean.ReportFile;
+import org.chyunn_web.bean.incident.Incident;
+import org.chyunn_web.bean.incident.Report;
+import org.chyunn_web.bean.incident.ReportFile;
 import org.chyunn_web.dto.ReportDto;
 import org.chyunn_web.repository.IncidentRepository;
 import org.chyunn_web.repository.ReportRepository;

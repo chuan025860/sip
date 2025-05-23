@@ -62,11 +62,15 @@
                 </div>
             </div>
             <div class="nav-item dropdown"
-                th:if="${userRoles != null and (#lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_PROPERTY'))}">
+                th:if="${userRoles != null and (#lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_USER_ADMIN'))}">
                 <a href="#" class="nav-link dropdown-toggle text-dark fw-semibold px-1 py-1" data-bs-toggle="dropdown">
                     <i class="fa fa-file-alt me-2 py-1"></i>權限管理
                 </a>
                 <div class="dropdown-menu bg-transparent border-0 py-1">
+                    <a th:href="@{'/permission/create_user'}" class="nav-item nav-link px-1 py-1"><i
+                            class="fa fa-laptop me-2"></i>新增使用者</a>
+                    <a th:href="@{'/permission/manage_user'}" class="nav-item nav-link px-1 py-1"><i
+                            class="fa fa-laptop me-2"></i>管理使用者</a>
                     <a th:href="@{'/permission/permission_admin'}" class="nav-item nav-link px-1 py-1"><i
                             class="fa fa-laptop me-2"></i>權限管理</a>
                 </div>

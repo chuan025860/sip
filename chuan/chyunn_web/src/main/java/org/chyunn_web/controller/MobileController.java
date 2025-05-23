@@ -2,7 +2,7 @@ package org.chyunn_web.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.chyunn_web.bean.*;
+import org.chyunn_web.bean.Asset.*;
 import org.chyunn_web.dto.*;
 import org.chyunn_web.security.JwtTokenProvider;
 import org.chyunn_web.service.*;

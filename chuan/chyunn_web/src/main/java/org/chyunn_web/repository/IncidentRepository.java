@@ -1,6 +1,6 @@
 package org.chyunn_web.repository;
 
-import org.chyunn_web.bean.Incident;
+import org.chyunn_web.bean.incident.Incident;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

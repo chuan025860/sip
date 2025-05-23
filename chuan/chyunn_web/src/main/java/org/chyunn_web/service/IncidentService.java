@@ -1,9 +1,8 @@
 package org.chyunn_web.service;
 
 import jakarta.transaction.Transactional;
-import org.chyunn_web.bean.Incident;
-import org.chyunn_web.bean.IncidentFile;
-import org.chyunn_web.bean.Report;
+import org.chyunn_web.bean.incident.Incident;
+import org.chyunn_web.bean.incident.IncidentFile;
 import org.chyunn_web.dto.IncidentDto;
 import org.chyunn_web.repository.IncidentRepository;
 

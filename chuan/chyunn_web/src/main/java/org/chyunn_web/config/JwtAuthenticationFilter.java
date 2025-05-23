@@ -112,6 +112,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/chyunn/asset/") ||
                 requestURI.startsWith("/chyunn/asset_manage/") ||
                 requestURI.startsWith("/chyunn/index/index") ||
+                requestURI.startsWith("/chyunn/permission/") ||
                 requestURI.startsWith("/chyunn/mobile/asset/");
     }
 

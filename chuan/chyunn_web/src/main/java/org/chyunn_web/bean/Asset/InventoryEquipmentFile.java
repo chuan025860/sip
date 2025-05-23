@@ -1,0 +1,21 @@
+package org.chyunn_web.bean.Asset;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@Entity
+@Table(name = "inventory_equipment_files")
+@EqualsAndHashCode(exclude = {"inventoryEquipment"})
+public class InventoryEquipmentFile {
+    @Id
+    @Column(name = "fileId", length = 50, nullable = false)
+    private String fileId;
+
+    @Column(name = "fileName", length = 255, nullable = false)
+    private String fileName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "final_property_id")
+    private Inventory_Equipment inventoryEquipment;
+}

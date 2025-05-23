@@ -1,9 +1,7 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.GeneralCatalogFile;
-import org.chyunn_web.bean.InventoryEquipmentFile;
+import org.chyunn_web.bean.Asset.GeneralCatalogFile;
 import org.chyunn_web.dto.General_CatalogFile_dto;
-import org.chyunn_web.dto.InventoryEquipmentFileDto;
 import org.chyunn_web.repository.GeneralCatalogFileRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

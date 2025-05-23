@@ -3,6 +3,7 @@ package org.chyunn_web.controller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.chyunn_web.security.JwtTokenProvider;
+import org.chyunn_web.service.ResourceBorrowRequestServie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,21 +16,27 @@ import java.util.List;
 public class resourceController {
     @Autowired
     JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    ResourceBorrowRequestServie resourceBorrowRequestServie;
+
     @GetMapping("/resource/calendar")
     public String calendar(
     ) {
         return "/resourceManagement/calendar";
     }
+
     @GetMapping("/resource/bulletin")
     public String bulletin(
     ) {
         return "/resourceManagement/bulletin";
     }
+
     @GetMapping("/resource/resources")
-    public String resources(
+    public String resources(Model model
     ) {
         return "/resourceManagement/resources";
     }
+
     @ModelAttribute
     public void addUserInfoToModel(HttpServletRequest request, Model model) {
         String token = null;
@@ -45,7 +52,7 @@ public class resourceController {
             }
         }
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            String loginId=jwtTokenProvider.getLoginIdFromToken(token);
+            String loginId = jwtTokenProvider.getLoginIdFromToken(token);
             String userName = jwtTokenProvider.getUserNameFromToken(token);
             List<String> roles = jwtTokenProvider.getUserRolesFromToken(token);
             model.addAttribute("loginId", loginId);

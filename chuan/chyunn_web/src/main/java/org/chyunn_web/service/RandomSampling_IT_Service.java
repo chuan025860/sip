@@ -1,10 +1,8 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.Inventory_Equipment;
-import org.chyunn_web.bean.RandomSampling_IT;
+import org.chyunn_web.bean.Asset.RandomSampling_IT;
 import org.chyunn_web.repository.RandomSampling_IT_Repository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

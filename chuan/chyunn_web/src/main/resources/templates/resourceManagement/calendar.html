@@ -221,15 +221,14 @@
             const selected = saved ? JSON.parse(saved) : [];
 
             // 若沒任何篩選，就直接顯示所有
-            if (selected.length === 0) {
-                calendar.setOption('events', originalEvents);
-                return;
-            }
+            // if (selected.length === 0) {
+            //     calendar.setOption('events', originalEvents);
+            //     return;
+            // }
 
             const filtered = originalEvents.filter(ev => {
                 console.log(ev.creator);
-                return selected.includes(ev.owner) ||
-                    selected.includes(ev.category);
+                return selected.includes(ev.category);
             });
             calendar.setOption('events', filtered);
         }
@@ -299,6 +298,10 @@
       <div class="form-check d-flex align-items-center mb-2">
         <input class="form-check-input chk-res" type="checkbox" value="會議室" id="chk-room">
         <label class="form-check-label ms-2" for="chk-room">會議室</label>
+      </div>
+      <div class="form-check d-flex align-items-center mb-2">
+        <input class="form-check-input chk-res" type="checkbox" value="租借車輛" id="chk-room">
+        <label class="form-check-label ms-2" for="chk-room">車輛</label>
       </div>
     </div>
   </div>
@@ -601,21 +604,20 @@
                 </div>
               </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">類別</label>
-              <select id="category" class="form-select">
-                <option value="會議室">會議室</option>
-              </select>
+           <div class="mb-3">
+            <label class="form-label">類別</label>
+            <select id="category" class="form-select">
+            <option value="">請選擇</option>
+            <option value="會議室">會議室</option>
+            <option value="租借車輛">租借車輛</option>
+            option value="其他">其他</option>
+            </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">項目</label>
-              <select id="item" class="form-select">
-                <option value="">請選擇</option>
-                <option value="群運營運中心一樓小會議室(116)">群運營運中心一樓小會議室(116)</option>
-                <option value="群運營運中心二樓洽談室(202)">群運營運中心二樓洽談室(202)</option>
-                <option value="群運安明一樓會議室">群運安明一樓會議室</option>
-                <option value="群運營運中心二樓交誼廳">群運營運中心二樓交誼廳</option>
-              </select>
+            <label class="form-label">項目</label>
+            <select id="item" class="form-select">
+            <option value="">請先選擇類別</option>
+            <select>
             </div>
             <div class="mb-3">
               <label class="form-label">位置</label>
@@ -626,7 +628,7 @@
               <input type="text" id="note" class="form-control">
             </div>
             <div class="mb-3">
-              <label class="form-label">建立者</label>
+              <label class="form-label">借用人</label>
               <input type="text" class="form-control" value="${creator}" readonly>
             </div>
             <div class="mb-3">
@@ -648,6 +650,7 @@
                     title: 'text-start w-100 px-4'
                 },
                 didOpen: () => {
+
                     flatpickr("#start-time", {
                         enableTime: true,
                         dateFormat: "Y-m-d H:i",
@@ -659,6 +662,38 @@
                         dateFormat: "Y-m-d H:i",
                         time_24hr: true,
                         locale: "zh_tw"
+                    });
+
+                    // 定義各類別對應的項目
+                    const itemsByCategory = {
+                        '會議室': [
+                            '群運營運中心一樓小會議室(116)',
+                            '群運營運中心二樓洽談室(202)',
+                            '群運安明一樓會議室',
+                            '群運營運中心二樓交誼廳'
+                        ],
+                        '租借車輛': [
+                            '營業部公務車',
+                            '行政部公務車',
+                        ],
+                        '其他': []
+                    };
+
+                    const cateEl = document.getElementById('category');
+                    const itemEl = document.getElementById('item');
+
+                    // 當使用者選擇不同類別時，重建項目選單
+                    cateEl.addEventListener('change', () => {
+                        const opts = itemsByCategory[cateEl.value] || [];
+                        // 清空
+                        itemEl.innerHTML = '<option value="">請選擇</option>';
+                        // 加入對應項目
+                        opts.forEach(name => {
+                            const o = document.createElement('option');
+                            o.value = name;
+                            o.text = name;
+                            itemEl.appendChild(o);
+                        });
                     });
                 },
                 preConfirm: () => {

@@ -1,19 +1,25 @@
 package org.chyunn_web.controller;
 
-import org.chyunn_web.bean.ResourceBorrowRequest;
-import org.chyunn_web.bean.User;
+import org.chyunn_web.bean.Resource.ResourceBorrowRequest;
+import org.chyunn_web.bean.User.User;
 import org.chyunn_web.dto.EventDTO;
 import org.chyunn_web.dto.ResourceBorrowDTO;
 import org.chyunn_web.service.ResourceBorrowRequestServie;
 import org.chyunn_web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +55,6 @@ public class ResourceBorrowRequestController {
 
     @PostMapping("/resource/events")
     public ResponseEntity<Map<String, Object>> events() {
-
         Map<String, Object> response = new HashMap<>();
         List<ResourceBorrowRequest> resourceBorrowRequestList = resourceBorrowRequestServie.findAll();
         List<EventDTO> eventDTOS = new ArrayList<>();
@@ -98,4 +103,38 @@ public class ResourceBorrowRequestController {
         return ResponseEntity.ok(response); // 返回成功的 response
     }
 
+    // AJAX API：依日期與分頁回 JSON
+    @GetMapping("/resource/eventsByDate")
+    @ResponseBody
+    public Page<ResourceBorrowDTO> eventsByDate(
+            @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern="yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="10") int size
+    ) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end   = endDate.atTime(23,59,59);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("startTime").descending());
+
+        Page<ResourceBorrowRequest> prs = resourceBorrowRequestServie.findByDateRange(start, end, pageable);
+        // 將 Page<Request> 轉成 Page<DTO>
+        return prs.map(req -> {
+            ResourceBorrowDTO dto = new ResourceBorrowDTO();
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            dto.setId(req.getId());
+            dto.setContent(req.getContent());
+            dto.setCategory(req.getCategory());
+            dto.setItem(req.getItem());
+            dto.setLocation(req.getLocation());
+            dto.setNote(req.getNote());
+            dto.setParticipants(req.getParticipants());
+            dto.setCreator(req.getCreator().getUsername());
+            dto.setStartTime(req.getStartTime().format(fmt));
+            dto.setEndTime(req.getEndTime().format(fmt));
+            dto.setCreatedAt(req.getCreatedAt().format(fmt));
+            long daysOld = ChronoUnit.DAYS.between(LocalDateTime.now(), req.getStartTime());
+            dto.setDaysOld(daysOld);
+            return dto;
+        });
+    }
 }

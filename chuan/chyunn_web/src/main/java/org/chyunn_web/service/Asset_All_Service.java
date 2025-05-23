@@ -1,12 +1,9 @@
 package org.chyunn_web.service;
 
 import jakarta.transaction.Transactional;
-import org.chyunn_web.bean.GeneralCatalogFile;
-import org.chyunn_web.bean.General_Catalog;
-import org.chyunn_web.bean.InventoryEquipmentFile;
-import org.chyunn_web.bean.Inventory_Equipment;
+import org.chyunn_web.bean.Asset.GeneralCatalogFile;
+import org.chyunn_web.bean.Asset.General_Catalog;
 import org.chyunn_web.dto.General_CatalogDto;
-import org.chyunn_web.dto.Inventory_EquipmentDto;
 import org.chyunn_web.repository.Asset_All_Repository;
 import org.chyunn_web.repository.RandomSampling_All_Repository;
 import org.modelmapper.ModelMapper;

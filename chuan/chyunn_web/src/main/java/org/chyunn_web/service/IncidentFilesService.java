@@ -1,15 +1,12 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.Incident;
-import org.chyunn_web.bean.IncidentFile;
-import org.chyunn_web.dto.IncidentDto;
+import org.chyunn_web.bean.incident.IncidentFile;
 import org.chyunn_web.dto.IncidentFileDto;
 import org.chyunn_web.repository.IncidentFilesRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service

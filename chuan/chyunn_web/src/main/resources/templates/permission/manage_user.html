@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-管理-管理使用者</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* 分頁文字／邊框 主題色 */
+        #pagination .page-link {
+            color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 分頁 active 背景 */
+        #pagination .page-item.active .page-link {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        /* 分頁 hover 效果 */
+        #pagination .page-link:hover {
+            background-color: rgba(26, 179, 148, 0.1);
+        }
+
+        /* 讓 page-link、輸入框、按鈕 padding / font-size / line-height 一致 */
+        #pagination .page-link,
+        #pagination .input-group-sm .form-control,
+        #pagination .input-group-sm .btn-outline-secondary {
+            padding: .5rem .75rem;
+            line-height: 1.25;
+            font-size: 1rem;
+        }
+
+        /* 跳轉輸入框容器寬度 */
+        #pagination .jump-pager {
+            width: 140px;
+            /* 可依需求調整 */
+        }
+
+        /* 輸入框：主題色邊框 + 圓角 */
+        #pagination .jump-pager .form-control {
+            border-color: #1ab394;
+            border-radius: .25rem 0 0 .25rem;
+        }
+
+        /* 跳轉按鈕：文字＋邊框 主題色 + 圓角 */
+        #pagination .jump-pager .btn-outline-secondary {
+            color: #1ab394;
+            border-color: #1ab394;
+            border-radius: 0 .25rem .25rem 0;
+        }
+
+        /* 跳轉按鈕 hover / focus */
+        #pagination .jump-pager .btn-outline-secondary:hover,
+        #pagination .jump-pager .btn-outline-secondary:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+
+        /* 確保跳轉組件垂直置中 */
+        #pagination .page-item.d-flex {
+            display: flex;
+            align-items: center;
+        }
+
+        #btnQuery {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        #btnQuery:hover,
+        #btnQuery:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+        }
+
+        /* btn-query 配色，同 #btnQuery */
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover,
+        .btn-query:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+
+
+    <div class="content container-fluid" style="margin-top:80px;">
+        <!-- 搜尋表單，給它一個 id，並把輸入框也加上 id -->
+        <form id="searchForm" class="row g-2 mb-3" style="margin-top:2%;">
+            <div class="col-auto">
+                <input id="searchInput" type="text" name="search" class="form-control" placeholder="搜尋登入帳號" />
+            </div>
+            <div class="col-auto">
+                <button id="" type="submit" class="btn btn-primary btn-query">搜尋</button>
+            </div>
+        </form>
+
+        <table class="table table-striped" style="margin-top:2%;">
+            <thead>
+                <tr>
+                    <th>登入帳號</th>
+                    <th>姓名</th>
+                    <th>Email</th>
+                    <th>部門</th>
+                    <th>啟用狀態</th>
+                    <th>編輯</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <!-- AJAX 會把 <tr> 動態填進來，這裡留空 -->
+            </tbody>
+        </table>
+
+        <nav aria-label="Page navigation example">
+            <ul id="pagination" class="pagination"></ul>
+        </nav>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        // ➤ 在全域作用域宣告
+        function loadUsers(page) {
+            const pageSize = 10;
+            const keyword = $('#searchInput').val();
+            $.ajax({
+                url: '/chyunn/permission/manage_user_findAll',
+                method: 'POST',
+                data: { search: keyword, page, size: pageSize },
+                dataType: 'json',
+                success(res) {
+                    renderTable(res.content);
+                    renderPagination(res.number, res.totalPages);
+                },
+                error() {
+                    Swal.fire('錯誤', '讀取使用者列表失敗', 'error');
+                }
+            });
+        }
+
+
+        // 2️⃣ 把拿到的 users 陣列渲染到表格
+        function renderTable(users) {
+            const $body = $('#userTableBody').empty();
+
+            users.forEach(u => {
+                const editUrl = `/chyunn/permission/update_user?loginId=${encodeURIComponent(u.loginId)}`;
+                const badge = u.enabled
+                    ? '<span class="badge bg-success">已啟用</span>'
+                    : '<span class="badge bg-secondary">已停用</span>';
+                $body.append(`
+        <tr>
+          <td>${u.loginId}</td>
+          <td>${u.username}</td>
+          <td>${u.email}</td>
+          <td>${u.departmentName}</td>
+          <td>${badge}</td>
+          <td>
+           <a href="${editUrl}" class="btn btn-sm btn-query">編輯</a>
+          </form>
+          </td>
+        </tr>
+      `);
+            });
+        }
+        function renderPagination(current, total) {
+            const windowSize = 10;
+            const cur1 = current + 1;
+            const startPage = Math.min(cur1, Math.max(1, total - windowSize + 1));
+            const endPage = Math.min(startPage + windowSize - 1, total);
+            const $p = $('#pagination').empty();
+
+            // 「«」
+            $p.append(`
+          <li class="page-item${current === 0 ? ' disabled' : ''}">
+            <a href="#" class="page-link" onclick="loadUsers(${current - 1});return false;">«</a>
+          </li>
+        `);
+
+            // 頁碼
+            for (let i = startPage; i <= endPage; i++) {
+                const idx = i - 1;
+                $p.append(`
+              <li class="page-item${idx === current ? ' active' : ''}">
+                <a href="#" class="page-link" onclick="loadUsers(${idx});return false;">${i}</a>
+              </li>
+            `);
+            }
+
+            // 「»」
+            $p.append(`
+          <li class="page-item${current === total - 1 ? ' disabled' : ''}">
+            <a href="#" class="page-link" onclick="loadUsers(${current + 1});return false;">»</a>
+          </li>
+        `);
+        }
+
+        $(function () {
+            // 綁定搜尋表單
+            $('#searchForm').on('submit', e => {
+                e.preventDefault();
+                loadUsers(0);
+            });
+            // 首次載入
+            loadUsers(0);
+        });
+    </script>
+</body>
+
+</html>

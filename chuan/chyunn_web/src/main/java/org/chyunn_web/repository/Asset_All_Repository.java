@@ -1,9 +1,6 @@
 package org.chyunn_web.repository;
 
-import org.chyunn_web.bean.General_Catalog;
-import org.chyunn_web.bean.Inventory_Equipment;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.chyunn_web.bean.Asset.General_Catalog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

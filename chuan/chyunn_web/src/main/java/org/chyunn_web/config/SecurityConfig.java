@@ -45,7 +45,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
                             .requestMatchers("/asset/**").hasAnyRole("ADMIN", "ASSET_ADMIN","ASSET_VIEW")
                             .requestMatchers("/mobile/asset/**").hasAnyRole("ADMIN", "ASSET_ADMIN","ASSET_VIEW")
                             .requestMatchers("/asset_manage/**").hasAnyRole("ADMIN", "ASSET_ADMIN")
-                            .requestMatchers("/permission/**").hasAnyRole("ADMIN")
+                            .requestMatchers("/permission/**").hasAnyRole("ADMIN","USER_ADMIN")
 
                             .anyRequest().authenticated()
                     )

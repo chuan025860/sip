@@ -1,7 +1,6 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.RandomSampling_All;
-import org.chyunn_web.bean.RandomSampling_IT;
+import org.chyunn_web.bean.Asset.RandomSampling_All;
 import org.chyunn_web.repository.RandomSampling_All_Repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

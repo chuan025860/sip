@@ -38,21 +38,51 @@ CREATE TABLE report(
 
 
 CREATE TABLE user (
- `loginId` VARCHAR(100) NOT NULL,         -- 主鍵：使用者登入 ID
-  `userId` VARCHAR(50)    ,  		-- 串接員工USERID (USERID)
-  `username` VARCHAR(255) NOT NULL,         -- 使用者名稱
-  `password` VARCHAR(255) NOT NULL,         -- 密碼（應該加密）
-  `email` VARCHAR(255),                     -- 電子郵件（可選）
-  `enabled` BOOLEAN DEFAULT TRUE,           -- 是否啟用該使用者
-    PRIMARY KEY (`loginId`)
-);
+  id INT  AUTO_INCREMENT PRIMARY KEY,
+  loginId          VARCHAR(100)    NOT NULL,
+  userId           VARCHAR(50),
+  username          VARCHAR(255)    NOT NULL,
+  password          VARCHAR(255)    NOT NULL,
+  employee_no VARCHAR(50) NOT NULL   ,
+  email             VARCHAR(255),
+  department_id     INT,
+  sub_unit_id       INT,
+  sub_sub_unit_id   INT,
+  position_id       INT,
+  enabled           BOOLEAN DEFAULT TRUE,
+CONSTRAINT fk_user_dept
+    FOREIGN KEY (department_id)
+    REFERENCES department (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
 
+  CONSTRAINT fk_user_subunit
+    FOREIGN KEY (sub_unit_id)
+    REFERENCES sub_unit (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_subsub
+    FOREIGN KEY (sub_sub_unit_id)
+    REFERENCES sub_sub_unit (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_position
+    FOREIGN KEY (position_id)
+    REFERENCES position (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);   
+      
+      
 CREATE TABLE user_roles (
-  `loginId` VARCHAR(100) NOT NULL,     -- 外鍵，參照 `user.loginId`
-  `role` VARCHAR(50) NOT NULL,                -- 使用者的角色（例如：ROLE_USER, ROLE_ADMIN）
-  FOREIGN KEY (`loginId`) REFERENCES `user`(`loginId`) ON DELETE CASCADE,
-  PRIMARY KEY (`loginId`, `role`)       -- 使用者的角色不能重複
-);
+  loginId VARCHAR(100) NOT NULL,
+  role     VARCHAR(50)  NOT NULL,
+  PRIMARY KEY(loginId, role),
+  FOREIGN KEY(loginId) REFERENCES `user`id ON DELETE CASCADE
+); 
+
 
 CREATE TABLE incident_files (
     fileId   INT NOT NULL AUTO_INCREMENT PRIMARY KEY,    -- 圖片ID
@@ -198,3 +228,354 @@ INSERT INTO location (name) VALUES
 ('安明-1F機房'), ('安明-司機休息室'), ('安明-守衛室'), ('安明-會議室'), 
 ('安明-停車場'), ('安明-中庭'), ('安明-外勞宿舍'), ('安明-保修廠'), 
 ('安明-倉庫'), ('高雄_辦公室1樓'), ('高雄_辦公室2樓'), ('顯宮段');
+
+
+
+
+ -- 部門
+CREATE TABLE department (
+  id   INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 小課／室（可以只有部門沒有子單位，就不塞資料）
+CREATE TABLE sub_unit (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  department_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  UNIQUE(department_id, name),
+  FOREIGN KEY (department_id) REFERENCES department(id)
+);
+
+CREATE TABLE sub_sub_unit (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  sub_unit_id   INT NOT NULL,
+  name          VARCHAR(100) NOT NULL,
+  UNIQUE KEY uk_ssu_subunit_name (sub_unit_id, name),
+  FOREIGN KEY (sub_unit_id) REFERENCES sub_unit(id)
+);
+
+-- 職位
+CREATE TABLE position (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  department_id INT NOT NULL,
+  sub_unit_id   INT NULL,
+  sub_sub_unit_id INT NULL,
+  name VARCHAR(100) NOT NULL,
+  UNIQUE(department_id, sub_unit_id, name),
+  FOREIGN KEY (department_id) REFERENCES department(id),
+  FOREIGN KEY (sub_unit_id)   REFERENCES sub_unit(id),
+  FOREIGN KEY (sub_sub_unit_id) REFERENCES sub_sub_unit(id)
+);
+
+
+-- 1. 新增部門
+INSERT INTO department (name) VALUES 
+  ('總經理室'),
+  ('行政部'),
+  ('資訊室'),
+  ('同翔創能'),
+  ('營業部'),
+  ('稽核室'),
+  ('企劃室'),
+  ('高雄分公司');
+  
+-- 2. 部門子單位
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '財務課'  FROM department WHERE name='行政部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '人事總務' FROM department WHERE name='行政部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '電池事業部'  FROM department WHERE NAME='同翔創能';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '行政'     FROM department WHERE name='電磁事業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '清運組' FROM department WHERE name='營業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '土資課'  FROM department WHERE name='營業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '嘉義辦公室' FROM department WHERE name='營業部';
+
+-- 2-2. 部門子子單位
+INSERT INTO sub_sub_unit (sub_unit_id, name)
+SELECT id, '行政'
+  FROM sub_unit
+ WHERE name = '電池事業部';
+
+  
+-- 3. 新增「總經理室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '董事長'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '執行長'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '總經理'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'         FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '特別助理'     FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案助理'     FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'         FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'         FROM department WHERE name='總經理室';
+
+-- 4. 新增「行政部」下不屬任何子單位的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '職安'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '協理'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '經理'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'         FROM department WHERE name='行政部';
+
+-- 5. 新增「行政部 → 財務課」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '組長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '職員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+
+-- 6. 新增「行政部 → 人事總務」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '人事'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '人事總務'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '職員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '人事總務'
+ WHERE d.name = '行政部';
+ 
+ 
+ 
+ 
+-- 7. 新增「資訊室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資訊長'       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資安長 '       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資安專員'         FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '開發工程師'     FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資訊助理'     FROM department WHERE name='資訊室';
+
+-- 8. 新增「同翔創能」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '特助'       FROM department WHERE name='同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '採購 '       FROM department WHERE name='同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '稽核'       FROM department WHERE name='同翔創能';
+
+-- 9. 新增「同翔創能 → 電池事業部」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '客服'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+ 
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '研發'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '倉儲'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '業務'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+
+-- 9-1. 新增「同翔創能 → 電池事業部→行政」下的職位
+INSERT INTO position (department_id, sub_unit_id, sub_sub_unit_id, name)
+SELECT d.id,
+       su.id,
+       ssu.id,
+       '副理'
+  FROM department d
+  JOIN sub_unit su
+    ON su.department_id = d.id
+   AND su.name = '電池事業部'
+  JOIN sub_sub_unit ssu
+    ON ssu.sub_unit_id = su.id
+   AND ssu.name = '行政'
+ WHERE d.name = '同翔創能';
+
+-- 10. 新增「營業部」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '經理'       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理 '       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '課長'       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '組長'         FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'     FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '客服助理'     FROM department WHERE name='營業部';
+
+-- 10. 新增「營業部 → 清運組 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '司機'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '隨車助手'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '組長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+ 
+ 
+ -- 11. 新增「營業部 → 土資課 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '班長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '專員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '助理'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+
+-- 12. 新增「營業部 → 嘉義辦公室 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '所長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '專員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '行政助理'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+
+
+-- 13. 新增「稽核室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='稽核室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'       FROM department WHERE name='稽核室';
+
+
+-- 14. 新增「企劃室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '課長'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'         FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'     FROM department WHERE name='企劃室';
+
+
+-- 15. 新增「高雄分公司」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副課長'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '工讀生'         FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'     FROM department WHERE name='高雄分公司';
+
+INSERT INTO `user` (`loginId`, `userId`, `username`, `password`, `email`, `enabled`) VALUES ('BA488', 'BA488', '測試1號', '$2a$10$PwsvpO/mU7fsdHaVEdcqkOloBpEk1AgfVJt5L9xA4u/eO6XWs7txW', NULL, 1);
+INSERT INTO `user` (`loginId`, `userId`, `username`, `password`, `email`, `enabled`) VALUES ('BA489', 'BA489', 'BA489', '$2a$10$BDbYqbQxP4S2nLFfzBhGK./T/Mj4o.jtwGKNfgQ75Y.loSnEfx8nm', NULL, 1);
+INSERT INTO `user` (`loginId`, `userId`, `username`, `password`, `email`, `enabled`) VALUES ('BA490', 'BA490', 'BA490', '$2a$10$uAMeZPM7fMjFooPsieyc2eSVGC1SSpI.3Sr3lvQhzc0n4n8DRBa6G', NULL, 1);
+INSERT INTO `user` (`loginId`, `userId`, `username`, `password`, `email`, `enabled`) VALUES ('BA491', 'BA491', 'BA4901', '$2a$10$BeSV8rJdlO9KtEEyrQoIgu2B9QcFK4e5BnRI//Eh5xcGcwJ4KqRfK', NULL, 1);
+INSERT INTO `user` (`loginId`, `userId`, `username`, `password`, `email`, `enabled`) VALUES ('BA492', 'BA492', '測試1號', '$2a$10$uI6WDvhd.kfzdxa2iHdmtu1xPmSDBZZbPk6f62IRUmk/9M3isciTG', NULL, 1);
+
+
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA488', 'ROLE_ADMIN');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA488', 'ROLE_PROPERTY');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA489', 'ROLE_ASSET_ADMIN');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA489', 'ROLE_ASSET_VIEW');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA489', 'ROLE_INCIDENT_ADMIN');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA489', 'ROLE_USER');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA490', 'ROLE_ASSET_VIEW');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA491', 'ROLE_USER');
+INSERT INTO `user_roles` (`loginId`, `role`) VALUES ('BA492', 'ROLE_USER');
+
+
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (7, '測試租借', '2025-05-19 12:00:00', '2025-05-22 12:00:00', '租借車輛', '營業部公務車', 'a', 'a', 'BA488', 'a', '2025-05-19 10:00:42');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (8, '會議2', '2025-05-19 15:00:00', '2025-05-19 16:00:00', '會議室', '群運營運中心一樓小會議室(116)', 'a', 'a', 'BA488', 'a', '2025-05-19 10:23:59');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (10, '會議9', '2025-06-11 08:00:00', '2025-06-11 09:00:00', '會議室', '群運營運中心二樓交誼廳', '群運營運中心二樓交誼廳', '備註9', 'BA488', '王小明', '2025-06-11 04:46:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (11, '會議10', '2025-07-12 08:00:00', '2025-07-12 09:00:00', '會議室', '群運營運中心一樓小會議室(116)', '群運營運中心一樓小會議室(116)', '備註10', 'BA488', '王小明', '2025-07-12 04:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (12, '會議11', '2025-07-13 09:00:00', '2025-07-13 10:00:00', '會議室', '群運營運中心二樓洽談室(202)', '群運營運中心二樓洽談室(202)', '備註11', 'BA488', '李小華', '2025-07-13 05:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (13, '會議12', '2025-07-14 10:00:00', '2025-07-14 11:00:00', '會議室', '群運安明一樓會議室', '群運安明一樓會議室', '備註12', 'BA488', '張三', '2025-07-14 06:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (14, '會議13', '2025-07-15 11:00:00', '2025-07-15 12:00:00', '會議室', '群運營運中心二樓交誼廳', '群運營運中心二樓交誼廳', '備註13', 'BA488', '陳小英', '2025-07-15 07:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (15, '會議14', '2025-07-16 12:00:00', '2025-07-16 13:00:00', '會議室', '群運營運中心一樓小會議室(116)', '群運營運中心一樓小會議室(116)', '備註14', 'BA488', '林曉明', '2025-07-16 08:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (16, '會議15', '2025-07-17 13:00:00', '2025-07-17 14:00:00', '會議室', '群運營運中心二樓洽談室(202)', '群運營運中心二樓洽談室(202)', '備註15', 'BA488', '王小明', '2025-07-17 09:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (17, '會議16', '2025-07-18 14:00:00', '2025-07-18 15:00:00', '會議室', '群運安明一樓會議室', '群運安明一樓會議室', '備註16', 'BA488', '李小華', '2025-07-18 10:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (18, '會議17', '2025-07-19 15:00:00', '2025-07-19 16:00:00', '會議室', '群運營運中心二樓交誼廳', '群運營運中心二樓交誼廳', '備註17', 'BA488', '張三', '2025-07-19 11:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (19, '會議18', '2025-07-20 16:00:00', '2025-07-20 17:00:00', '會議室', '群運營運中心一樓小會議室(116)', '群運營運中心一樓小會議室(116)', '備註18', 'BA488', '陳小英', '2025-07-20 12:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (20, '會議19', '2025-07-21 17:00:00', '2025-07-21 18:00:00', '會議室', '群運營運中心二樓洽談室(202)', '群運營運中心二樓洽談室(202)', '備註19', 'BA488', '林曉明', '2025-07-21 13:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (21, '會議20', '2025-07-22 08:00:00', '2025-07-22 09:00:00', '會議室', '群運安明一樓會議室', '群運安明一樓會議室', '備註20', 'BA488', '王小明', '2025-07-22 04:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (22, '會議21', '2025-07-23 09:00:00', '2025-07-23 10:00:00', '會議室', '群運營運中心二樓交誼廳', '群運營運中心二樓交誼廳', '備註21', 'BA488', '李小華', '2025-07-23 05:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (23, '會議22', '2025-07-24 10:00:00', '2025-07-24 11:00:00', '會議室', '群運營運中心一樓小會議室(116)', '群運營運中心一樓小會議室(116)', '備註22', 'BA488', '張三', '2025-07-24 06:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (24, '會議23', '2025-07-25 11:00:00', '2025-07-25 12:00:00', '會議室', '群運營運中心二樓洽談室(202)', '群運營運中心二樓洽談室(202)', '備註23', 'BA488', '陳小英', '2025-07-25 07:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (25, '會議24', '2025-07-26 12:00:00', '2025-07-26 13:00:00', '會議室', '群運安明一樓會議室', '群運安明一樓會議室', '備註24', 'BA488', '林曉明', '2025-07-26 08:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (26, '會議25', '2025-07-27 13:00:00', '2025-07-27 14:00:00', '會議室', '群運營運中心二樓交誼廳', '群運營運中心二樓交誼廳', '備註25', 'BA488', '王小明', '2025-07-27 09:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (27, '會議26', '2025-07-28 14:00:00', '2025-07-28 15:00:00', '會議室', '群運營運中心一樓小會議室(116)', '群運營運中心一樓小會議室(116)', '備註26', 'BA488', '李小華', '2025-07-28 10:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (28, '會議27', '2025-07-29 15:00:00', '2025-07-29 16:00:00', '會議室', '群運營運中心二樓洽談室(202)', '群運營運中心二樓洽談室(202)', '備註27', 'BA488', '張三', '2025-07-29 11:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (29, '會議28', '2025-07-30 16:00:00', '2025-07-30 17:00:00', '會議室', '群運安明一樓會議室', '群運安明一樓會議室', '備註28', 'BA488', '陳小英', '2025-07-30 12:00:00');
+INSERT INTO `resource_borrow_request` (`id`, `content`, `start_time`, `end_time`, `category`, `item`, `location`, `note`, `creator`, `participants`, `created_at`) VALUES (30, '會議29', '2025-07-31 17:00:00', '2025-07-31 18:00:00', '會議室', '群運營運中心二樓交誼廳', '群運營運中心二樓交誼廳', '備註29', 'BA488', '林曉明', '2025-07-31 13:00:00');
+
+
+
+
+
+

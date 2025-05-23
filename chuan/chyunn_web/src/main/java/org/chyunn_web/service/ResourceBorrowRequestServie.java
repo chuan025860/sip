@@ -1,11 +1,13 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.ResourceBorrowRequest;
-import org.chyunn_web.bean.User;
+import org.chyunn_web.bean.Resource.ResourceBorrowRequest;
 import org.chyunn_web.repository.ResourceBorrowRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -18,6 +20,14 @@ public class ResourceBorrowRequestServie {
     }
     public List<ResourceBorrowRequest> findAll( ) {
        return resourceBorrowRequestRepository.findAll();
+    }
+
+    public Page<ResourceBorrowRequest> findByDateRange(
+            LocalDateTime start,
+            LocalDateTime end,
+            Pageable pageable
+    ) {
+        return resourceBorrowRequestRepository.findByStartTimeBetween(start, end, pageable);
     }
 
 }

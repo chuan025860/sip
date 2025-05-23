@@ -1,8 +1,6 @@
 package org.chyunn_web.service;
 
-import org.chyunn_web.bean.Incident;
-import org.chyunn_web.bean.InventoryEquipmentFile;
-import org.chyunn_web.dto.IncidentDto;
+import org.chyunn_web.bean.Asset.InventoryEquipmentFile;
 import org.chyunn_web.dto.InventoryEquipmentFileDto;
 import org.chyunn_web.repository.InventoryEquipmentFileRepository;
 import org.modelmapper.ModelMapper;
