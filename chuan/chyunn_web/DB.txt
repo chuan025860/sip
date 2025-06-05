@@ -1,0 +1,590 @@
+﻿CREATE DATABASE chyunnweb4;
+USE chyunnweb4;
+
+CREATE TABLE incident(
+    incidentId INT NOT NULL AUTO_INCREMENT PRIMARY KEY, -- 事件編號，主鍵，自動遞增
+    belongingType VARCHAR(20)NOT  NULL,                	-- 歸屬類型
+    customer VARCHAR(20),                             	 -- 事件相關客戶，字串
+    car VARCHAR(20) ,                                 	-- 事件相關車輛，字串
+    reporter VARCHAR(20) NOT NULL,                     -- 反應人，字串
+    task VARCHAR(30) NOT NULL,                         -- 工作事項，字串
+    eventPurpose TEXT NOT NULL,	 		       -- 事件主旨	
+    eventContent TEXT NOT NULL,                        -- 事件內容，長文字
+    reportCount INT NOT NULL,                          -- 回報數，整數
+    importance VARCHAR(20) NOT NULL,                   -- 重要性
+    department VARCHAR(20) NOT NULL,                   -- 處理部門，字串
+    handler VARCHAR(20) NOT NULL,                      -- 處理人，字串
+    status VARCHAR(20) NOT NULL,                       -- 處理狀態
+    lastReportTime DATETIME NOT NULL,                  -- 最後回報時間
+    reportDate DATE  NOT NULL,                         -- 反應日期
+    invalid BOOLEAN DEFAULT FALSE,                      -- 作廢
+    creator VARCHAR(20) NOT NULL                        -- 製表人，字串
+);
+
+CREATE TABLE report(
+    reportId INT NOT NULL AUTO_INCREMENT PRIMARY KEY, -- 回報編號，主鍵，自動遞增	
+    incidentId INT NOT NULL,                          -- 外鍵，關聯到 incident 表
+    reportTime DATETIME NOT NULL,                     -- 回報時間
+    reporter VARCHAR(100) NOT NULL,                   -- 回報人
+    progress VARCHAR(50) NOT NULL,                    -- 處理進度
+    executionDate DATE,                               -- 執行日期
+    executor VARCHAR(100) ,                           -- 執行人
+    content TEXT ,                                    -- 內容
+    CONSTRAINT fk_incident FOREIGN KEY (incidentId)   -- 設置外鍵約束
+        REFERENCES incident(incidentId)               -- 關聯到 incident 表的 incidentId 欄位
+        ON DELETE CASCADE                             -- 當 incident 被刪除時，自動刪除相關的報告
+        ON UPDATE CASCADE                             -- 當 incidentId 更新時，自動更新報告
+);
+
+CREATE TABLE incident_files (
+    fileId   INT NOT NULL AUTO_INCREMENT PRIMARY KEY,    -- 圖片ID
+    fileName VARCHAR(50) NOT NULL ,              -- 檔案名稱
+    incidentId INT NOT NULL,                    -- 關聯的事件ID
+    filePath VARCHAR(255) NOT NULL,              -- 檔案儲存路徑
+    FOREIGN KEY (incidentId) REFERENCES incident(incidentId)  -- 外鍵關聯incident表
+);
+
+CREATE TABLE report_files (
+    fileId   INT NOT NULL AUTO_INCREMENT PRIMARY KEY,    -- 圖片ID
+    fileName VARCHAR(50) NOT NULL ,              -- 檔案名稱
+    reportId INT NOT NULL,                     -- 關聯的回報 ID
+    filePath VARCHAR(255) NOT NULL,            -- 檔案儲存路徑
+    FOREIGN KEY (reportId) REFERENCES report(reportId)  -- 外鍵關聯 report 表
+);
+CREATE TABLE inventory_equipment (
+    final_property_id VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    property_id  VARCHAR(20),                  -- 財產編號 
+    management_id  VARCHAR(20),               -- 列管編號
+    category VARCHAR(20), -- 類別
+    name VARCHAR(255), -- 名稱
+    remarks VARCHAR(255), -- 備註	
+    size_serial VARCHAR(50), -- 尺寸_序號
+    quantity_unit VARCHAR(10), -- 數量_單位
+    purchase_date VARCHAR(20), -- 購買日期
+    supplier VARCHAR(50), -- 購入廠商
+    purchase_amount VARCHAR(10) , -- 購買金額
+    tax VARCHAR(255) , -- 稅金
+    location VARCHAR(20), -- 放置處
+    custodian VARCHAR(10), -- 保管人
+    contact_window VARCHAR(20), -- 聯繫窗口
+    change_record  TEXT,  -- 異動記錄
+    inventory_date VARCHAR(20),   -- 盤點日期
+    state BOOLEAN DEFAULT FALSE, -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE   -- 表示是否在進行盤點中，預設為 FALSE
+);
+
+--     隨機清單IT
+CREATE TABLE randomsampling_it (
+    final_property_id   VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    state BOOLEAN DEFAULT FALSE,     -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE   -- 表示是否在進行盤點中，預設為 FALSE
+);
+ 
+--      隨機清單總表
+CREATE TABLE randomsampling_all	(
+    asset_id VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    state BOOLEAN DEFAULT FALSE,     -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE   -- 表示是否在進行盤點中，預設為 FALSE
+);
+
+CREATE TABLE general_catalog(
+    asset_id VARCHAR(50) PRIMARY KEY,        -- 財產編號
+    category VARCHAR(100),                   -- 類別
+    name VARCHAR(100),                       -- 名稱
+    model VARCHAR(100),                      -- 型號
+    serial_or_size VARCHAR(100),             -- 尺寸/序號
+    quantity_or_unit VARCHAR(100),           -- 數量/單位
+    purchase_date VARCHAR(20),                      -- 購買日期
+    supplier VARCHAR(100),                   -- 購入廠商
+    purchase_price VARCHAR(10),           -- 購買金額
+    tax VARCHAR(20),                      -- 稅金
+    storage_location VARCHAR(100),           -- 放置處
+    custodian VARCHAR(100),                  -- 保管人
+    contact VARCHAR(100),                    -- 聯繫窗口
+    change_log TEXT ,                         -- 異動記錄
+    inventory_date VARCHAR(20),   -- 盤點日期
+    state BOOLEAN DEFAULT FALSE,       -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE     --  檢查是否有更新過
+);
+
+
+
+CREATE TABLE inventory_equipment_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 圖片ID，使用時間戳 + 隨機數（唯一）
+    final_property_id VARCHAR(20) NOT NULL,                    -- 關聯的事件ID
+    fileName  VARCHAR(255) NOT NULL,              -- 檔案儲存路徑
+    FOREIGN KEY (final_property_id) REFERENCES inventory_equipment(final_property_id)  -- 外鍵關聯incident表
+);
+
+CREATE TABLE general_catalog_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 文件 ID（時間戳 + 隨機數，唯一）
+    asset_id VARCHAR(50) NOT NULL,                     -- 關聯的回報 ID
+    fileName  VARCHAR(255) NOT NULL,            -- 檔案儲存路徑
+    FOREIGN KEY (asset_id) REFERENCES general_catalog(asset_id)  -- 外鍵關聯 report 表
+);
+
+-- 財產放置處
+CREATE TABLE location (                     
+     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- id 欄位設定為自動遞增並且是主鍵
+    	name VARCHAR(255) NOT NULL                  -- name 欄位必須有值
+);
+-- 財產更新歷史
+CREATE TABLE asset_history (
+    id INT  AUTO_INCREMENT PRIMARY KEY,             -- 每條歷史紀錄的唯一ID
+    date VARCHAR(255) NOT NULL,                     -- 日期
+    custodian VARCHAR(255) NOT NULL,                -- 保管人
+    location VARCHAR(255) NOT NULL,                 -- 放置處
+    change_record TEXT NOT NULL,                    -- 異動記錄
+    inventory_equipment_final_property_id VARCHAR(255) , -- 外鍵，與 `inventory_equipment` 關聯
+    FOREIGN KEY (inventory_equipment_final_property_id) REFERENCES inventory_equipment(final_property_id)
+        ON DELETE CASCADE  -- 若 `inventory_equipment` 刪除，相關的 `AssetHistory` 也會刪除
+);
+
+-- 總表財產更新歷史
+CREATE TABLE asset_history_All (
+    id INT AUTO_INCREMENT PRIMARY KEY,                 -- 每條歷史紀錄的唯一ID
+    date VARCHAR(255) NOT NULL,                        -- 日期
+    custodian VARCHAR(255) NOT NULL,                   -- 保管人
+    location VARCHAR(255) NOT NULL,                    -- 放置處
+    change_record TEXT NOT NULL,                       -- 異動記錄
+    asset_id VARCHAR(50),                              -- 外鍵，對應 general_catalog 的 asset_id
+    FOREIGN KEY (asset_id) REFERENCES general_catalog(asset_id)
+        ON DELETE CASCADE                              -- 若財產刪除，歷史紀錄也會刪除
+);
+
+
+
+INSERT INTO location (name) VALUES
+('204資訊'), ('217資訊機房'), ('102茶水室'), ('103會議室'), 
+('104控制室'), ('105洽談室'), ('106營業'), ('108茶水室'), 
+('110儲藏室'), ('114人事總務'), ('115總經理'), ('116會議室'), 
+('117財會'), ('118檔案室'), ('201'), ('202洽談室'), ('203運動室'), 
+('206哺乳室'), ('207茶水室'), ('208文書室'), ('209共享'), 
+('213董事長'), ('216稽核'), ('218會議室'), ('安明-A棟1樓'), 
+('安明-A棟2樓'), ('安明-B棟1樓'), ('安明-B棟2樓'), ('安明-土資廠'), 
+('安明-1F機房'), ('安明-司機休息室'), ('安明-守衛室'), ('安明-會議室'), 
+('安明-停車場'), ('安明-中庭'), ('安明-外勞宿舍'), ('安明-保修廠'), 
+('安明-倉庫'), ('高雄_辦公室1樓'), ('高雄_辦公室2樓'), ('顯宮段');
+
+
+
+
+ -- 部門
+CREATE TABLE department (
+  id   INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 小課／室（可以只有部門沒有子單位，就不塞資料）
+CREATE TABLE sub_unit (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  department_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  UNIQUE(department_id, name),
+  FOREIGN KEY (department_id) REFERENCES department(id)
+);
+
+CREATE TABLE sub_sub_unit (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  sub_unit_id   INT NOT NULL,
+  name          VARCHAR(100) NOT NULL,
+  UNIQUE KEY uk_ssu_subunit_name (sub_unit_id, name),
+  FOREIGN KEY (sub_unit_id) REFERENCES sub_unit(id)
+);
+
+-- 職位
+CREATE TABLE position (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  department_id INT NOT NULL,
+  sub_unit_id   INT NULL,
+  sub_sub_unit_id INT NULL,
+  name VARCHAR(100) NOT NULL,
+  UNIQUE(department_id, sub_unit_id, name),
+  FOREIGN KEY (department_id) REFERENCES department(id),
+  FOREIGN KEY (sub_unit_id)   REFERENCES sub_unit(id),
+  FOREIGN KEY (sub_sub_unit_id) REFERENCES sub_sub_unit(id)
+);
+
+-- 會議室主檔
+CREATE TABLE meeting_room (
+  id       INT AUTO_INCREMENT PRIMARY KEY,
+  name     VARCHAR(100) NOT NULL UNIQUE,   -- 會議室名稱
+  location VARCHAR(255)                     -- 位置描述
+);
+
+-- 車輛主檔
+CREATE TABLE vehicle (
+  id    INT AUTO_INCREMENT PRIMARY KEY,
+  name  VARCHAR(100) NOT NULL UNIQUE,      -- 車輛識別
+  plate VARCHAR(20)                        -- 車牌號碼
+);
+
+CREATE TABLE user (
+  id INT  AUTO_INCREMENT PRIMARY KEY,
+  loginId          VARCHAR(100)  UNIQUE  NOT NULL,
+  userId           VARCHAR(50),
+  username          VARCHAR(255)    NOT NULL,
+  password          VARCHAR(255)    NOT NULL,
+  employee_no VARCHAR(50) NOT NULL   ,
+  email             VARCHAR(255),
+  department_id     INT,
+  sub_unit_id       INT,
+  sub_sub_unit_id   INT,
+  position_id       INT,
+  enabled           BOOLEAN DEFAULT TRUE,
+CONSTRAINT fk_user_dept
+    FOREIGN KEY (department_id)
+    REFERENCES department (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_subunit
+    FOREIGN KEY (sub_unit_id)
+    REFERENCES sub_unit (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_subsub
+    FOREIGN KEY (sub_sub_unit_id)
+    REFERENCES sub_sub_unit (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_position
+    FOREIGN KEY (position_id)
+    REFERENCES position (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);   
+      
+CREATE TABLE user_roles (
+  id INT NOT NULL,
+  role     VARCHAR(50)  NOT NULL,
+  PRIMARY KEY(id, role),
+  FOREIGN KEY(id) REFERENCES `user` (id) ON DELETE CASCADE
+); 
+
+-- 資源借用請求
+CREATE TABLE resource_borrow_request (
+  id INT AUTO_INCREMENT PRIMARY KEY,              -- 資源借用主鍵
+  content VARCHAR(255) NOT NULL,                 -- 內容（必填）
+  start_time DATETIME NOT NULL,                  -- 開始時間（必填）
+  end_time DATETIME NOT NULL,                    -- 結束時間（必填）
+  category ENUM('ROOM','VEHICLE') NOT NULL,      -- 類別 (ROOM 或 VEHICLE)
+  meeting_room_id INT NULL,                      -- 對應的會議室 ID（如果 category='ROOM'）
+  vehicle_id INT NULL,                           -- 對應的車輛 ID（如果 category='VEHICLE'）
+  location VARCHAR(255),                         -- 位置
+  note TEXT,                                     -- 備註
+  creator VARCHAR(100) NOT NULL,                 -- 建立者（關聯 user.loginId）
+  participants TEXT,                             -- 參與人員
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- 建立時間
+  all_day BOOLEAN DEFAULT FALSE,                 -- 全天標記
+
+  -- 外鍵約束
+  FOREIGN KEY (creator)        REFERENCES user(loginId)          ON DELETE CASCADE,
+  FOREIGN KEY (meeting_room_id) REFERENCES meeting_room(id)     ON DELETE SET NULL,
+  FOREIGN KEY (vehicle_id)      REFERENCES vehicle(id)          ON DELETE SET NULL
+);
+
+
+-- 1. 新增部門
+INSERT INTO department (name) VALUES 
+  ('總經理室'),
+  ('行政部'),
+  ('資訊室'),
+  ('同翔創能'),
+  ('營業部'),
+  ('稽核室'),
+  ('企劃室'),
+  ('高雄分公司');
+  
+-- 2. 部門子單位
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '財務課'  FROM department WHERE name='行政部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '人事總務' FROM department WHERE name='行政部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '電池事業部'  FROM department WHERE NAME='同翔創能';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '行政'     FROM department WHERE name='電磁事業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '清運組' FROM department WHERE name='營業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '土資課'  FROM department WHERE name='營業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '嘉義辦公室' FROM department WHERE name='營業部';
+
+-- 2-2. 部門子子單位
+INSERT INTO sub_sub_unit (sub_unit_id, name)
+SELECT id, '行政'
+  FROM sub_unit
+ WHERE name = '電池事業部';
+
+  
+-- 3. 新增「總經理室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '董事長'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '執行長'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '總經理'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'         FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '特別助理'     FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案助理'     FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'         FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'         FROM department WHERE name='總經理室';
+
+-- 4. 新增「行政部」下不屬任何子單位的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '職安'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '協理'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '經理'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'         FROM department WHERE name='行政部';
+
+-- 5. 新增「行政部 → 財務課」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '組長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '職員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+
+-- 6. 新增「行政部 → 人事總務」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '人事'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '人事總務'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '職員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '人事總務'
+ WHERE d.name = '行政部';
+ 
+ 
+ 
+ 
+-- 7. 新增「資訊室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資訊長'       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資安長 '       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資安專員'         FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '開發工程師'     FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資訊助理'     FROM department WHERE name='資訊室';
+
+-- 8. 新增「同翔創能」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '特助'       FROM department WHERE name='同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '採購 '       FROM department WHERE name='同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '稽核'       FROM department WHERE name='同翔創能';
+
+-- 9. 新增「同翔創能 → 電池事業部」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '客服'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+ 
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '研發'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '倉儲'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '業務'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+
+-- 9-1. 新增「同翔創能 → 電池事業部→行政」下的職位
+INSERT INTO position (department_id, sub_unit_id, sub_sub_unit_id, name)
+SELECT d.id,
+       su.id,
+       ssu.id,
+       '副理'
+  FROM department d
+  JOIN sub_unit su
+    ON su.department_id = d.id
+   AND su.name = '電池事業部'
+  JOIN sub_sub_unit ssu
+    ON ssu.sub_unit_id = su.id
+   AND ssu.name = '行政'
+ WHERE d.name = '同翔創能';
+
+-- 10. 新增「營業部」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '經理'       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理 '       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '課長'       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '組長'         FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'     FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '客服助理'     FROM department WHERE name='營業部';
+
+-- 10. 新增「營業部 → 清運組 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '司機'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '隨車助手'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '組長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+ 
+ 
+ -- 11. 新增「營業部 → 土資課 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '班長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '專員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '助理'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+
+-- 12. 新增「營業部 → 嘉義辦公室 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '所長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '專員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '行政助理'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+
+
+-- 13. 新增「稽核室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='稽核室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'       FROM department WHERE name='稽核室';
+
+
+-- 14. 新增「企劃室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '課長'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'         FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'     FROM department WHERE name='企劃室';
+
+
+-- 15. 新增「高雄分公司」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副課長'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '工讀生'         FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'     FROM department WHERE name='高雄分公司';
+
+INSERT INTO `user` (`id`, `loginId`, `userId`, `username`, `password`, `employee_no`, `email`, `department_id`, `sub_unit_id`, `sub_sub_unit_id`, `position_id`, `enabled`) VALUES (NULL, 'BA000', 'BA000', '管理員', '$2a$10$PwsvpO/mU7fsdHaVEdcqkOloBpEk1AgfVJt5L9xA4u/eO6XWs7txW', 'BA000', NULL, '3', NULL, NULL, '22', '1'), (NULL, 'BA213', 'MEM00871690786497004', '陳瑤林', '$2a$10$NSh4jdFY1tOF7ck7NvWr7uESMavLVyKMaj9ceLgSCKCYXce.GLBMe', 'BA213', NULL, '3', NULL, NULL, '18', '1');
+
+INSERT INTO `user_roles` (`id`, `role`) VALUES (1, 'ROLE_ADMIN');
+INSERT INTO `user_roles` (`id`, `role`) VALUES (2, 'ROLE_USER');
+INSERT INTO `incident` (`incidentId`, `belongingType`, `customer`, `car`, `reporter`, `task`, `eventPurpose`, `eventContent`, `reportCount`, `importance`, `department`, `handler`, `status`, `lastReportTime`, `reportDate`, `invalid`, `creator`) VALUES (NULL, '外部', '高雄市廢棄物調度中心', '', '施佳琪', '需要資訊部處理', '高雄市廢棄物調度中心無法寄達公司mail信箱', '<p style=\"margin-left:0px;\">振興發科技(高雄市廢棄物調度中心)，最近在傳送mail至公司，遭到阻擋，</p><p style=\"margin-left:0px;\">已處理完畢, 處置流程如下:</p><p style=\"margin-left:0px;\">&nbsp;</p><ol style=\"list-style-type:decimal;\"><li><p style=\"margin-left:0px;\">把 60.248.165.85(<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\">mail.pstcom.com.tw</a>)&nbsp;IP，開通在白名單內.</p></li><li><p style=\"margin-left:0px;\">即時監看公司 mailserver 收發 log , 均沒發現調度中心的郵件有送抵mailserver痕跡.</p></li><li><p style=\"margin-left:0px;\">有請調度中心發送測試郵件到 gmail , 卻被 gmail 歸類為 垃圾郵件</p></li></ol><p style=\"margin-left:0px;\">綜上處置判斷, <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\">mail.pstcom.com.tw</a>&nbsp;或 60.248.165.85 也許被反垃圾郵件組織(Spamhaus)列入</p><p style=\"margin-left:0px;\">垃圾郵件黑名單, 可參考&nbsp; <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/\">https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/</a></p><p style=\"margin-left:0px;\">向該組織申訴撤銷.</p><p style=\"margin-left:0px;\">&nbsp;</p><p style=\"margin-left:0px;\">隔天振興發科技(高雄市廢棄物調度中心)回覆經函 &nbsp;反垃圾郵件組織(Spamhaus) 申訴撤銷後,</p><p style=\"margin-left:0px;\">公司已可收到由振興發科技(高雄市廢棄物調度中心)寄出的郵件</p>', '1', '普通', '3', 'BA213', '已結案', '2025-03-24 15:30:56', '2025-03-19', '0', '陳瑤林'), (NULL, '外部', '高雄市廢棄物調度中心', '', ' 施佳琪', '需要資訊部處理', '高雄市廢棄物調度中心無法寄達公司mail信箱', '<p style=\"margin-left:0px;\"><br><strong>振興發科技(高雄市廢棄物調度中心)，最近在傳送mail至公司，遭到阻擋，</strong></p><p style=\"margin-left:0px;\"><strong>已處理完畢, 處置流程如下:</strong></p><p style=\"margin-left:0px;\">&nbsp;</p><ol style=\"list-style-type:decimal;\"><li><p style=\"margin-left:0px;\"><strong>把 60.248.165.85(</strong><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\"><strong>mail.pstcom.com.tw</strong></a><strong>)&nbsp;IP，開通在白名單內.</strong></p></li><li><p style=\"margin-left:0px;\"><strong>即時監看公司 mailserver 收發 log , 均沒發現調度中心的郵件有送抵mailserver痕跡.</strong></p></li><li><p style=\"margin-left:0px;\"><strong>有請調度中心發送測試郵件到 gmail , 卻被 gmail 歸類為 垃圾郵件</strong></p></li></ol><p style=\"margin-left:0px;\"><strong>綜上處置判斷, </strong><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\"><strong>mail.pstcom.com.tw</strong></a><strong>&nbsp;或 60.248.165.85 也許被反垃圾郵件組織(Spamhaus)列入</strong></p><p style=\"margin-left:0px;\"><strong>垃圾郵件黑名單, 可參考&nbsp; </strong><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/\"><strong>https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/</strong></a></p><p style=\"margin-left:0px;\"><strong>向該組織申訴撤銷.</strong></p><p style=\"margin-left:0px;\">&nbsp;</p><p style=\"margin-left:0px;\"><strong>隔天振興發科技(高雄市廢棄物調度中心)回覆經函 &nbsp;反垃圾郵件組織(Spamhaus) 申訴撤銷後,</strong></p><p style=\"margin-left:0px;\"><strong>公司已可收到由振興發科技(高雄市廢棄物調度中心)寄出的郵件</strong></p>', '0', '普通', '3', 'BA213', '已結案', '2025-05-28 11:28:46', '2025-05-28', '0', '陳瑤林');
+
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (1, '群運營運中心一樓大會議室(103)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (2, '群運營運中心一樓小會議室(116)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (3, '群運營運中心二樓洽談室(202)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (4, '群運營運中心二樓中會議室(218)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (5, '群運安明一樓會議室', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (6, '群運營運中心二樓交誼廳', NULL);
+INSERT INTO `vehicle` (`id`, `name`, `plate`) VALUES (1, '營業部公務車', NULL);
+INSERT INTO `vehicle` (`id`, `name`, `plate`) VALUES (2, '行政部公務車', NULL);
+
+
+
+INSERT INTO resource_borrow_request (content, start_time, end_time, category, meeting_room_id, vehicle_id, location, note, creator, participants, all_day) VALUES ('專案啟動會議', '2025-05-28 09:00:00', '2025-05-28 11:00:00', 'ROOM', 3, NULL, '群運安明一樓會議室', '', 'BA213', '', FALSE);
+INSERT INTO resource_borrow_request
+  (content, start_time, end_time, category, meeting_room_id, vehicle_id,
+   location, note, creator, participants, all_day)
+VALUES(
+    '租借車測試',
+    '2025-05-29 09:00:00',
+    '2025-05-29 11:00:00',
+    'VEHICLE',
+    null,      -- meeting_room_id = 3
+    2,   -- vehicle_id
+    '營業部公務車',
+    '',
+    'BA213',                -- creator(loginId)
+    '',
+    false                   -- 全天
+  )
+
+--   2025/06/03更新
+ALTER TABLE incident
+ADD visibility BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'true 表示公開，false 表示不公開';

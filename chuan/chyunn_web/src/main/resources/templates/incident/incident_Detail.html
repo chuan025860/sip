@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運事件問題-檢視</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        .table th {
+            text-align: left;
+            /* 水平居中 */
+            vertical-align: middle;
+            /* 垂直居中 */
+            width: 120px;
+            /* 固定寬度，可根據需要調整 */
+            white-space: nowrap;
+            /* 防止文字換行 */
+        }
+
+        .table td {
+            vertical-align: middle;
+            /* 垂直居中 */
+        }
+
+        .event-content-textarea {
+            width: 100%;
+            /* 填滿 td */
+            height: 120px;
+            /* 自動調整高度 */
+            word-wrap: break-word;
+            /* 長字自動換行 */
+            overflow-wrap: break-word;
+            /* 更強的兼容性 */
+        }
+
+        .event-content-td {
+            width: 50%;
+            /* 填滿 td */
+            height: 80px;
+            /* 自動調整高度 */
+            word-wrap: break-word;
+            /* 長字自動換行 */
+            overflow-wrap: break-word;
+            /* 更強的兼容性 */
+        }
+
+        .event-content-date {
+            width: 100%;
+            /* 填滿 td */
+            word-wrap: break-word;
+            /* 長字自動換行 */
+            overflow-wrap: break-word;
+            /* 更強的兼容性 */
+        }
+
+        .form-control.select {
+            background-color: white;
+        }
+
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            /* 字體保持白色 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            /* 發光效果 */
+            background-color: #18a383;
+            /* 懸停時略微變化背景色 */
+            border-color: #18a383;
+        }
+
+        .custom-textarea {
+            height: 150px;
+            /* 調整高度 */
+        }
+
+        /* 設定 CKEditor 的編輯區域高度 */
+        .ck-editor__editable {
+            min-height: 200px !important;
+            /* 讓編輯區至少有 200px 高 */
+        }
+
+        p {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <div class="cotainer-fluid pt-4 px-4 fs-6 fw-bold ">
+            <div class="bg-light rounded p-3">
+                <table class="table table-bordered text-dark" style="border-color: #ddd;"> <!-- 加入邊框 -->
+                    <thead class="bg-secondary text-white"> <!-- 標題背景色 -->
+                        <tr>
+                            <th colspan="4" class="text-left">事件詳情</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background-color: #f9f9f9;"> <!-- 淡灰底色 -->
+                            <th>事件編號</th>
+                            <td th:text="${incidentDto.incidentId}" id="incidentId"></td>
+                            <th>歸屬 &nbsp;/ &nbsp;類型&nbsp;/ &nbsp;製表人</th>
+                            <td
+                                th:text="${incidentDto.belongingType + ' / ' + (incidentDto.visibility ? '公開' : '不公開') + ' / ' + incidentDto.creator}">
+                            </td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;"> <!-- 淡灰底色 -->
+                            <th>事件相關客戶</th>
+                            <td th:text="${incidentDto.customer}"></td>
+                            <th>事件相關車輛</th>
+                            <td th:text="${incidentDto.car}"></td>
+                        </tr>
+                        <tr>
+                            <th>反應日期</th>
+                            <td th:text="${incidentDto.reportDate}"></td>
+                            <th>最後回報時間</th>
+                            <td th:text="${incidentDto.lastReportTime}"></td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <th>反應人</th>
+                            <td th:text="${incidentDto.reporter}" id="reporter"></td>
+                            <th>回報數</th>
+                            <td th:text="${incidentDto.reportCount}" id="reportCount"></td>
+                        </tr>
+                        <tr>
+                            <th>工作事項</th>
+                            <td th:text="${incidentDto.task}"></td>
+                            <th>重要性</th>
+                            <td th:text="${incidentDto.importance}"></td>
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <th>當前處理部門&nbsp;/&nbsp;處理人</th>
+                            <td th:text="${incidentDto.department + ' &nbsp;/ &nbsp;' + incidentDto.handler}"></td>
+                            <th>當前處理狀態</th>
+                            <td th:text="${incidentDto.status}"></td>
+                        </tr>
+                        <tr>
+                            <th>事件主旨</th>
+                            <td colspan="3" th:utext="${incidentDto.eventPurpose}" style="word-break: break-word;"></td>
+                            <!-- 長內容換行 -->
+                        </tr>
+                        <tr>
+                            <th>事件內容</th>
+                            <td colspan="3" th:utext="${incidentDto.eventContent}" style="word-break: break-word;"></td>
+                            <!-- 長內容換行 -->
+                        </tr>
+                        <tr style="background-color: #f9f9f9;">
+                            <th>檢視附件</th>
+                            <td colspan="3">
+                                <div
+                                    th:if="${incidentDto.incidentFileDtos != null and not #lists.isEmpty(incidentDto.incidentFileDtos)}">
+                                    <ul class="list-group">
+                                        <li th:each="file : ${incidentDto.incidentFileDtos}"
+                                            class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span th:text="${file.fileName}"></span>
+                                            <a th:href="@{'/uploads/incident_' + ${file.incidentId} + '/' + ${file.fileName}}"
+                                                target="_blank" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i> 檢視
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div th:if="${incidentDto.incidentFileDtos == null or #lists.isEmpty(incidentDto.incidentFileDtos)}"
+                                    class="text-muted">
+                                    無附件
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="table text-dark">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center;">回報時間</th>
+                            <th style="text-align: center;">回報人</th>
+                            <th style="text-align: center;">處理進度</th>
+                            <th style="text-align: center;">執行日期</th>
+                            <th style="text-align: center;">執行人</th>
+                            <th style="text-align: center;">內容</th>
+                            <th>操作</th>
+                            <th>檢視附件</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-tbody">
+                        <tr th:if="${#lists.isEmpty(incidentDto.reportDtos)}">
+                            <td> </td>
+                            <td style="text-align: center;"> </td>
+                            <td style="text-align: center;"> </td>
+                            <td style="text-align: center;"> </td>
+                            <td style="text-align: center;"> </td>
+                            <td class="event-content-td">
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr th:each="reportDto : ${incidentDto.reportDtos}"
+                            th:id="'reportDto-row-' + ${reportDto.reportId}">
+                            <td th:text="${reportDto.reportTimeString}" style="text-align: center;"></td>
+                            <td th:text="${reportDto.reporter}" style="text-align: center;"></td>
+                            <td th:text="${reportDto.progress}" style="text-align: center;"></td>
+                            <td th:text="${reportDto.executionDateString}" style="text-align: center;"></td>
+                            <td th:text="${reportDto.executor}" style="text-align: center;"></td>
+                            <td th:utext="${reportDto.content}" class="event-content-td">
+                            </td>
+                            <td>
+                                <button class="btn btn-primary btn-sm edit-btn update-file"
+                                    th:data-id="${reportDto.reportId}" th:data-reporter="${reportDto.reporter}"
+                                    th:data-progress="${reportDto.progress}"
+                                    th:data-executiondate="${reportDto.executionDateString}"
+                                    th:data-executorid="${reportDto.executorId}"
+                                    th:data-executordepartmentid="${reportDto.departmentId}"
+                                    th:data-content="${reportDto.content}"
+                                    th:data-reportfile="${reportDto.jsonReportFileDtos}" style="display: none;"
+                                    th:if="${!incidentDto.invalid && incidentDto.status != '已結案' or #lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_INCIDENT_ADMIN')}">編輯</button>
+                            </td>
+                            <td> <button class="btn btn-primary btn-sm edit-btn select-file"
+                                    th:data-id="${reportDto.reportId}" th:data-reporter="${reportDto.reporter}"
+                                    th:data-progress="${reportDto.progress}"
+                                    th:data-executiondate="${reportDto.executionDateString}"
+                                    th:data-executor="${reportDto.executor}" th:data-content="${reportDto.content}"
+                                    th:data-reportfile="${reportDto.jsonReportFileDtos}"
+                                    style="display: show;">檢視附件</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="d-flex align-items-center">
+                    <!-- 左側按鈕 -->
+                    <div>
+                        <a href="/chyunn/incident/select_incident" class="btn btn-secondary btn-sm me-2">返回</a>
+                        <a th:href="@{/incident/incident_Detail(incidentId=${incidentDto.incidentId}-1)}"
+                            class="btn btn-secondary btn-sm me-2" th:if="${incidentDto.incidentId > 1}">上一件</a>
+                        <a th:href="@{/incident/incident_Detail(incidentId=${incidentDto.incidentId}+1)}"
+                            class="btn btn-secondary btn-sm me-2"
+                            th:if="${incidentDto.maxIncidentId> incidentDto.incidentId}">下一件</a>
+                        <button class="btn btn-sm custom-btn me-2"
+                            th:if="${!incidentDto.invalid && incidentDto.status != '已結案'  or #lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_INCIDENT_ADMIN')}"
+                            onclick="addReportRow()">回報事件</button>
+                        <a th:href="@{/incident/update_incident(incidentId=${incidentDto.incidentId})}"
+                            class="btn btn-primary btn-sm me-2 btn-edit-incident"
+                            th:if="${(!incidentDto.invalid && incidentDto.status != '已結案')  or #lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_INCIDENT_ADMIN')}"
+                            role="button" style="display: none;">
+                            編輯事件
+                        </a>
+                    </div>
+                    <button class="btn btn-danger btn-sm ms-auto" id="deleteIncident"
+                        th:if="${(!incidentDto.invalid && incidentDto.status == '未開始')  or #lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_INCIDENT_ADMIN')}"
+                        style="display: none;">作廢</button>
+
+                </div>
+            </div>
+        </div>
+        <input type="hidden" id="userRoles" th:value="${userRoles}" />
+        <input type="hidden" th:value="${incidentDto.creator}" id="creator">
+        <input type="hidden" th:value="${lastReporter}" id="lastReporter">
+        <!-- Content End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+        <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+        <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+        <script>
+
+            function addReportRow() {
+                var creator = $("#username-h6").text();
+                console.log(creator)
+                // content前置參數
+                let eventContent = '';
+                //Files前置參數 // 定義在彈出窗口範圍外
+                let selectedFiles = [];
+                // 彈出 SweetAlert 表單
+                Swal.fire({
+                    title: '回報事件',
+                    html: `
+           <div class="form-group mb-3 row">
+    <div class="col-md-6">
+        <label for="swal-reporter" class="text-dark text-start d-block">回報人</label>
+        <input type="text" id="swal-reporter" class="form-control text-dark" value="${creator}" readonly>
+    </div>
+    <div class="col-md-6">
+        <label for="swal-progress" class="text-dark text-start d-block">處理進度</label>
+        <select id="swal-progress" class="form-control text-dark" required>
+            <option value="">請選擇</option>
+            <option value="待處理">待處理</option>
+            <option value="處理中">處理中</option>
+            <option value="已轉交他人">已轉交他人</option>
+            <option value="延期">延期</option>
+            <option value="待結案(待收款)">待結案(待收款)</option>
+            <option value="退件">退件</option>
+            <option value="已結案">已結案</option>
+        </select>
+    </div>
+</div>
+
+<div class="form-group mb-3 row">
+    <div class="col-md-3">
+      <label class="text-dark text-start d-block">處理部門/處理人</label>
+          <select id="swal-dept" class="form-control text-dark" required>
+            <option value="" disabled selected>請選擇部門</option>
+          </select>
+    </div>
+      <div class="col-md-3">
+          <label class="text-dark"></label>
+          <select id="swal-executor" class="form-control text-dark" required disabled>
+            <option value="" disabled selected>請先選擇部門</option>
+          </select>
+        </div>
+    <div class="col-md-6">
+        <label for="swal-executionDate" class="text-dark text-start d-block">轉交/執行日期</label>
+        <input type="date" id="swal-executionDate" class="form-control text-dark selectedDate" required />
+    </div>
+</div>
+            <div class="form-group mb-3">
+            <label for="swal-content" class="text-dark text-start d-block">內容</label>
+            <textarea id="swal-eventContent" class="form-control text-dark custom-textarea" placeholder="內容" required></textarea>
+            </div>
+<div class="form-group mb-3">
+    <label for="swal-attachments" class="text-dark text-start d-block">附件</label>
+    <small class="text-muted text-start d-block">可上傳 Microsoft Office 文件（Word, Excel, PowerPoint）、PDF、圖片（JPG/PNG）、壓縮檔（ZIP/RAR），單檔最大 10MB</small>
+    <input type="file" id="swal-attachments" class="form-control text-dark" multiple />
+    <ul id="fileList" class="list-group mt-2 w-100"></ul>
+</div>
+            </div>
+            `,
+                    allowOutsideClick: false, // 禁止點擊背景關閉
+                    allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                    allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: '新增',
+                    cancelButtonText: '取消',
+                    width: 800,
+                    didOpen: () => {
+                        $.ajax({
+                            url: 'departments',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (depts) {
+                                const $d = $('#swal-dept').empty()
+                                    .append('<option value="" disabled selected>請選擇部門</option>');
+                                depts.forEach(function (d) {
+                                    $d.append('<option value="' + d.id + '">' + d.name + '</option>');
+                                });
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('載入部門失敗', status, error);
+                                Swal.fire('錯誤', '無法讀取部門列表', 'error');
+                            }
+                        });
+                        // 4) 當部門改變時，載入該部門使用者
+                        $('#swal-dept').on('change', function () {
+                            const deptId = $(this).val();
+                            const $h = $('#swal-executor')
+                                .prop('disabled', false)
+                                .empty()
+                                .append('<option value="" disabled selected>載入中...</option>');
+
+                            $.ajax({
+                                url: 'usersByDept',
+                                type: 'GET',
+                                dataType: 'json',
+                                data: { deptId: deptId },
+                                success: function (users) {
+                                    $h.empty()
+                                        .append('<option value="" disabled selected>請選擇執行人</option>');
+                                    users.forEach(function (u) {
+                                        $h.append('<option value="' + u.loginId + '">' + u.username + '</option>');
+                                    });
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('載入使用者失敗', status, error);
+                                    Swal.fire('錯誤', '無法讀取該部門使用者', 'error');
+                                }
+                            });
+                        });
+                        // 在 SweetAlert 完全打開後初始化 flatpickr
+                        flatpickr("#swal-executionDate", {
+                            dateFormat: "Y-m-d",
+                            defaultDate: [new Date()],
+                        });
+                        import('/chyunn/ckeditor5/ckeditor5.js')
+                            .then(({ ClassicEditor, Autoformat, Autosave, BlockQuote, Bold, Essentials, FontBackgroundColor, FontColor, FontFamily, FontSize, Heading, Indent, IndentBlock, Italic, Link, List, ListProperties, Paragraph, TextTransformation, TodoList, Underline }) => {
+
+                                ClassicEditor.create(document.querySelector('#swal-eventContent'), {
+                                    toolbar: [
+                                        'heading', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                                        'bold', 'italic', 'underline', '|', 'link', 'blockQuote', '|',
+                                        'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
+                                    ],
+                                    plugins: [
+                                        Autoformat, Autosave, BlockQuote, Bold, Essentials, FontBackgroundColor,
+                                        FontColor, FontFamily, FontSize, Heading, Indent, IndentBlock, Italic,
+                                        Link, List, ListProperties, Paragraph, TextTransformation, TodoList, Underline
+                                    ],
+                                    fontFamily: { supportAllValues: true },
+                                    fontSize: {
+                                        options: [10, 12, 14, 'default', 18, 20, 22],
+                                        supportAllValues: true
+                                    },
+                                    heading: {
+                                        options: [
+                                            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                                            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                                            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                                            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                                            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+                                            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+                                            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+                                        ]
+                                    },
+                                    initialData: '',
+                                    licenseKey: 'GPL',
+                                    link: {
+                                        addTargetToExternalLinks: true,
+                                        defaultProtocol: 'https://',
+                                        decorators: {
+                                            toggleDownloadable: {
+                                                mode: 'manual',
+                                                label: 'Downloadable',
+                                                attributes: { download: 'file' }
+                                            }
+                                        }
+                                    },
+                                    list: {
+                                        properties: { styles: true, startIndex: true, reversed: true }
+                                    },
+                                    placeholder: ''
+                                }).then(editor => {
+                                    window.editorInstance = editor;
+                                    console.log('✅ CKEditor 啟動成功');
+                                    editor.editing.view.change(writer => {
+                                        writer.setStyle('font-weight', 'normal', editor.editing.view.document.getRoot());
+                                    });
+
+                                }).catch(error => {
+                                    console.error('❌ CKEditor 加載失敗:', error);
+                                });
+                            });
+
+                        // 上傳附件的UI
+                        $("#swal-attachments").on("change", function (event) {
+                            let fileList = $("#fileList");
+                            fileList.empty(); // 清空列表
+                            selectedFiles = Array.from(event.target.files); // 轉成陣列
+
+                            updateFileList();
+                        });
+
+                        function updateFileList() {
+                            let fileList = $("#fileList");
+                            fileList.empty();
+
+                            $.each(selectedFiles, function (index, file) {
+                                let listItem = $("<li>")
+                                    .addClass("form-control text-dark d-flex justify-content-between")
+                                    .text(file.name);
+
+                                let deleteButton = $("<button>")
+                                    .addClass("btn btn-danger btn-sm rounded-circle d-flex justify-content-center align-items-center")
+                                    .css({ "width": "30px", "height": "30px", "font-size": "16px", "line-height": "1" })
+                                    .html("&times;")
+                                    .on("click", function () {
+                                        selectedFiles.splice(index, 1); // 移除檔案
+                                        updateFileInput();
+                                        updateFileList();
+                                    });
+
+                                listItem.append(deleteButton);
+                                fileList.append(listItem);
+                            });
+                        }
+
+                        function updateFileInput() {
+                            let dataTransfer = new DataTransfer();
+                            selectedFiles.forEach(file => dataTransfer.items.add(file));
+                            $("#swal-attachments")[0].files = dataTransfer.files;
+                        }
+
+                    },
+                    preConfirm: () => {
+                        const reporter = document.getElementById('swal-reporter').value;
+                        const progress = document.getElementById('swal-progress').value;
+                        const executionDate = document.getElementById('swal-executionDate').value;
+                        const executor = document.getElementById('swal-executor').value;
+                        // 再讀一次拿名稱
+                        const executorName = $("#swal-executor option:selected").text();
+                        const content = editorInstance.getData().trim();
+                        const incidentId = $("#incidentId").text();
+                        const reportFiles = selectedFiles;  // 選擇的檔案
+                        // 檢查是否有空欄位
+                        if (!reporter || !progress || !executionDate || !executor || !content) {
+                            Swal.showValidationMessage('請填寫所有必填欄位');
+                            return false;
+                        }
+
+                        return {
+                            incidentId,
+                            reporter,
+                            progress,
+                            executionDate,
+                            executor,
+                            content,
+                            executorName,
+                            reportFiles,
+                        };
+                    },
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // 第二個 SweetAlert 彈窗：確認內容
+                        Swal.fire({
+                            title: '確認回報內容',
+                            html: `
+                    <p style="text-align: left;"><strong>回報人：</strong> ${result.value.reporter}</p>
+                    <p style="text-align: left;"><strong>處理進度：</strong> ${result.value.progress}</p>
+                    <p style="text-align: left;"><strong>執行日期：</strong> ${result.value.executionDate}</p>
+                    <p style="text-align: left;"><strong>執行人：</strong> ${result.value.executorName}</p>
+                    <p style="text-align: left;"><strong>內容：</strong>${result.value.content.replace(/<\/?p>/g, '')}</p>
+                    <p style="text-align: left;"><strong>選擇的檔案：</strong></p>           
+                    ${result.value.reportFiles.map(file => `<p style="text-align: left;">${file.name}</p>`).join('')}
+                    `,
+                            allowOutsideClick: false, // 禁止點擊背景關閉
+                            allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                            allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                            showCancelButton: true,
+                            confirmButtonText: '確定送出',
+                            cancelButtonText: '取消',
+                            width: 600,
+                        }).then((confirmResult) => {
+                            if (confirmResult.isConfirmed) {
+                                //創一個formData裝report、附件
+                                const formData = new FormData();
+
+                                const report = {
+                                    incidentId: result.value.incidentId,
+                                    reporter: result.value.reporter,
+                                    progress: result.value.progress,
+                                    executionDate: result.value.executionDate,
+                                    executor: result.value.executor,
+                                    content: result.value.content,
+                                };
+                                formData.append("reportJson", JSON.stringify(report));
+                                let files = result.value.reportFiles;
+                                // 附件處理
+                                for (let i = 0; i < files.length; i++) {
+                                    formData.append("reportFiles", files[i]);
+                                }
+                                const token = localStorage.getItem('authToken');  // 從 localStorage 獲取 token
+
+                                $.ajax({
+                                    url: '/chyunn/incident/incident_inster_report',
+                                    type: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: (response) => {
+                                        if (response.code === 200) {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: '上傳成功！',
+                                                showCancelButton: false,
+                                            }).then((result) => {
+                                                location.reload();
+                                            })
+                                        } else {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: '回報送出失敗',
+                                                text: '發生錯誤',
+                                            });
+                                        }
+                                    },
+                                    error: function (xhr, status, error) {
+                                        let errorMessage = "發生錯誤，請稍後再試";
+                                        try {
+                                            let response = JSON.parse(xhr.responseText);
+                                            errorMessage = response.message || errorMessage;
+                                        } catch (e) {
+                                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                                errorMessage = "伺服器未回應或發生錯誤。";
+                                            } else {
+                                                errorMessage = xhr.responseText || errorMessage;
+                                            }
+                                        }
+
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: '操作失敗',
+                                            text: errorMessage,
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            $(document).ready(function () {
+                var creator = $("#creator").val();
+                var userName = $("#username-h6").text();
+                var lastReporter = $("#lastReporter").val();
+                var lastReportRow = $("#report-tbody tr").last(); // 找到最後一行
+                console.log(userName)
+                console.log(lastReporter)
+
+                var lastReportReporter = lastReportRow.find("td:nth-child(2)").text(); // 第二列是 reporter
+                console.log(lastReportReporter)
+                // 取得 userRoles 並轉成陣列
+                var rolesRaw = $("#userRoles").val(); // 例如: "[ROLE_USER, ROLE_ADMIN]"
+                var userRoles = rolesRaw.replace(/[\[\]\s]/g, "").split(",");
+                var isAdmin = userRoles.includes("ROLE_ADMIN");
+                var is_INCIDENT_Admin = userRoles.includes("ROLE_INCIDENT_ADMIN");
+                if (isAdmin || is_INCIDENT_Admin) {
+                    $(".edit-btn").show();
+                    $(".btn-edit-incident").show();
+                    $("#deleteIncident").show();
+                } else {
+                    if (!lastReporter) {
+                        if (creator === userName) {
+                            $(".btn-edit-incident").show();
+                            $("#deleteIncident").show();
+                        }
+                    } else {
+                        // $("#deleteIncident").hide();
+                        if (userName === lastReportReporter) {
+                            lastReportRow.find(".edit-btn").show();
+                        } else {
+                            $(".btn-edit-incident").hide();
+                        }
+                    }
+                }
+
+                $(document).on('click', '.select-file', function () {
+                    var incidentId = $("#incidentId").text();
+                    var reportCount = $("#reportCount").text();
+                    var existingFiles = $(this).data('reportfile') || [];//獲取檔案
+                    var currentFiles = existingFiles.filter(file => !deletedFiles.includes(file.fileName));   // 篩選掉已刪除的檔案
+                    Swal.fire({
+                        title: '檢視附件',
+                        html: `
+                    <div class="form-group mb-3">
+                    <ul id="selectfileList" class="list-group mt-2 w-100"></ul>
+                    `  ,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            // 顯示已上傳的附件
+                            updateSelectfileList(currentFiles);
+
+                            function updateSelectfileList(files) {
+                                // 清空目前的檔案列表
+                                $("#selectfileList").empty();
+
+                                files.forEach(file => {
+                                    displayFileItem(file.fileName, file.filePath, true, file);
+                                });
+                            }
+                            function displayFileItem(fileName, filePath, isExisting, fileObj) {
+                                let listItem = document.createElement("li");
+                                listItem.className = "text-dark form-control d-flex justify-content-between align-items-center";
+                                // 建立超連結
+                                let fileLink = document.createElement("a");
+                                fileLink.href = '/chyunn/uploads/incident_' + incidentId + '/report/' + reportCount + "/" + fileName;
+                                fileLink.textContent = fileName;  // 顯示的文字
+                                fileLink.target = "_blank";  // 讓連結在新視窗開啟
+                                fileLink.style.textDecoration = "none";  // 取消底線
+                                fileLink.style.color = "#007bff";  // 設定藍色文字
+                                // 將超連結和按鈕加入 listItem
+                                listItem.appendChild(fileLink);
+                                // 加入 UI
+                                document.getElementById("selectfileList").appendChild(listItem);
+                            }
+                        }
+                    })
+                })
+
+                var deletedFiles = []; // 新增一個刪除的檔案集合
+                $(document).on('click', '.update-file', function () {
+                    var reportId = $(this).data('id');  // 獲取報告的 ID
+                    var reporter = $(this).data('reporter');  // 獲取報告人
+                    var progress = $(this).data('progress');  // 獲取進度
+                    var executionDate = $(this).data('executiondate');  // 獲取執行日期
+
+                    var content = $(this).data('content');  // 獲取內容
+                    var existingFiles = $(this).data('reportfile') || [];//獲取檔案
+                    var currentFiles = existingFiles.filter(file => !deletedFiles.includes(file.fileName));   // 篩選掉已刪除的檔案
+                    var selectedFiles = []; // 用來存新上傳的檔案
+                    var incidentId = $("#incidentId").text();
+                    var reportCount = $("#reportCount").text();
+
+                    // 彈出 SweetAlert 表單並填充資料
+                    Swal.fire({
+                        title: '更新回報事件',
+                        html: `
+            <div class="form-group mb-3 row">
+            <div class="col-md-6">
+            <label for="swal-reporter" class="text-dark text-start d-block">回報人</label>
+            <input type="text" id="swal-reporter" class="form-control text-dark" value="${reporter}" readonly>
+            </div>
+            <div class="col-md-6">
+            <label for="swal-progress" class="text-dark text-start d-block">處理進度</label>
+            <select id="swal-progress" class="form-control text-dark" required>
+            <option value="">請選擇</option>
+            <option value="未開始" ${progress === "未開始" ? 'selected' : ''}>未開始</option>
+            <option value="待處理" ${progress === "待處理" ? 'selected' : ''}>待處理</option>
+            <option value="處理中" ${progress === "處理中" ? 'selected' : ''}>處理中</option>
+            <option value="已轉交他人" ${progress === "已轉交他人" ? 'selected' : ''}>已轉交他人</option>
+            <option value="延期" ${progress === "延期" ? 'selected' : ''}>延期</option>
+            <option value="待結案(待收款)" ${progress === "待結案(待收款)" ? 'selected' : ''}>待結案(待收款)</option>
+            <option value="退件" ${progress === "退件" ? 'selected' : ''}>退件</option>
+            <option value="已結案" ${progress === "已結案" ? 'selected' : ''}>已結案</option>
+            </select>
+            </div>
+            </div>
+
+           <div class="form-group mb-3 row">
+    <div class="col-md-3">
+      <label class="text-dark text-start d-block">處理部門/處理人</label>
+          <select id="swal-dept" class="form-control text-dark" required>
+            <option value="" disabled selected>請選擇部門</option>
+          </select>
+    </div>
+      <div class="col-md-3">
+          <label class="text-dark"></label>
+          <select id="swal-executor" class="form-control text-dark" required disabled>
+            <option value="" disabled selected>請先選擇部門</option>
+          </select>
+        </div>
+    <div class="col-md-6">
+        <label for="swal-executionDate" class="text-dark text-start d-block">轉交/執行日期</label>
+        <input type="date" id="swal-executionDate" class="form-control text-dark selectedDate" required value=${executionDate}/>
+    </div>
+</div>
+            <div class="form-group mb-3">
+            <label for="swal-eventContent" class="text-dark text-start d-block">內容</label>
+            <textarea id="swal-eventContent" class="form-control text-dark custom-textarea" placeholder="內容" required>${content}</textarea>
+            </div>
+            <div class="form-group mb-3">
+            <label for="" class="text-dark text-start d-block">檢視附件</label>
+            <ul id="selectfileList" class="list-group mt-2 w-100"></ul>
+            </div>
+            <div class="form-group mb-3">
+            <label for="" class="text-dark text-start d-block">上傳附件</label>
+            <small class="text-muted text-start d-block">可上傳 Microsoft Office 文件（Word, Excel, PowerPoint）、PDF、圖片（JPG/PNG）、壓縮檔（ZIP/RAR），單檔最大 10MB</small>
+            <input type="file" id="swal-attachments" class="form-control text-dark" multiple />
+            <ul id="fileList" class="list-group mt-2 w-100"></ul>  
+            </div>
+                `,
+                        allowOutsideClick: false, // 禁止點擊背景關閉
+                        allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                        allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: '更新',
+                        cancelButtonText: '取消',
+                        width: 800,
+                        didOpen: () => {
+                            var executor = $(this).data('executorid');  // 獲取執行人
+                            var executordepartment = $(this).data('executordepartmentid');  // 獲取執行人部門
+                            $.ajax({
+                                url: 'departments',
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function (depts) {
+                                    const $d = $('#swal-dept').empty()
+                                        .append('<option value="" disabled selected>請選擇部門</option>');
+                                    depts.forEach(function (d) {
+                                        $d.append('<option value="' + d.id + '">' + d.name + '</option>');
+                                    });  // 設預設，並觸發 change 去載入對應使用者
+                                    if (executordepartment) {
+                                        $d.val(executordepartment).trigger('change');
+                                    }
+                                    $d.prop('disabled', false);
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('載入部門失敗', status, error);
+                                    Swal.fire('錯誤', '無法讀取部門列表', 'error');
+                                }
+                            });
+                            // 4) 當部門改變時，載入該部門使用者
+                            $('#swal-dept').on('change', function () {
+                                const deptId = $(this).val();
+                                const $h = $('#swal-executor')
+                                    .prop('disabled', false)
+                                    .empty()
+                                    .append('<option value="" disabled selected>載入中...</option>');
+
+                                $.ajax({
+                                    url: 'usersByDept',
+                                    type: 'GET',
+                                    dataType: 'json',
+                                    data: { deptId: deptId },
+                                    success: function (users) {
+                                        $h.empty()
+                                            .append('<option value="" disabled selected>請選擇執行人</option>');
+                                        users.forEach(function (u) {
+                                            $h.append('<option value="' + u.loginId + '">' + u.username + '</option>');
+                                        });
+                                        if (executor != null && executor.trim() !== '' &&
+                                            $h.find(`option[value="${executor}"]`).length > 0) {
+                                            $h.val(executor);
+                                        } else {
+                                            // 把 select 的值設回空字串，保證它會顯示第一個 <option>
+                                            $h.val('');
+                                        }
+                                        $h.prop('disabled', false);
+                                    },
+                                    error: function (xhr, status, error) {
+                                        console.error('載入使用者失敗', status, error);
+                                        Swal.fire('錯誤', '無法讀取該部門使用者', 'error');
+                                    }
+                                });
+                            });
+
+                            // 初始化 Flatpickr
+                            flatpickr("#swal-executionDate", {
+                                dateFormat: "Y-m-d",
+                                defaultDate: [executionDate], // Make sure this is the correct date value
+                            });
+                            import('/chyunn/ckeditor5/ckeditor5.js')
+                                .then(({ ClassicEditor, Autoformat, Autosave, BlockQuote, Bold, Essentials, FontBackgroundColor, FontColor, FontFamily, FontSize, Heading, Indent, IndentBlock, Italic, Link, List, ListProperties, Paragraph, TextTransformation, TodoList, Underline }) => {
+
+                                    ClassicEditor.create(document.querySelector('#swal-eventContent'), {
+                                        toolbar: [
+                                            'heading', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+                                            'bold', 'italic', 'underline', '|', 'link', 'blockQuote', '|',
+                                            'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
+                                        ],
+                                        plugins: [
+                                            Autoformat, Autosave, BlockQuote, Bold, Essentials, FontBackgroundColor,
+                                            FontColor, FontFamily, FontSize, Heading, Indent, IndentBlock, Italic,
+                                            Link, List, ListProperties, Paragraph, TextTransformation, TodoList, Underline
+                                        ],
+                                        fontFamily: { supportAllValues: true },
+                                        fontSize: {
+                                            options: [10, 12, 14, 'default', 18, 20, 22],
+                                            supportAllValues: true
+                                        },
+                                        heading: {
+                                            options: [
+                                                { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                                                { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                                                { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                                                { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                                                { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+                                                { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+                                                { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+                                            ]
+                                        },
+                                        initialData: '',
+                                        licenseKey: 'GPL',
+                                        link: {
+                                            addTargetToExternalLinks: true,
+                                            defaultProtocol: 'https://',
+                                            decorators: {
+                                                toggleDownloadable: {
+                                                    mode: 'manual',
+                                                    label: 'Downloadable',
+                                                    attributes: { download: 'file' }
+                                                }
+                                            }
+                                        },
+                                        list: {
+                                            properties: { styles: true, startIndex: true, reversed: true }
+                                        },
+                                        placeholder: ''
+                                    }).then(editor => {
+                                        window.editorInstance = editor;
+                                        console.log('✅ CKEditor 啟動成功');
+                                        editor.editing.view.change(writer => {
+                                            writer.setStyle('font-weight', 'normal', editor.editing.view.document.getRoot());
+                                        });
+                                        // 取得 textarea 內的內容並設置到 CKEditor
+                                        let content = document.querySelector("#swal-eventContent").value || "";
+                                        editor.setData(content);
+
+                                    }).catch(error => {
+                                        console.error('❌ CKEditor 加載失敗:', error);
+                                    });
+                                });
+                            let eventContent = '';
+                            // ✅ 確保 CKEditor 初始化成功
+                            if (window.editorInstance) {
+                                eventContent = window.editorInstance.getData().trim(); // ✅ 取得 CKEditor 內的內容
+                                console.log(eventContent)
+                            } else {
+                                console.error("CKEditor 尚未初始化");
+                            }
+                            // 顯示已上傳的附件
+                            updateSelectfileList(currentFiles);
+
+                            function updateSelectfileList(files) {
+                                // 清空目前的檔案列表
+                                $("#selectfileList").empty();
+
+                                files.forEach(file => {
+                                    displayFileItem(file.fileName, file.filePath, true, file.fileId);
+                                });
+                            }
+                            //已上傳的附件  刪除UI+AJAX
+                            function displayFileItem(fileName, filePath, isExisting, fileId) {
+                                let listItem = document.createElement("li");
+                                listItem.className = "text-dark form-control d-flex justify-content-between align-items-center";
+                                // 建立超連結
+                                let fileLink = document.createElement("a");
+                                fileLink.href = '/chyunn/uploads/incident_' + incidentId + '/report/' + reportCount + "/" + fileName;
+                                fileLink.textContent = fileName;  // 顯示的文字
+                                fileLink.target = "_blank";  // 讓連結在新視窗開啟
+                                fileLink.style.textDecoration = "none";  // 取消底線
+                                fileLink.style.color = "#007bff";  // 設定藍色文字
+
+                                // 建立刪除按鈕
+                                let deleteButton = document.createElement("button");
+                                deleteButton.className = "btn btn-danger btn-sm rounded-circle d-flex justify-content-center align-items-center delete-file";
+                                deleteButton.style.width = "30px";
+                                deleteButton.style.height = "30px";
+                                deleteButton.style.fontSize = "16px";
+                                deleteButton.style.lineHeight = "1";
+                                deleteButton.innerHTML = "&times;";
+
+                                // 點擊刪除按鈕的事件
+                                deleteButton.addEventListener("click", function () {
+
+                                    Swal.fire({
+                                        title: "確定要刪除嗎？",
+                                        text: "刪除後將無法恢復此檔案！",
+                                        icon: "warning",
+                                        showCancelButton: true,
+                                        confirmButtonColor: "#d33",
+                                        cancelButtonColor: "#3085d6",
+                                        confirmButtonText: "確定刪除",
+                                        cancelButtonText: "取消"
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            // 發送 AJAX 請求刪除檔案
+                                            $.ajax({
+                                                url: "/chyunn/incident/delete_reportfile",
+                                                type: "DELETE",
+                                                data: {
+                                                    fileId: fileId
+                                                },
+
+                                                success: function (response) {
+                                                    deletedFiles.push(fileName); // 將已刪除的檔案記錄到 deletedFiles 陣列
+                                                    Swal.fire("刪除成功", "該檔案已成功刪除", "success").then(() => {
+                                                        $(document).find('.update-file[data-id="' + reportId + '"]').trigger('click');
+                                                    });
+                                                },
+                                                error: function (xhr, status, error) {
+                                                    let errorMessage = "發生錯誤，請稍後再試";
+                                                    try {
+                                                        let response = JSON.parse(xhr.responseText);
+                                                        errorMessage = response.message || errorMessage;
+                                                    } catch (e) {
+                                                        if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                                            errorMessage = "伺服器未回應或發生錯誤。";
+                                                        } else {
+                                                            errorMessage = xhr.responseText || errorMessage;
+                                                        }
+                                                    }
+
+                                                    Swal.fire({
+                                                        icon: 'error',
+                                                        title: '操作失敗',
+                                                        text: errorMessage,
+                                                    });
+                                                }
+                                            });
+                                        } else {
+                                            // 重新打開編輯視窗，恢復 SweetAlert
+                                            $(document).find('.update-file[data-id="' + reportId + '"]').trigger('click');
+                                        }
+                                    });
+                                });
+                                // 將超連結和按鈕加入 listItem
+                                listItem.appendChild(fileLink);
+                                listItem.appendChild(deleteButton);
+                                // 加入 UI
+                                document.getElementById("selectfileList").appendChild(listItem);
+                            }
+
+                            // 上傳附件的UI
+                            $("#swal-attachments").on("change", function (event) {
+                                let fileList = $("#fileList");
+                                fileList.empty(); // 清空列表
+                                selectedFiles = Array.from(event.target.files); // 轉成陣列
+
+                                updateFileList();
+                            });
+
+                            function updateFileList() {
+                                let fileList = $("#fileList");
+                                fileList.empty();
+
+                                $.each(selectedFiles, function (index, file) {
+                                    let listItem = $("<li>")
+                                        .addClass("form-control text-dark d-flex justify-content-between")
+                                        .text(file.name);
+
+                                    let deleteButton = $("<button>")
+                                        .addClass("btn btn-danger btn-sm rounded-circle d-flex justify-content-center align-items-center")
+                                        .css({ "width": "30px", "height": "30px", "font-size": "16px", "line-height": "1" })
+                                        .html("&times;")
+                                        .on("click", function () {
+                                            selectedFiles.splice(index, 1); // 移除檔案
+                                            updateFileInput();
+                                            updateFileList();
+                                        });
+
+                                    listItem.append(deleteButton);
+                                    fileList.append(listItem);
+                                });
+                            }
+
+                            function updateFileInput() {
+                                let dataTransfer = new DataTransfer();
+                                selectedFiles.forEach(file => dataTransfer.items.add(file));
+                                $("#swal-attachments")[0].files = dataTransfer.files;
+                            }
+                        },
+                        preConfirm: () => {
+                            const reporter = document.getElementById('swal-reporter').value;
+                            const progress = document.getElementById('swal-progress').value;
+                            const executionDate = document.getElementById('swal-executionDate').value;
+                            const executor = document.getElementById('swal-executor').value;
+                            // 再讀一次拿名稱
+                            const executorName = $("#swal-executor option:selected").text();
+                            const content = editorInstance.getData().trim();
+                            const incidentId = $("#incidentId").text();
+                            const reportFiles = selectedFiles;  // 選擇的檔案
+                            // 檢查是否有空欄位
+                            if (!reporter || !progress || !executionDate || !executor || !content) {
+                                Swal.showValidationMessage('請填寫所有必填欄位');
+                                return false;
+                            }
+
+                            return {
+                                incidentId,
+                                reportId,
+                                reporter,
+                                progress,
+                                executionDate,
+                                executor,
+                                content,
+                                executorName,
+                                reportFiles,
+                            };
+                        },
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+
+                            // 第二個 SweetAlert 彈窗：確認內容
+                            Swal.fire({
+                                title: '確認更新內容',
+                                html: `
+                    <p style="text-align: left;"><strong>回報人：</strong> ${result.value.reporter}</p>
+                    <p style="text-align: left;"><strong>處理進度：</strong> ${result.value.progress}</p>
+                    <p style="text-align: left;"><strong>執行日期：</strong> ${result.value.executionDate}</p>
+                    <p style="text-align: left;"><strong>執行人：</strong> ${result.value.executorName}</p>
+                    <p style="text-align: left;"><strong>內容：</strong>${result.value.content.replace(/<\/?p>/g, '')}</p>
+                    <p style="text-align: left;"><strong>選擇的檔案：</strong></p>           
+                    ${result.value.reportFiles.map(file => `<p style="text-align: left;">${file.name}</p>`).join('')}
+                    `,
+                                showCancelButton: true,
+                                confirmButtonText: '確定送出',
+                                cancelButtonText: '取消',
+                                width: 600,
+                            }).then((confirmResult) => {
+                                if (confirmResult.isConfirmed) {
+                                    //創一個formData裝report、附件
+                                    const formData = new FormData();
+
+                                    const report = {
+                                        reportId: result.value.reportId,
+                                        incidentId: result.value.incidentId,
+                                        reporter: result.value.reporter,
+                                        progress: result.value.progress,
+                                        executionDate: result.value.executionDate,
+                                        executor: result.value.executor,
+                                        content: result.value.content,
+                                    };
+                                    formData.append("reportJson", JSON.stringify(report));
+                                    let files = result.value.reportFiles;
+                                    // 附件處理
+                                    for (let i = 0; i < files.length; i++) {
+                                        formData.append("reportFiles", files[i]);
+                                    }
+
+                                    $.ajax({
+                                        url: '/chyunn/incident/incident_update_report',
+                                        type: 'PUT',
+                                        data: formData,
+                                        processData: false, //防止jquery將data變成query String(查詢字串)
+                                        contentType: false, // 不要設置內容類型，讓瀏覽器自動設置
+                                        success: function (response) {
+                                            if (response.code === 200) {
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: '更新成功！',
+                                                    showCancelButton: false,
+                                                }).then((result) => {
+                                                    location.reload();
+                                                })
+                                            } else {
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: '更新失敗',
+                                                    text: '發生錯誤',
+                                                });
+                                            }
+                                        },
+                                        error: function (xhr, status, error) {
+                                            let errorMessage = "發生錯誤，請稍後再試";
+                                            try {
+                                                let response = JSON.parse(xhr.responseText);
+                                                errorMessage = response.message || errorMessage;
+                                            } catch (e) {
+                                                if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                                    errorMessage = "伺服器未回應或發生錯誤。";
+                                                } else {
+                                                    errorMessage = xhr.responseText || errorMessage;
+                                                }
+                                            }
+
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: '操作失敗',
+                                                text: errorMessage,
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+
+                $("#deleteIncident").click(function (event) {
+                    //取消預設動作
+                    event.preventDefault();
+                    Swal.fire({
+                        title: "確定要作廢?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "作廢"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '/chyunn/incident/incident_invalid',
+                                type: 'PUT',
+                                data: {
+                                    incidentId: $("#incidentId").text()
+                                },
+                                success: function (response) {
+                                    if (response.code === 200) {
+                                        // 刪除成功後，移除對應的行
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: '作廢成功！',
+                                            showCancelButton: false,
+                                        }).then((result) => {
+                                            window.location.href = '/chyunn/incident/select_incident';
+                                        });
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    let errorMessage = "發生錯誤，請稍後再試";
+                                    try {
+                                        let response = JSON.parse(xhr.responseText);
+                                        errorMessage = response.message || errorMessage;
+                                    } catch (e) {
+                                        if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                            errorMessage = "伺服器未回應或發生錯誤。";
+                                        } else {
+                                            errorMessage = xhr.responseText || errorMessage;
+                                        }
+                                    }
+
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: '操作失敗',
+                                        text: errorMessage,
+                                    });
+                                }
+                            });
+                        }
+                    })
+                });
+
+            })
+
+        </script>
+
+</body>
+
+</html>
