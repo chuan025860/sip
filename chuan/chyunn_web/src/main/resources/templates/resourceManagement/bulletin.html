@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-公佈欄</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* 修改標題文字顏色 */
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem;
+            /* 字體縮小一點 */
+        }
+
+        /* header toolbar 排版與間距優化 */
+        .fc-header-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* 選中日期顏色 */
+        .fc-daygrid-event {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 當天日期高亮顏色 */
+        .fc-day-today {
+            background-color: #e6f7f3 !important;
+        }
+
+        /* 滿版邊框統一 */
+        .fc {
+            --fc-border-color: #d9f3ed;
+        }
+
+        /* 藍字（連結、日期）變成綠色 */
+        .fc a {
+            color: #1ab394 !important;
+            text-decoration: none;
+        }
+
+        .fc-toolbar-chunk .fc-button {
+            background-color: #666666;
+            border-color: #666666;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+        <div class="container-fluid px-6 mt-4">
+            <h4 class="mb-3 fw-bold"><i class="bi bi-megaphone"></i> 公告欄：</h4>
+
+            <div class="mb-3 row align-items-center">
+                <!-- 左側：文章數量文字 -->
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <span>全部 <strong>40</strong> 篇文章</span>
+                </div>
+
+                <!-- 右側：搜尋列 + 按鈕組 -->
+                <div class="col-md-6 d-flex justify-content-md-end flex-wrap gap-2">
+                    <!-- 搜尋 -->
+                    <div class="input-group" style="max-width: 250px;">
+                        <input type="text" class="form-control" placeholder="搜尋文章標題...">
+                        <button class="btn btn-primary">搜尋</button>
+                    </div>
+
+                    <a th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}"
+                        th:href="@{'/resource_manage/insertBulletin'}"
+                        class="btn btn-success d-flex align-items-center px-3">
+                        新增
+                    </a>
+
+                    <!-- 刪除按鈕（僅限管理員） -->
+                    <button class="btn btn-danger d-flex align-items-center px-3"
+                        th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}">
+                        刪除
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle w-100">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th style="width: 5%;">編號</th>
+                            <th style="width: 35%;">標題</th>
+                            <th style="width: 12%;">作者</th>
+                            <th style="width: 18%;">發佈時間</th>
+                            <th style="width: 20%;">所屬公告欄</th>
+                            <th style="width: 5%;" class="text-center"
+                                th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="clickable-row" th:each="post, iterStat : ${bulletinPostDtos}"
+                            th:attr="data-id=${post.id}">
+                            <td class="text-center" th:text="${iterStat.index + 1}">1</td>
+                            <td class="text-center" th:text="${post.title!= null ? post.title: ''}">標題</td>
+                            <td class="text-center" th:text="${post.creatorName != null ? post.creatorName : ''}">作者
+                            </td>
+                            <td class="text-center" th:text="${post.publishTimeStr != null ? post.publishTimeStr : ''}">
+                                發佈時間</td>
+                            <td class="text-center">所屬公告欄</td>
+
+                            <td class="text-center"
+                                th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}">
+                                <input type="checkbox" class="row-checkbox" th:attr="data-id=${post.id}">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item"><a class="page-link" href="#">«</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">»</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rows = document.querySelectorAll('.clickable-row');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            rows.forEach(row => {
+                row.addEventListener('click', function (e) {
+                    // 如果點擊的是 checkbox 或它的 label，不執行跳轉
+                    if (
+                        e.target.tagName === 'INPUT' && e.target.type === 'checkbox' ||
+                        e.target.closest('label') !== null
+                    ) {
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    // 執行跳轉
+                    const id = this.getAttribute('data-id');
+                    if (id) {
+                        console.log(id + "跳轉")
+                        window.location.href = `/chyunn/resource/bulletinDetail?id=${id}`;
+                    }
+                });
+            });
+            const selectedIds = new Set();
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    if (this.checked) {
+                        selectedIds.add(id);
+                    } else {
+                        selectedIds.delete(id);
+                    }
+                    console.log("目前勾選的 ID 列表:", Array.from(selectedIds));
+                });
+            });
+        });
+    </script>
+    <script th:if="${errorMessage}">
+        Swal.fire({
+            icon: 'error',
+            title: '發生錯誤',
+            text: '[[${ errorMessage }]]',
+            confirmButtonText: '知道了'
+        });
+    </script>
+
+</body>

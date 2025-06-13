@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>資訊財產搜尋</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+
+    <style>
+        .custom-btn {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: white;
+        }
+
+        .custom-btn:hover {
+            color: white;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            background-color: #18a383;
+            border-color: #18a383;
+        }
+
+        .readonly-field {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .data-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .data-card .field-title {
+            font-size: 58px;
+            color: #333;
+        }
+
+        .data-card .field-value {
+            font-size: 48px;
+            color: #555;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .swal2-popup {
+            font-size: 40px !important;
+        }
+
+        .swal2-styled {
+            height: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid p-2">
+        <div class="bg-white rounded shadow-sm p-2">
+            <!-- 標題列 -->
+            <form>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="m-0" style="font-size: 1.8rem;">資訊財產搜尋</h2>
+                    <a th:href="@{'/mobile/asset/invertory_Index'}" class="btn btn-secondary btn-sm">返回主頁</a>
+                </div>
+
+                <div class="input-group mb-3" style="height: 3rem;">
+                    <input type="text" id="searchInput" class="form-control" placeholder="輸入財產編號或名稱或放置處"
+                        style="font-size: 1.2rem;">
+                    <button class="btn btn-primary" id="searchBtn" type="submit" style="font-size: 1.2rem;">
+                        搜尋
+                    </button>
+                </div>
+            </form>
+            <!-- 搜尋結果 -->
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light" style="font-size:1rem;">
+                        <tr>
+                            <th class="text-nowrap" style="width:auto;">財產編號</th>
+                            <th class="text-nowrap" style="width: auto;">名稱</th>
+                            <th class="text-nowrap" style="width: auto;">放置處</th>
+                            <th class="text-nowrap" style="width: auto;">保管人</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTable" style="font-size:0.95rem;">
+                        <tr>
+                            <td colspan="4" class="text-muted">請輸入關鍵字進行搜尋</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        var storedSearchQuery = sessionStorage.getItem("searchInput_IT");
+        if (storedSearchQuery) {
+            $("#searchInput").val(storedSearchQuery);
+        }
+        if (storedSearchQuery !== null) {
+            filterByID(storedSearchQuery || '');
+            console.log("2");
+        }
+        $("#searchBtn").on("click", function (event) {
+            event.preventDefault();
+            let searchQuery = $("#searchInput").val().trim(); // 取得搜尋框的輸入內容
+            if (searchQuery.length > 0) {
+                filterByID(searchQuery); // 進行第一次搜尋並從第 1 頁開始
+            } else {
+                $("#inventoryEquipment-table").empty(); // 若輸入框為空，清空表格
+                $("#pagination").empty(); // 清空分頁控制
+            }
+        });
+
+        function filterByID(searchQuery = '') {
+            $.ajax({
+                type: "POST",
+                url: "/chyunn/asset/search",
+                data: {
+                    final_property_id: searchQuery,
+                },
+                success: function (response) {
+                    if (response.code === 200) {
+                        let assets = response.data;
+                        // 清空表格
+                        $("#resultTable").empty();
+
+                        if (assets.length > 0) {
+                            let tableBody = $("#resultTable");
+
+                            assets.forEach(function (asset) {
+                                var newRow = $("<tr>");
+                                newRow.append("<td class='text-dark final_property_id-column'>" +
+                                    "<a href='/chyunn/mobile/asset/select_IT_detail?final_property_id=" + asset.final_property_id + "' class='property-id'>" +
+                                    asset.final_property_id +
+                                    "</a></td>");
+                                newRow.append("<td class='text-dark name-column'>" + asset.name + "</td>");
+                                newRow.append("<td class='text-dark location-column'>" + asset.location + "</td>");
+                                newRow.append("<td class='text-dark custodian-column'>" + asset.custodian + "</td>");
+                                tableBody.append(newRow);
+                            });
+                        }
+                        sessionStorage.setItem("searchInput_IT", searchQuery);
+
+                    } else {
+                        console.error("查詢失敗:", response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    let errorMessage = "發生錯誤，請稍後再試";
+                    try {
+                        let response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || errorMessage;
+                    } catch (e) {
+                        if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                            errorMessage = "伺服器未回應或發生錯誤。";
+                        } else {
+                            errorMessage = xhr.responseText || errorMessage;
+                        }
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: '操作失敗',
+                        text: errorMessage,
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

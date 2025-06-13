@@ -1,0 +1,654 @@
+﻿CREATE DATABASE chyunnweb4;
+USE chyunnweb4;
+
+CREATE TABLE incident(
+    incidentId INT NOT NULL AUTO_INCREMENT PRIMARY KEY, -- 事件編號，主鍵，自動遞增
+    belongingType VARCHAR(20)NOT  NULL,                	-- 歸屬類型
+    customer VARCHAR(20),                             	 -- 事件相關客戶，字串
+    car VARCHAR(20) ,                                 	-- 事件相關車輛，字串
+    reporter VARCHAR(20) NOT NULL,                     -- 反應人，字串
+    task VARCHAR(30) NOT NULL,                         -- 工作事項，字串
+    eventPurpose TEXT NOT NULL,	 		       -- 事件主旨	
+    eventContent TEXT NOT NULL,                        -- 事件內容，長文字
+    reportCount INT NOT NULL,                          -- 回報數，整數
+    importance VARCHAR(20) NOT NULL,                   -- 重要性
+    department VARCHAR(20) NOT NULL,                   -- 處理部門，字串
+    handler VARCHAR(20) NOT NULL,                      -- 處理人，字串
+    status VARCHAR(20) NOT NULL,                       -- 處理狀態
+    lastReportTime DATETIME NOT NULL,                  -- 最後回報時間
+    reportDate DATE  NOT NULL,                         -- 反應日期
+    invalid BOOLEAN DEFAULT FALSE,                      -- 作廢
+    creator VARCHAR(20) NOT NULL                        -- 製表人，字串
+);
+
+CREATE TABLE report(
+    reportId INT NOT NULL AUTO_INCREMENT PRIMARY KEY, -- 回報編號，主鍵，自動遞增	
+    incidentId INT NOT NULL,                          -- 外鍵，關聯到 incident 表
+    reportTime DATETIME NOT NULL,                     -- 回報時間
+    reporter VARCHAR(100) NOT NULL,                   -- 回報人
+    progress VARCHAR(50) NOT NULL,                    -- 處理進度
+    executionDate DATE,                               -- 執行日期
+    executor VARCHAR(100) ,                           -- 執行人
+    content TEXT ,                                    -- 內容
+    CONSTRAINT fk_incident FOREIGN KEY (incidentId)   -- 設置外鍵約束
+        REFERENCES incident(incidentId)               -- 關聯到 incident 表的 incidentId 欄位
+        ON DELETE CASCADE                             -- 當 incident 被刪除時，自動刪除相關的報告
+        ON UPDATE CASCADE                             -- 當 incidentId 更新時，自動更新報告
+);
+
+CREATE TABLE incident_files (
+    fileId   INT NOT NULL AUTO_INCREMENT PRIMARY KEY,    -- 圖片ID
+    fileName VARCHAR(50) NOT NULL ,              -- 檔案名稱
+    incidentId INT NOT NULL,                    -- 關聯的事件ID
+    filePath VARCHAR(255) NOT NULL,              -- 檔案儲存路徑
+    FOREIGN KEY (incidentId) REFERENCES incident(incidentId)  -- 外鍵關聯incident表
+);
+
+CREATE TABLE report_files (
+    fileId   INT NOT NULL AUTO_INCREMENT PRIMARY KEY,    -- 圖片ID
+    fileName VARCHAR(50) NOT NULL ,              -- 檔案名稱
+    reportId INT NOT NULL,                     -- 關聯的回報 ID
+    filePath VARCHAR(255) NOT NULL,            -- 檔案儲存路徑
+    FOREIGN KEY (reportId) REFERENCES report(reportId)  -- 外鍵關聯 report 表
+);
+CREATE TABLE inventory_equipment (
+    final_property_id VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    property_id  VARCHAR(20),                  -- 財產編號 
+    management_id  VARCHAR(20),               -- 列管編號
+    category VARCHAR(20), -- 類別
+    name VARCHAR(255), -- 名稱
+    remarks VARCHAR(255), -- 備註	
+    size_serial VARCHAR(50), -- 尺寸_序號
+    quantity_unit VARCHAR(10), -- 數量_單位
+    purchase_date VARCHAR(20), -- 購買日期
+    supplier VARCHAR(50), -- 購入廠商
+    purchase_amount VARCHAR(10) , -- 購買金額
+    tax VARCHAR(255) , -- 稅金
+    location VARCHAR(20), -- 放置處
+    custodian VARCHAR(10), -- 保管人
+    contact_window VARCHAR(20), -- 聯繫窗口
+    change_record  TEXT,  -- 異動記錄
+    inventory_date VARCHAR(20),   -- 盤點日期
+    state BOOLEAN DEFAULT FALSE, -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE   -- 表示是否在進行盤點中，預設為 FALSE
+);
+
+--     隨機清單IT
+CREATE TABLE randomsampling_it (
+    final_property_id   VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    state BOOLEAN DEFAULT FALSE,     -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE   -- 表示是否在進行盤點中，預設為 FALSE
+);
+ 
+--      隨機清單總表
+CREATE TABLE randomsampling_all	(
+    asset_id VARCHAR(20) PRIMARY KEY,  -- 最終財產編號
+    state BOOLEAN DEFAULT FALSE,     -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE   -- 表示是否在進行盤點中，預設為 FALSE
+);
+
+CREATE TABLE general_catalog(
+    asset_id VARCHAR(50) PRIMARY KEY,        -- 財產編號
+    category VARCHAR(100),                   -- 類別
+    name VARCHAR(100),                       -- 名稱
+    model VARCHAR(100),                      -- 型號
+    serial_or_size VARCHAR(100),             -- 尺寸/序號
+    quantity_or_unit VARCHAR(100),           -- 數量/單位
+    purchase_date VARCHAR(20),                      -- 購買日期
+    supplier VARCHAR(100),                   -- 購入廠商
+    purchase_price VARCHAR(10),           -- 購買金額
+    tax VARCHAR(20),                      -- 稅金
+    storage_location VARCHAR(100),           -- 放置處
+    custodian VARCHAR(100),                  -- 保管人
+    contact VARCHAR(100),                    -- 聯繫窗口
+    change_log TEXT ,                         -- 異動記錄
+    inventory_date VARCHAR(20),   -- 盤點日期
+    state BOOLEAN DEFAULT FALSE,       -- 盤點狀態，預設為 FALSE
+    inventory_in_progress  BOOLEAN DEFAULT FALSE     --  檢查是否有更新過
+);
+
+
+
+CREATE TABLE inventory_equipment_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 圖片ID，使用時間戳 + 隨機數（唯一）
+    final_property_id VARCHAR(20) NOT NULL,                    -- 關聯的事件ID
+    fileName  VARCHAR(255) NOT NULL,              -- 檔案儲存路徑
+    FOREIGN KEY (final_property_id) REFERENCES inventory_equipment(final_property_id)  -- 外鍵關聯incident表
+);
+
+CREATE TABLE general_catalog_files (
+    fileId VARCHAR(50) NOT NULL PRIMARY KEY,  -- 文件 ID（時間戳 + 隨機數，唯一）
+    asset_id VARCHAR(50) NOT NULL,                     -- 關聯的回報 ID
+    fileName  VARCHAR(255) NOT NULL,            -- 檔案儲存路徑
+    FOREIGN KEY (asset_id) REFERENCES general_catalog(asset_id)  -- 外鍵關聯 report 表
+);
+
+-- 財產放置處
+CREATE TABLE location (                     
+     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- id 欄位設定為自動遞增並且是主鍵
+    	name VARCHAR(255) NOT NULL                  -- name 欄位必須有值
+);
+-- 財產更新歷史
+CREATE TABLE asset_history (
+    id INT  AUTO_INCREMENT PRIMARY KEY,             -- 每條歷史紀錄的唯一ID
+    date VARCHAR(255) NOT NULL,                     -- 日期
+    custodian VARCHAR(255) NOT NULL,                -- 保管人
+    location VARCHAR(255) NOT NULL,                 -- 放置處
+    change_record TEXT NOT NULL,                    -- 異動記錄
+    inventory_equipment_final_property_id VARCHAR(255) , -- 外鍵，與 `inventory_equipment` 關聯
+    FOREIGN KEY (inventory_equipment_final_property_id) REFERENCES inventory_equipment(final_property_id)
+        ON DELETE CASCADE  -- 若 `inventory_equipment` 刪除，相關的 `AssetHistory` 也會刪除
+);
+
+-- 總表財產更新歷史
+CREATE TABLE asset_history_All (
+    id INT AUTO_INCREMENT PRIMARY KEY,                 -- 每條歷史紀錄的唯一ID
+    date VARCHAR(255) NOT NULL,                        -- 日期
+    custodian VARCHAR(255) NOT NULL,                   -- 保管人
+    location VARCHAR(255) NOT NULL,                    -- 放置處
+    change_record TEXT NOT NULL,                       -- 異動記錄
+    asset_id VARCHAR(50),                              -- 外鍵，對應 general_catalog 的 asset_id
+    FOREIGN KEY (asset_id) REFERENCES general_catalog(asset_id)
+        ON DELETE CASCADE                              -- 若財產刪除，歷史紀錄也會刪除
+);
+
+
+
+INSERT INTO location (name) VALUES
+('204資訊'), ('217資訊機房'), ('102茶水室'), ('103會議室'), 
+('104控制室'), ('105洽談室'), ('106營業'), ('108茶水室'), 
+('110儲藏室'), ('114人事總務'), ('115總經理'), ('116會議室'), 
+('117財會'), ('118檔案室'), ('201'), ('202洽談室'), ('203運動室'), 
+('206哺乳室'), ('207茶水室'), ('208文書室'), ('209共享'), 
+('213董事長'), ('216稽核'), ('218會議室'), ('安明-A棟1樓'), 
+('安明-A棟2樓'), ('安明-B棟1樓'), ('安明-B棟2樓'), ('安明-土資廠'), 
+('安明-1F機房'), ('安明-司機休息室'), ('安明-守衛室'), ('安明-會議室'), 
+('安明-停車場'), ('安明-中庭'), ('安明-外勞宿舍'), ('安明-保修廠'), 
+('安明-倉庫'), ('高雄_辦公室1樓'), ('高雄_辦公室2樓'), ('顯宮段');
+
+
+
+
+ -- 部門
+CREATE TABLE department (
+  id   INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- 小課／室（可以只有部門沒有子單位，就不塞資料）
+CREATE TABLE sub_unit (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  department_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  UNIQUE(department_id, name),
+  FOREIGN KEY (department_id) REFERENCES department(id)
+);
+
+CREATE TABLE sub_sub_unit (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  sub_unit_id   INT NOT NULL,
+  name          VARCHAR(100) NOT NULL,
+  UNIQUE KEY uk_ssu_subunit_name (sub_unit_id, name),
+  FOREIGN KEY (sub_unit_id) REFERENCES sub_unit(id)
+);
+
+-- 職位
+CREATE TABLE position (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  department_id INT NOT NULL,
+  sub_unit_id   INT NULL,
+  sub_sub_unit_id INT NULL,
+  name VARCHAR(100) NOT NULL,
+  UNIQUE(department_id, sub_unit_id,sub_sub_unit_id, name),
+  FOREIGN KEY (department_id) REFERENCES department(id),
+  FOREIGN KEY (sub_unit_id)   REFERENCES sub_unit(id),
+  FOREIGN KEY (sub_sub_unit_id) REFERENCES sub_sub_unit(id)
+);
+
+-- 會議室主檔
+CREATE TABLE meeting_room (
+  id       INT AUTO_INCREMENT PRIMARY KEY,
+  name     VARCHAR(100) NOT NULL UNIQUE,   -- 會議室名稱
+  location VARCHAR(255)                     -- 位置描述
+);
+
+-- 車輛主檔
+CREATE TABLE vehicle (
+  id    INT AUTO_INCREMENT PRIMARY KEY,
+  name  VARCHAR(100) NOT NULL UNIQUE,      -- 車輛識別
+  plate VARCHAR(20)                        -- 車牌號碼
+);
+
+CREATE TABLE user (
+  id INT  AUTO_INCREMENT PRIMARY KEY,
+  loginId          VARCHAR(100)  UNIQUE  NOT NULL,
+  userId           VARCHAR(50),
+  username          VARCHAR(255)    NOT NULL,
+  password          VARCHAR(255)    NOT NULL,
+  employee_no VARCHAR(50) NOT NULL   ,
+  email             VARCHAR(255),
+  department_id     INT,
+  sub_unit_id       INT,
+  sub_sub_unit_id   INT,
+  position_id       INT,
+  enabled           BOOLEAN DEFAULT TRUE,
+CONSTRAINT fk_user_dept
+    FOREIGN KEY (department_id)
+    REFERENCES department (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_subunit
+    FOREIGN KEY (sub_unit_id)
+    REFERENCES sub_unit (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_subsub
+    FOREIGN KEY (sub_sub_unit_id)
+    REFERENCES sub_sub_unit (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_user_position
+    FOREIGN KEY (position_id)
+    REFERENCES position (id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+);   
+      
+CREATE TABLE user_roles (
+  id INT NOT NULL,
+  role     VARCHAR(50)  NOT NULL,
+  PRIMARY KEY(id, role),
+  FOREIGN KEY(id) REFERENCES `user` (id) ON DELETE CASCADE
+); 
+
+-- 資源借用請求
+CREATE TABLE resource_borrow_request (
+  id INT AUTO_INCREMENT PRIMARY KEY,              -- 資源借用主鍵
+  content VARCHAR(255) NOT NULL,                 -- 內容（必填）
+  start_time DATETIME NOT NULL,                  -- 開始時間（必填）
+  end_time DATETIME NOT NULL,                    -- 結束時間（必填）
+  category ENUM('ROOM','VEHICLE','OTHER') NOT NULL,      -- 類別 (ROOM 或 VEHICLE或OTHER)
+  meeting_room_id INT NULL,                      -- 對應的會議室 ID（如果 category='ROOM'）
+  vehicle_id INT NULL,                           -- 對應的車輛 ID（如果 category='VEHICLE'）
+  location VARCHAR(255),                         -- 位置
+  note TEXT,                                     -- 備註
+  creator VARCHAR(100) NOT NULL,                 -- 建立者（關聯 user.loginId）
+  participants TEXT,                             -- 參與人員
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- 建立時間
+  all_day BOOLEAN DEFAULT FALSE,                 -- 全天標記
+
+  -- 外鍵約束
+  FOREIGN KEY (creator)        REFERENCES user(loginId)          ON DELETE CASCADE,
+  FOREIGN KEY (meeting_room_id) REFERENCES meeting_room(id)     ON DELETE SET NULL,
+  FOREIGN KEY (vehicle_id)      REFERENCES vehicle(id)          ON DELETE SET NULL
+);
+
+
+-- 1. 新增部門
+INSERT INTO department (name) VALUES 
+  ('總經理室'),
+  ('行政部'),
+  ('資訊室'),
+  ('同翔創能'),
+  ('營業部'),
+  ('稽核室'),
+  ('企劃室'),
+  ('高雄分公司');
+  
+-- 2. 部門子單位
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '財務課'  FROM department WHERE name='行政部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '人事總務' FROM department WHERE name='行政部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '電池事業部'  FROM department WHERE NAME='同翔創能';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '行政'     FROM department WHERE name='電磁事業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '清運組' FROM department WHERE name='營業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '土資課'  FROM department WHERE name='營業部';
+INSERT INTO sub_unit (department_id, name)
+SELECT id, '嘉義辦公室' FROM department WHERE name='營業部';
+
+-- 2-2. 部門子子單位
+INSERT INTO sub_sub_unit (sub_unit_id, name)
+SELECT id, '行政'
+  FROM sub_unit
+ WHERE name = '電池事業部';
+
+  
+-- 3. 新增「總經理室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '董事長'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '執行長'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '總經理'       FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'         FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '特別助理'     FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'     FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'         FROM department WHERE name='總經理室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'         FROM department WHERE name='總經理室';
+
+-- 4. 新增「行政部」下不屬任何子單位的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '職安'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '協理'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '經理'         FROM department WHERE name='行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'         FROM department WHERE name='行政部';
+
+-- 5. 新增「行政部 → 財務課」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '組長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '職員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '財務課'
+ WHERE d.name = '行政部';
+
+-- 6. 新增「行政部 → 人事總務」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '人事'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '人事總務'
+ WHERE d.name = '行政部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '職員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '人事總務'
+ WHERE d.name = '行政部';
+ 
+ 
+ 
+ 
+-- 7. 新增「資訊室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資訊長'       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資安長 '       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'       FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資安專員'         FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '開發工程師'     FROM department WHERE name='資訊室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '資訊助理'     FROM department WHERE name='資訊室';
+
+-- 8. 新增「同翔創能」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '特助'       FROM department WHERE name='同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '採購 '       FROM department WHERE name='同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '稽核'       FROM department WHERE name='同翔創能';
+
+-- 9. 新增「同翔創能 → 電池事業部」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '客服'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+ 
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '研發'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '倉儲'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '業務'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '電池事業部'
+ WHERE d.name = '同翔創能';
+
+-- 9-1. 新增「同翔創能 → 電池事業部→行政」下的職位
+INSERT INTO position (department_id, sub_unit_id, sub_sub_unit_id, name)
+SELECT d.id,
+       su.id,
+       ssu.id,
+       '課長'
+  FROM department d
+  JOIN sub_unit su
+    ON su.department_id = d.id
+   AND su.name = '電池事業部'
+  JOIN sub_sub_unit ssu
+    ON ssu.sub_unit_id = su.id
+   AND ssu.name = '行政'
+ WHERE d.name = '同翔創能';
+
+-- 10. 新增「營業部」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '經理'       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理 '       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '課長'       FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '組長'         FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'     FROM department WHERE name='營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '客服助理'     FROM department WHERE name='營業部';
+
+-- 10. 新增「營業部 → 清運組 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '司機'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '隨車助手'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '組長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '清運組'
+ WHERE d.name = '營業部';
+ 
+ 
+ -- 11. 新增「營業部 → 土資課 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '課長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '班長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '專員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '助理'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '土資課'
+ WHERE d.name = '營業部';
+
+-- 12. 新增「營業部 → 嘉義辦公室 」下的職位
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '所長'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '專員'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT d.id, su.id, '行政助理'
+  FROM department d
+  JOIN sub_unit su ON su.department_id = d.id AND su.name = '嘉義辦公室'
+ WHERE d.name = '營業部';
+
+
+-- 13. 新增「稽核室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='稽核室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'       FROM department WHERE name='稽核室';
+
+
+-- 14. 新增「企劃室」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專案經理'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '課長'       FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'         FROM department WHERE name='企劃室';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'     FROM department WHERE name='企劃室';
+
+
+-- 15. 新增「高雄分公司」下的職位（不屬於任何子單位）
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副理'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '副課長'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '專員'       FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '工讀生'         FROM department WHERE name='高雄分公司';
+INSERT INTO position (department_id, sub_unit_id, name)
+SELECT id, NULL, '助理'     FROM department WHERE name='高雄分公司';
+
+INSERT INTO `user` (`id`, `loginId`, `userId`, `username`, `password`, `employee_no`, `email`, `department_id`, `sub_unit_id`, `sub_sub_unit_id`, `position_id`, `enabled`) VALUES (1, 'administrator', 'administrator', '管理員', '$2a$10$bzuhSIr1rkzoFP2wj0nKu.r3KLUkhbvlr3ItxKINPLSHRUsF7tlm2', 'administrator', '', NULL, NULL, NULL, NULL, 1);
+
+INSERT INTO `user_roles` (`id`, `role`) VALUES (1, 'ROLE_ADMIN');
+
+INSERT INTO `incident` (`incidentId`, `belongingType`, `customer`, `car`, `reporter`, `task`, `eventPurpose`, `eventContent`, `reportCount`, `importance`, `department`, `handler`, `status`, `lastReportTime`, `reportDate`, `invalid`, `creator`) VALUES (NULL, '外部', '高雄市廢棄物調度中心', '', '施佳琪', '需要資訊部處理', '高雄市廢棄物調度中心無法寄達公司mail信箱', '<p style=\"margin-left:0px;\">振興發科技(高雄市廢棄物調度中心)，最近在傳送mail至公司，遭到阻擋，</p><p style=\"margin-left:0px;\">已處理完畢, 處置流程如下:</p><p style=\"margin-left:0px;\">&nbsp;</p><ol style=\"list-style-type:decimal;\"><li><p style=\"margin-left:0px;\">把 60.248.165.85(<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\">mail.pstcom.com.tw</a>)&nbsp;IP，開通在白名單內.</p></li><li><p style=\"margin-left:0px;\">即時監看公司 mailserver 收發 log , 均沒發現調度中心的郵件有送抵mailserver痕跡.</p></li><li><p style=\"margin-left:0px;\">有請調度中心發送測試郵件到 gmail , 卻被 gmail 歸類為 垃圾郵件</p></li></ol><p style=\"margin-left:0px;\">綜上處置判斷, <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\">mail.pstcom.com.tw</a>&nbsp;或 60.248.165.85 也許被反垃圾郵件組織(Spamhaus)列入</p><p style=\"margin-left:0px;\">垃圾郵件黑名單, 可參考&nbsp; <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/\">https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/</a></p><p style=\"margin-left:0px;\">向該組織申訴撤銷.</p><p style=\"margin-left:0px;\">&nbsp;</p><p style=\"margin-left:0px;\">隔天振興發科技(高雄市廢棄物調度中心)回覆經函 &nbsp;反垃圾郵件組織(Spamhaus) 申訴撤銷後,</p><p style=\"margin-left:0px;\">公司已可收到由振興發科技(高雄市廢棄物調度中心)寄出的郵件</p>', '1', '普通', '3', 'BA213', '已結案', '2025-03-24 15:30:56', '2025-03-19', '0', '陳瑤林'), (NULL, '外部', '高雄市廢棄物調度中心', '', ' 施佳琪', '需要資訊部處理', '高雄市廢棄物調度中心無法寄達公司mail信箱', '<p style=\"margin-left:0px;\"><br><strong>振興發科技(高雄市廢棄物調度中心)，最近在傳送mail至公司，遭到阻擋，</strong></p><p style=\"margin-left:0px;\"><strong>已處理完畢, 處置流程如下:</strong></p><p style=\"margin-left:0px;\">&nbsp;</p><ol style=\"list-style-type:decimal;\"><li><p style=\"margin-left:0px;\"><strong>把 60.248.165.85(</strong><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\"><strong>mail.pstcom.com.tw</strong></a><strong>)&nbsp;IP，開通在白名單內.</strong></p></li><li><p style=\"margin-left:0px;\"><strong>即時監看公司 mailserver 收發 log , 均沒發現調度中心的郵件有送抵mailserver痕跡.</strong></p></li><li><p style=\"margin-left:0px;\"><strong>有請調度中心發送測試郵件到 gmail , 卻被 gmail 歸類為 垃圾郵件</strong></p></li></ol><p style=\"margin-left:0px;\"><strong>綜上處置判斷, </strong><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"http://mail.pstcom.com.tw/\"><strong>mail.pstcom.com.tw</strong></a><strong>&nbsp;或 60.248.165.85 也許被反垃圾郵件組織(Spamhaus)列入</strong></p><p style=\"margin-left:0px;\"><strong>垃圾郵件黑名單, 可參考&nbsp; </strong><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/\"><strong>https://www.benchmarkemail.com/tw/blog/%E4%BD%95%E8%AC%82%E5%8F%8D%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E7%B5%84%E7%B9%94spamhaus%E8%88%87%E5%9E%83%E5%9C%BE%E9%83%B5%E4%BB%B6%E5%9B%9E%E5%A0%B1%E6%9C%8D%E5%8B%99spamcop%EF%BC%9F/</strong></a></p><p style=\"margin-left:0px;\"><strong>向該組織申訴撤銷.</strong></p><p style=\"margin-left:0px;\">&nbsp;</p><p style=\"margin-left:0px;\"><strong>隔天振興發科技(高雄市廢棄物調度中心)回覆經函 &nbsp;反垃圾郵件組織(Spamhaus) 申訴撤銷後,</strong></p><p style=\"margin-left:0px;\"><strong>公司已可收到由振興發科技(高雄市廢棄物調度中心)寄出的郵件</strong></p>', '0', '普通', '3', 'BA213', '已結案', '2025-05-28 11:28:46', '2025-05-28', '0', '陳瑤林');
+
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (1, '群運營運中心一樓大會議室(103)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (2, '群運營運中心一樓小會議室(116)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (3, '群運營運中心二樓洽談室(202)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (4, '群運營運中心二樓中會議室(218)', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (5, '群運安明一樓會議室', NULL);
+INSERT INTO `meeting_room` (`id`, `name`, `location`) VALUES (6, '群運營運中心二樓交誼廳', NULL);
+INSERT INTO `vehicle` (`id`, `name`, `plate`) VALUES (1, '營業部公務車', NULL);
+INSERT INTO `vehicle` (`id`, `name`, `plate`) VALUES (2, '行政部公務車', NULL);
+
+
+
+--   2025/06/03更新
+ALTER TABLE incident
+ADD visibility BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'true 表示公開，false 表示不公開';
+ALTER TABLE resource_borrow_request
+ADD COLUMN item_other VARCHAR(255) NULL COMMENT '自訂項目（限 category=OTHER 使用)';
+
+--   2025/06/06更新
+
+REPLACE INTO `user` (`id`, `loginId`, `userId`, `username`, `password`, `employee_no`, `email`, `department_id`, `sub_unit_id`, `sub_sub_unit_id`, `position_id`, `enabled`) VALUES
+	(2, 'BA213', 'MEM00871690786497004', '陳瑤林', '$2a$10$qqbElkDuN3GDWQ3YIvhUcO09Yk9NvKeIgYEAGyADCauM/mMAGIKO6', 'BA213', 'tnsypos@chyunn.com.tw', 3, NULL, NULL, 18, 1),
+	(3, 'BA488', 'MEM70021731921729734', '沈世泉', '$2a$10$gjlF/LPR4iwf69zJ9O8oZuH4BG4btq4GynNQKkMRlX.yRaeHWJHn2', 'BA488', 'it@chyunn.com.tw', 3, NULL, NULL, 23, 1),
+	(4, 'BA417', 'MEM00981690786497072', '羅伊倫', '$2a$10$vww85KdWJD5jt7Hl5f3u4uCKZoKBclClJOg8kpSxrK7YlCNnaansK', 'BA417', 'lun@chyunn.com.tw', 1, NULL, NULL, 7, 1),
+	(5, 'BA380', 'MEM00721690786496909', '許安婷', '$2a$10$Q12H8gav3uKlD0EZvSx7TeKd1NiQ/C0YcQRCbzmdelIS2PGS5xEKi', 'BA380', 'ann0922@chyunn.com.tw', 7, NULL, NULL, 54, 1),
+	(6, 'BA252', 'MEM00971690786497066', '潘嶧葑', '$2a$10$snvmtyrxz0Ap4kg0HgMvoex02w/00hVvk2XNkDfzALTPekDGuSq/.', 'BA252', 'fdm951@chyunn.com.tw', 5, NULL, NULL, 35, 1),
+	(7, 'BA147', 'MEM01041690786497110', '洪翰琳', '$2a$10$GfqV6tPP7NRiQZ88wyW/JOggw7l4wj9Oi.aAtLA8LTBRC/qrfMYYG', 'BA147', 'winnie@chyunn.com.tw', 5, NULL, NULL, 35, 1),
+	(8, 'BA467', 'MEM60041729214512462', '洪永霖', '$2a$10$MVoQwe2NKQ1TAL3mF/9Ch.a1AWYt6BF/sXPfc7xotUgAu6PIg0jVi', 'BA467', '', 2, NULL, NULL, 9, 1),
+	(9, 'BA340', 'MEM01091690786497139', '魏勇盛', '$2a$10$FRR2P7N.k/VY2nM4oZs/K.2c9t/cyBdN.nMoVpyKF3AYYDkHyE29O', 'BA340', 'zxc6663@chyunn.com.tw', 5, NULL, NULL, 37, 1),
+	(10, 'BA126', 'MEM00881690786497010', '徐德興', '$2a$10$0m3/yTRsfxHJbDI7itkvueLopDYUR4j8GuyhIR2REQl8KlpSwfVUC', 'BA126', 'conan@chyunn.com.tw', 3, NULL, NULL, 20, 1),
+	(11, 'BA0471', 'MEM60051729471441116', '楊長權', '$2a$10$2Bk.yp4Cs42DveSayJm.SubWAY5rJqIGtiDTKHGvayx3g85NBQR0y', 'BA0471', 'quanpie2000@chyunn.com.tw', 3, NULL, NULL, 21, 1),
+	(12, 'BA183', 'MEM00801690786496961', '陳愷徽', '$2a$10$WUCNj5cd.uRwouGShEhFl.82Cv7wEacRrYvrUCyMZyhLL8DEfvwcW', 'BA183', 'chenann@chyunn.com.tw', 2, NULL, NULL, 12, 1),
+	(13, 'BA000 ', NULL, '李天佑', '$2a$10$JXViQyV1hpGXHhF.jfgJ.OU6nxxhMVfcoPQjpX7QTWO.ejYd9.YLS', 'BA000 ', 'tienyu@chyunn.com.tw', 1, NULL, NULL, 1, 1),
+	(14, 'BA382', NULL, '蔡文鐽', '$2a$10$wyOCC77zouTF6Qi6qH5Am.NGMfNb9cUY4YfmnO/5FEvT54jEpkgLC', 'BA382', 'wenta.tsai@chyunn.com.tw', 1, NULL, NULL, 3, 1),
+	(15, 'BA178 ', NULL, '劉素晴', '$2a$10$rGJSuY7h6lZXkeSn8yFZWOXlCuF8C1OoCrjKxdzT0V2NZBiQ7jnmG', 'BA178 ', 'shana@chyunn.com.tw', 1, NULL, NULL, 4, 1),
+	(16, 'BA491', NULL, '張翔麟', '$2a$10$J/Ohi.S8WIAhd71net.4OuRTib53yiBiAH42NndZ3Den3tsRtFEEO', 'BA491', 'ray0729@chyunn.com.tw', 1, NULL, NULL, 6, 1),
+	(17, 'BA0503', NULL, '施伯昂', '$2a$10$jEpd9eYmuZPKuUVWvfTso.VJ3KRrM/HMuwz/YeeponQQna4KiuMo.', 'BA0503', 'jshih@chyunn.com.tw', 1, NULL, NULL, 6, 1),
+	(18, 'BA0519', NULL, '陳雅玲', '$2a$10$BYy00IZlbMyFCuddH739iukGhUm..UGLJZHqpY3fkGPrUHGuAY5Pq', 'BA0519', '', 1, NULL, NULL, 6, 1),
+	(19, 'BA135', NULL, '陳堯山', '$2a$10$jvZ7qur4smg/qTikHMdf1.nO5dhnWPqqt.F5lmv4s.4hX6Y7br.Lu', 'BA135', 'yao_shan@chyunn.com.tw', 1, NULL, NULL, 6, 1),
+	(20, 'BA294', NULL, '吳宜臻', '$2a$10$66dpT1MeOcskJh1QJprOv.C0.p50MlthQ8cJU7pD8EX8OVWLlgNBu', 'BA294', 'ivan@chyunn.com.tw', 1, NULL, NULL, 6, 1),
+	(21, 'BA318', NULL, '喬士華', '$2a$10$LIsXq0jD7O237Zx3MPPe.OsBteZA8iX6AgdLkbs3FiYanhsyC3r1G', 'BA318', 'mark.chiao@chyunn.com.tw', 1, NULL, NULL, 5, 1),
+	(22, 'BA410', NULL, '陳俊燁', '$2a$10$MuadOw2udh5DmgDtwuwH0eBI1fYT71ZoY8vH4wa4650oSZPT41fo.', 'BA410', 'chris@chyunn.com.tw', 1, NULL, NULL, 5, 1),
+	(23, 'BA229', NULL, '黃峻德', '$2a$10$GUoY9Almmddg/KOO.siK5uzVT9qjDMGAObtBMQqR.A11zo5PVf60i', 'BA229', 'carl@chyunn.com.tw', 2, NULL, NULL, 10, 1),
+	(24, 'BA088', NULL, '黃婉婷', '$2a$10$rxWacgLzVOLD7EB/2Y.PVe3z5wUUMSoTCx.mlQdaRM6xrFknDvTAC', 'BA088', 'ting0731@chyunn.com.tw', 2, 1, NULL, 13, 1),
+	(25, 'BA031', NULL, '林雅玲', '$2a$10$YdZBQEX9fdAO9r4oOyBbfOQrXltJOE.3VNL.Z8aMCpEetODx3Zhda', 'BA031', 'jessica@chyunn.com.tw', 2, 1, NULL, 14, 1),
+	(26, 'BA490', NULL, '陳怡靜', '$2a$10$WK.2fE88foGPYh5Cl74D5e8TJcE/WlVw/anhZFaDKHFAGI9fi1Lii', 'BA490', 'account3@chyunn.com.tw', 2, 1, NULL, 15, 1),
+	(27, 'BA122', NULL, '陳佩靖', '$2a$10$vgpLRTJZDr4TUHT0K.qxD.dtaJEh4quPXpVCXU.3cpkJeGeWVA4E6', 'BA122', 'pejin@chyunn.com.tw', 2, 1, NULL, 15, 1),
+	(28, 'BA314', NULL, '吳宣儀', '$2a$10$MFu6xIpaX0mnSpQ1VaUEf..K.sCI96d2MXXv40MlBA4FfUiqcT0Ge', 'BA314', 'account2@chyunn.com.tw', 2, 1, NULL, 15, 1),
+	(29, 'BA331', NULL, '楊忠政', '$2a$10$v4.cqPrN0WYEBlVuSoXSZOFqCTQiNyLXuiizYOR3l9xMRovS3PFxq', 'BA331', 'fredyang@chyunn.com.tw', 2, 1, NULL, 15, 1),
+	(30, 'BA508', NULL, '柯欣儀', '$2a$10$EA1dR6lEsE2XvpbvBTplH.eIOpf48k3DjIICOBiL/N7YSlCgvCSbO', 'BA508', 'hr@chyunn.com.tw', 2, 2, NULL, 16, 1),
+	(31, 'BA449', NULL, '丁薇菱', '$2a$10$oxg7JzsYNlm4pyll.i6ONuo3GfH2iL3mu6UzvRBf4PT1UrG47d80G', 'BA449', '', 2, 2, NULL, 17, 1),
+	(32, 'BA345', NULL, '藍毓頻', '$2a$10$m36O2S3tfHVLjc0o5MG8GeXEKFjGO0SoTD3sadp5H4B/y0LmQqFkq', 'BA345', 'yup0507@chyunn.com.tw', 2, 2, NULL, 17, 1),
+	(33, 'BA367', NULL, '王宥心', '$2a$10$ZXQpoZxZ20ibIk9M4cJqw.oIa.UCZOjDRd33NiQhnRaDiI2rwEPoC', 'BA367', 'jenny@chyunn.com.tw', 2, 2, NULL, 17, 1),
+	(34, 'BA399', NULL, '吳懿靜', '$2a$10$P8H5lGDByStazA33D2j3..GDBacujSgzdPtrXCGjvnsrcdZQsedMS', 'BA399', 'jing@chyunn.com.tw', 2, 2, NULL, 17, 1),
+	(35, 'BA454', NULL, '李旻翰', '$2a$10$FCt.etTjI4EpxIHld21vYOIkSJPfdUfDLCyhqc1SI5kGNugU49Trq', 'BA454', 'hanlee1114@chyunn.com.tw', 3, NULL, NULL, 22, 1),
+	(36, 'TSCH1', NULL, '吳宜臻', '$2a$10$O8PMAj9Oi1hzRVwEy88kKeEHXTqCrcGE6YwSIgaQM3vGbuHMNEKCO', 'TSCH1', 'TSCH1@tongshine.tw', 4, NULL, NULL, 24, 1),
+	(37, 'TSPC1', NULL, '張雅茵', '$2a$10$HNikTI5er3xWZkTYBr2KueH752cEqHatnhc2/dCxOLE35EyjHtWnq', 'TSPC1', 'TSPC1@tongshine.tw', 4, NULL, NULL, 25, 1),
+	(38, 'TSAD1', NULL, '吳宜霖', '$2a$10$Sf8OBX/0yIuJrNplFMMkbenWTYUFprff/j/MpmjnZB3C/qSWdqFqu', 'TSAD1', 'TSAD1@tongshine.tw', 4, NULL, NULL, 26, 1),
+	(39, 'ECWH1', NULL, '黃允欽', '$2a$10$qAKEuznF/s4UKH9DsVEmpO0W4yHOs6QkpG5kMnRXaEaQyFVDaICfy', 'ECWH1', 'ECWH1@tongshine.tw', 4, 3, NULL, 29, 1),
+	(40, 'ECRD1', NULL, '陳俊奇', '$2a$10$W08fg9KUNTsoltxsa05eb.VB.i2VnneeD9YiAAphXOcvG05A6aTd6', 'ECRD1', 'ECRD1@tongshine.tw', 4, 3, NULL, 31, 1),
+	(41, 'ECRD2', NULL, '郭俊吟', '$2a$10$qs7q8Sv7LLMyBUvogEJM4Ow2/7ASLnWV21F1N9rfDfegNSeDZg1UO', 'ECRD2', 'ECRD2@tongshine.tw', 4, 3, NULL, 28, 1),
+	(42, 'JA0018', NULL, '郭議隆', '$2a$10$jDlPucqg6866ss/TNBF2FudAt8KC57lrYOw2Zm/K2tlm1JLqS6PwW', 'JA0018', 'vincent@chyunn.com.tw', 4, 3, 1, 32, 1),
+	(43, 'JA0019', NULL, '吳嘉育', '$2a$10$VH9hxG/h.uw4YDRX3xQuZepTBIGWCacP3w0KNaPdL/xX2z4xrgS9e', 'JA0019', 'ecwh2@tongshin.tw', 4, 3, NULL, 29, 1),
+	(44, 'BA069', NULL, '袁雯君', '$2a$10$dUeR12LnVd542GME9DicfuKs3Q7xyQh1jMBAdzs.0FutzbPm9MPSi', 'BA069', 'lending52752@chyunn.com.tw', 5, NULL, NULL, 33, 1),
+	(45, 'BA027', NULL, '陳國豊', '$2a$10$S7j3cyfM9vEMplTu4.e1UembdDSQDX7wDfbyPIFK0cz4w0wr3Hyyi', 'BA027', '0907@chyunn.com.tw', 5, NULL, NULL, 34, 1),
+	(46, 'BA099', NULL, '溫心玫', '$2a$10$tBvi6BhwiAJJOZmE9qCFoObW4f8UZV8nhjI.IzQJsX8ooRdH714J2', 'BA099', 'xinmet@chyunn.com.tw', 5, NULL, NULL, 37, 1),
+	(47, 'BA104', NULL, '游蕙如', '$2a$10$K0BEudHDiwANpaFGft26uu/sDoMjdFuYBfFLUBqF.w3vwfUS55WpS', 'BA104', 'melaruby@chyunn.com.tw', 5, NULL, NULL, 37, 1),
+	(48, 'BA373', NULL, '尹立凱', '$2a$10$6SYKF9qwi1S6QTGV1aYzl.7nZufOz37cfqPoUFkzvAKvdFeg/hHbm', 'BA373', 'kevin@chyunn.com.tw', 5, NULL, NULL, 37, 1),
+	(49, 'BC0019', NULL, '李蕙嘉', '$2a$10$95tz5XekKUkdn1R2rAk/UuVLdvgqDI9ifG47/eeerjUi3FAGXSdWa', 'BC0019', '', 5, NULL, NULL, 37, 1),
+	(50, 'BA0432', NULL, '林翊婷', '$2a$10$sKS/IXtHlnHvyDRK0nnoMuLbz45Alo1OK6zAnbnXOKx1U409gGjVS', 'BA0432', 'yiting@chyunn.com.tw', 5, NULL, NULL, 38, 1),
+	(51, 'BA455', NULL, '陳禹寧', '$2a$10$NefzssgfoHvSrfSzkQrCrOpqMV1yCVf3nBRoUVOFWfqJ/PdeF6tIK', 'BA455', '', 5, NULL, NULL, 38, 1),
+	(52, 'BA485', NULL, '林子琪', '$2a$10$mWwFfDd4W2O9ND60Yzr4weM6V5YvZDFY/gF41/z1QKoeTBfi90LFS', 'BA485', 'chservicer2@chyunn.com.tw', 5, NULL, NULL, 38, 1),
+	(53, 'BA0506', NULL, '陳品妤', '$2a$10$OHpihhx8y32.2/9jHfPC1.kG8DLIv99xvlm2tZbfAbj6TbRZciO1C', 'BA0506', 'chenpinyu@chyunn.com.tw', 5, NULL, NULL, 38, 1),
+	(54, 'BA074', NULL, '黃意雯', '$2a$10$xqeZlmuZa35U5/9nGC/MPOqAQtAW7qcuv.miBnhSTuHzqXlNHurlS', 'BA074', 'ukst1113@chyunn.com.tw', 5, NULL, NULL, 38, 1),
+	(55, 'BA419', NULL, '劉子綺', '$2a$10$8ConXfBT/CU7CgfoSaSbh.N1hMJ7A0f2WBk3WKUBrCN1giNsAzxa6', 'BA419', 'yoyo@chyunn.com.tw', 5, NULL, NULL, 38, 1),
+	(56, 'BA482', NULL, '呂詩涵', '$2a$10$oCBsYYVxXVHlTttiFJWtqeSMvqEcg3KhMzLRwtuMkDb8VXDPFuUsu', 'BA482', 'chServicer1@chyunn.com.tw', 5, NULL, NULL, 38, 1),
+	(57, 'BA456', NULL, '汪旭明', '$2a$10$FLwoSWKdAn/MLhebz9Ett.QR6uFD2DjDOPVq5acGypePavzmZWrPG', 'BA456', '', 5, 4, NULL, 40, 1),
+	(58, 'BA458', NULL, '張守億', '$2a$10$VLAAX8D7IWBDxR/4mp1WG.X83sKR409wtAkc2hC0xgdkKV1Nz97a2', 'BA458', '', 5, 4, NULL, 40, 1),
+	(59, 'BA029', NULL, '唐國霖', '$2a$10$2zapkDLQjk/GBQlQhtQZT.Cilv/Q3AcDDIJ8QpvRdQw2W9e0Ku6Hq', 'BA029', 'addicate@chyunn.com.tw', 5, 5, NULL, 44, 1),
+	(60, 'BA063 ', NULL, '謝蒼嶺', '$2a$10$Ccku1SqsMvirXctpvY/qTegVpN5ZI1gc.MunYr6xwLA.N53k3dNRK', 'BA063 ', 'fup0922@chyunn.com.tw', 5, 5, NULL, 44, 1),
+	(61, 'BA307', NULL, '徐孟頻', '$2a$10$FIUzBqQKKL2fLMigM.WDFu6rxk9Ml1t5hLsb1oCBVS0RnfPYLuQzK', 'BA307', 'cindy_147123@chyunn.com.tw', 5, 5, NULL, 45, 1),
+	(62, 'BA312', NULL, '盧翰陞', '$2a$10$YNOs8dxHumroewZmXMfA2eb6t.SgOtZxok8AX5BRfcmUPdYNQ31nm', 'BA312', 'dmike0725@chyunn.com.tw', 5, 5, NULL, 45, 1),
+	(63, 'CA017', NULL, '李浤淯', '$2a$10$NppX1Zyk28zKm0htMTyVzu1MVhe7tHJBN23kHk1C92d0rGORcnUuO', 'CA017', 'Jackyfly@chyunn.com.tw', 5, 5, NULL, 42, 1),
+	(64, 'BA011', NULL, '林信誠', '$2a$10$4WcEsnKm.S1lvTSPLYAns.Nko5QzP3SFfGUObCO8Ds6bLo6pxlhdu', 'BA011', 'linsun@chyunn.com.tw', 5, 6, NULL, 46, 1),
+	(65, 'BA236', NULL, '李經綸', '$2a$10$RUhL/bm78cmOawJSlHWCHO5gB97bza/jXarWI1mfTFtyFsSoF1TT.', 'BA236', 'wudy@chyunn.com.tw', 5, 6, NULL, 47, 1),
+	(66, 'BA415', NULL, '李香穎', '$2a$10$bSpPhVaGcfk9SfYA2Fg.8utAJ6mz.yER3ODBjGioro0MxAoczrt.W', 'BA415', 'ba0415@chyunn.com.tw', 5, 6, NULL, 48, 1),
+	(67, 'BA310', NULL, '李銘華', '$2a$10$hh.TkbT1osgrKNQKs6NHC.4F4gPtIqY/WCWvo40fpEObhj.9VgwOC', 'BA310', 'sandylee@chyunn.com.tw', 6, NULL, NULL, 49, 1),
+	(68, 'BA0472', NULL, '黃薇蒨', '$2a$10$5LVh0nueP7Np2ibekXJ8Meu0pf.FMSYG8XXQMLLyuARNcBOyxxHZW', 'BA0472', 'orange_huang@chyunn.com.tw', 7, NULL, NULL, 54, 1),
+	(69, 'BA120', NULL, '沈伯錚', '$2a$10$cxt51SzdT8S6EIichlIX.eD5bMCjBZd3rIic.xglZAwEfisTeckPm', 'BA120', 'planner@chyunn.com.tw', 7, NULL, NULL, 51, 1),
+	(70, 'BA273', NULL, '李易承', '$2a$10$H1RCIho2mGb71Q1fQC3L6.fy18pVjQiScNiL8THiJ9deoFKDpgVem', 'BA273', '', 7, NULL, NULL, 52, 1),
+	(71, 'BB033', NULL, '吳怡君', '$2a$10$IEFPusMOegdmYJExThlyK.CYSxIGkoeNQYZYQPBF97y3j1j9X4nfC', 'BB033', 'jojong@chyunn.com.tw', 7, NULL, NULL, 54, 1),
+	(72, 'BA020', NULL, '王顯榮', '$2a$10$cj7/nDFTLIW.DtKUzxoueeGoeCQrZZ/CygmEb1tbDG2iqTqjKFVna', 'BA020', 'sanlongwang@chyunn.com.tw', 8, NULL, NULL, 56, 1),
+	(73, 'BA0504', NULL, '林詩旻', '$2a$10$2ZJf/VRPgVNQjAz31c8DE.wRuqd50dkVRdgxOE1ywoqfQ3Uq0oUvO', 'BA0504', 'elaine@chyunn.com.tw', 8, NULL, NULL, 60, 1),
+	(74, 'BA298', NULL, '溫書緯', '$2a$10$QYClStTB8xuS/.gBGuG3euEAJFBgPbEuj/Y.UPEczhBCKYfilzIhW', 'BA298', 'shiang@chyunn.com.tw', 8, NULL, NULL, 58, 1),
+	(75, 'BA400', NULL, '林汶曄', '$2a$10$aEwpt/jz6tPQai5qdrciIOE6fhpnUtqsVZEr4blNTm3Ld7JIX1dHG', 'BA400', '', 8, NULL, NULL, 59, 1),
+	(76, 'FA001', NULL, '施佳琳', '$2a$10$9nNUxOEUk2LjjZ8ctcuYWOnorKef997Vo1LY6jF6rkq.KKACPcD8u', 'FA001', 'chialin54282@chyunn.com.tw', 8, NULL, NULL, 58, 1),
+	(77, 'FA006', NULL, '施佳琪', '$2a$10$s94Cl5R4zuNP1bos0ocnNeNygG6EGzAu.PkGZiwbB2YTlnQU9GmKa', 'FA006', 'chiachi@chyunn.com.tw', 8, NULL, NULL, 57, 1);
