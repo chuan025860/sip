@@ -1,0 +1,231 @@
+/*custom font*/
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
+
+/*basic reset*/
+* {
+    margin: 0;
+    padding: 0;
+}
+
+
+html {
+    height: 100%;
+    /*Image only BG fallback*/
+    /*background = gradient + image pattern combo*/
+    background-image: url(../img/IMG_9852.jpg);
+    background-size: cover;
+    /* 填滿整個背景 */
+    background-repeat: no-repeat;
+    /* 不重複顯示背景圖片 */
+    /* background-attachment: fixed; */
+    /* 固定背景圖片，以防止捲動 */
+}
+
+body {
+    font-family: montserrat, arial, verdana;
+}
+
+/*form styles*/
+#msform {
+    width: 800px;
+    margin: 50px auto;
+    text-align: center;
+    position: relative;
+}
+
+#msform fieldset {
+    background-color: rgba(255, 255, 255, 0.5);
+    /* 白色背景，alpha值為0.5，表示半透明 */
+    /* 其他樣式屬性 */
+    border: 0 none;
+    border-radius: 3px;
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
+    padding: 20px 30px;
+    box-sizing: border-box;
+    width: 80%;
+    margin: 0 10%;
+
+    /*stacking fieldsets above each other*/
+    position: relative;
+}
+
+
+/*Hide all except first fieldset*/
+#msform fieldset:not(:first-of-type) {
+    display: none;
+}
+
+/*inputs*/
+#msform input {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-top: 10px;
+    width: 50%;
+    box-sizing: border-box;
+    font-family: montserrat;
+    color: #2C3E50;
+    font-size: 13px;
+
+}
+
+#msform fieldset label {
+    display: inline-block;
+    width: 150px;
+    /* 设置标签的宽度 */
+    text-align: center;
+    /* 文本左对齐 */
+    padding-right: 10px;
+    /* 可选的右边距，增加标签和输入框之间的间距 */
+}
+
+/*buttons*/
+#msform .action-button {
+    width: 100px;
+    background: #546868;
+    font-weight: bold;
+    color: white;
+    border: 0 none;
+    border-radius: 1px;
+    cursor: pointer;
+    padding: 10px;
+    margin: 10px 5px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+#msform .action-button:hover,
+#msform .action-button:focus {
+    box-shadow: 0 0 0 2px white, 0 0 0 3px #546868;
+    /* box-shadow: 0 0 0 2px white, 0 0 0 3px #27AE60; */
+}
+
+/*headings*/
+.fs-title {
+    font-size: 15px;
+    text-transform: uppercase;
+    color: #2C3E50;
+    margin-bottom: 10px;
+}
+
+.fs-subtitle {
+    font-weight: normal;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/*progressbar*/
+#progressbar {
+    width: 700px;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 30px;
+    /* overflow: hidden; */
+    /*CSS counters to number the steps*/
+    counter-reset: step;
+    display: flex;
+
+}
+
+
+#progressbar li {
+    list-style-type: none;
+    color: white;
+    text-transform: uppercase;
+    font-size: 9px;
+    flex: 1;
+    /* 均分父容器的宽度 */
+    text-align: center;
+    /* 文字居中 */
+    position: relative;
+
+}
+
+#progressbar li:before {
+    content: counter(step);
+    counter-increment: step;
+    width: 20px;
+    line-height: 20px;
+    display: block;
+    font-size: 10px;
+    color: #333;
+    background: white;
+    border-radius: 3px;
+    margin: 0 auto 5px auto;
+}
+
+/*progressbar connectors*/
+#progressbar li:after {
+    content: '';
+    width: 100%;
+    height: 2px;
+    background: white;
+    position: absolute;
+    left: -50%;
+    top: 9px;
+    z-index: -1;
+    /*put it behind the numbers*/
+}
+
+#progressbar li:first-child:after {
+    /*connector not needed before the first step*/
+    content: none;
+}
+
+/*marking active/completed steps green*/
+/*The number of the step and the connector before it = green*/
+#progressbar li.active:before,
+#progressbar li.active:after {
+    /* background: #27AE60; */
+    background: #546868;
+    color: white;
+}
+
+p {
+    font-size: 5px;
+    /* 设置字体大小 */
+    color: gray;
+    /* 设置文本颜色 */
+    margin: top 0px;
+    margin-left: 160px;
+    /* 设置顶部外边距，以控制注释与输入框之间的垂直间距 */
+}
+
+span {
+    display: none;
+    /* 初始隐藏 */
+    font-size: 5px;
+    /* 设置字体大小 */
+    font-weight: bold;
+    /* 设置字体加粗 */
+    color: rgb(249, 117, 117);
+    /* 设置文本颜色 */
+    margin: top 0px;
+    margin-left: 160px;
+    /* 设置顶部外边距，以控制注释与输入框之间的垂直间距 */
+}
+
+#msform select {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-top: 10px;
+    width: 50%;
+    box-sizing: border-box;
+    font-family: montserrat;
+    color: #2C3E50;
+    font-size: 13px;
+}
+
+#showErro {
+    color: rgb(249, 117, 117);
+}
+
+#showErroEmail {
+    color: rgb(249, 117, 117);
+}
+
+#passwordMatchError {
+    color: rgb(249, 117, 117);
+}

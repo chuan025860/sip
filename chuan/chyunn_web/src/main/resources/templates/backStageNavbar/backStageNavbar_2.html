@@ -1,0 +1,150 @@
+<style>
+    .submenu-item {
+        padding-left: 32px !important;
+        /* 往左縮排 */
+        font-size: 0.95rem;
+    }
+</style>
+<!-- Sidebar Start -->
+<div class="sidebar bg-light d-flex flex-column position-fixed vh-100"
+    style="margin-top: 100px; width: 220px; padding: 15px;">
+    <nav class="navbar navbar-light flex-column align-items-start">
+        <!-- 用戶資訊 -->
+        <div class="d-flex align-items-center w-100 mb-3 ps-2">
+            <div class="position-relative">
+                <img id="userImage" class="rounded-circle border" src="../img/logo.ico" alt="User Image"
+                    style="width: 50px; height: 50px;">
+                <div class="bg-success rounded-circle border border-white position-absolute end-0 bottom-0 p-1"></div>
+            </div>
+            <div class="ms-3">
+                <h6 class="mb-0 text-dark" id="username-h6" th:text="${userName}">
+                    使用者</h6>
+                <input type="hidden" id="loginId" th:value="${loginId}" />
+                <!-- 顯示角色（只有 ROLE_ADMIN 才會顯示） -->
+                <small class="text-muted"
+                    th:if="${userRoles != null and #lists.contains(userRoles, 'ROLE_ADMIN')}">系統管理員</small>
+            </div>
+        </div>
+        <!-- 選單項目 -->
+        <div class="navbar-nav w-100" th:with="uri=${uri}">
+            <!-- <div th:text="${uri.startsWith('/chyunn/resource')}"></div> -->
+            <a th:href="@{'/index/index'}" th:classappend="${uri == '/chyunn/index/index'} ? ' active' : ''"
+                class="nav-link text-dark fw-semibold px-1 py-1">
+                <i class="fa-solid fa-house me-2"></i>首頁
+            </a>
+            <div class="nav-item dropdown">
+                <a th:href="@{'/index/accountSettings'}" class="nav-link text-dark  fw-semibold px-1 py-1"
+                    th:classappend="${uri == '/chyunn/index/accountSettings'} ? ' active' : ''">
+                    <i class="fa-solid fa-user-gear me-2"></i>個人管理
+                </a>
+            </div>
+            <div class="nav-item dropdown">
+                <a href="http://192.168.3.22/tiptop_go.html" target="_blank"
+                    class="nav-link text-dark fw-semibold px-1 py-1">
+                    <i class="fa-solid fa-link me-2"></i>鼎新Tiptop ERP
+                </a>
+            </div>
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link text-dark dropdown-toggle fw-semibold px-1 py-1 "
+                    th:classappend="${uri.startsWith('/chyunn/resource')} ? ' active' : ''" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-layer-group me-2"></i>資源管理
+                </a>
+                <div class="dropdown-menu bg-transparent border-0 py-1 " id="resourceDropdownMenu">
+                    <a th:href="@{'/resource/calendar'}" class="nav-item nav-link px-1 py-1 submenu-item "
+                        th:classappend="${uri == '/chyunn/resource/calendar'} ? ' active' : ''">
+                        <i class="fa-solid fa-calendar-days me-2"></i>行事曆
+                    </a>
+                    <a th:href="@{'/resource/bulletin'}" class="nav-item nav-link px-1 py-1 submenu-item ]"
+                        th:classappend="${uri == '/chyunn/resource/bulletin'} ? ' active' : ''">
+                        <i class="fa-solid fa-bullhorn me-2"></i>公佈欄
+                    </a>
+                    <a th:href="@{'/resource/resources'}" class="nav-item nav-link px-1 py-1 submenu-item ]"
+                        th:classappend="${uri == '/chyunn/resource/resources'} ? ' active' : ''">
+                        <i class="fa-solid fa-boxes-stacked me-2"></i>資源管理
+                    </a>
+                    <a th:if="${userRoles != null and (#lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_USER_ADMIN'))}"
+                        th:href="@{'/resource/resourceMaintenance'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/resource/resourceMaintenance'} ? ' active' : ''">
+                        <i class="fa-solid fa-screwdriver-wrench me-2"></i>維護
+                    </a>
+                </div>
+            </div>
+            <div class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle text-dark fw-semibold px-1 py-1" data-bs-toggle="dropdown"
+                    th:classappend="${uri.startsWith('/chyunn/incident')} ? ' active' : ''">
+                    <i class="fa-solid fa-comment-dots me-2"></i>事件反應&申訴專區
+                </a>
+                <div class="dropdown-menu bg-transparent border-0 py-1" id="incidentDropdownMenu">
+                    <a th:href="@{'/incident/select_incident'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/incident/select_incident'} ? ' active' : ''"><i
+                            class="fa-solid fa-location-arrow me-2"></i>追蹤</a>
+                    <a th:href="@{'/incident/inster_incident'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/incident/inster_incident'} ? ' active' : ''"><i
+                            class="fa-solid fa-circle-plus me-2"></i>新增事件</a>
+                    <a th:href="@{'/incident/complaint_Channel'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/incident/complaint_Channel'} ? ' active' : ''"><i
+                            class="fa-solid fa-envelope-open me-2"></i>申訴管道</a>
+                </div>
+            </div>
+            <div class="nav-item dropdown"
+                th:if="${userRoles != null and (#lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_ASSET_MANAGE')  or #lists.contains(userRoles, 'ROLE_ASSET_VIEW'))}">
+                <a href="#" class="nav-link dropdown-toggle text-dark fw-semibold px-1 py-1" data-bs-toggle="dropdown"
+                    th:classappend="${uri.startsWith('/chyunn/asset')} ? ' active' : ''">
+                    <i class="fa-solid fa-vault me-2"></i>財產管理
+                </a>
+                <div class="dropdown-menu bg-transparent border-0 py-1" id="assetDropdownMenu">
+                    <a th:href="@{'/asset/select_All_Asset'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/asset/select_All_Asset'} ? ' active' : ''"><i
+                            class="fa-solid fa-list me-2"></i>總明細</a>
+                    <a th:href="@{'/asset/select_ITAsset'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/asset/select_ITAsset'} ? ' active' : ''"><i
+                            class="fa-solid fa-computer me-2"></i>資訊設備總表</a>
+                    <a th:href="@{'/asset/select_FixedAsset'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/asset/select_FixedAsset'} ? ' active' : ''"><i
+                            class="fa-solid fa-file-invoice me-2"></i>財務-固定資產</a>
+                    <a th:if="${userRoles != null and (#lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_ASSET_ADMIN'))}"
+                        th:href="@{'/asset/assetMaintenance'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/asset/assetMaintenance'} ? ' active' : ''">
+                        <i class="fa-solid fa-screwdriver-wrench me-2"></i>維護
+                    </a>
+                </div>
+            </div>
+            <div class="nav-item dropdown"
+                th:if="${userRoles != null and (#lists.contains(userRoles, 'ROLE_ADMIN') or #lists.contains(userRoles, 'ROLE_USER_ADMIN'))}">
+                <a href="#" class="nav-link dropdown-toggle text-dark fw-semibold px-1 py-1" data-bs-toggle="dropdown"
+                    th:classappend="${uri.startsWith('/chyunn/permission')} ? ' active' : ''">
+                    <i class="fa-solid fa-user-shield me-2 py-1"></i>權限管理
+                </a>
+                <div class="dropdown-menu bg-transparent border-0 py-1" id="permissionDropdownMenu">
+                    <a th:href="@{'/permission/create_user'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/permission/create_user'} ? ' active' : ''"><i
+                            class="fa-solid fa-user-plus me-2"></i>新增使用者</a>
+                    <a th:href="@{'/permission/manage_user'}" class="nav-item nav-link px-1 py-1 submenu-item"
+                        th:classappend="${uri == '/chyunn/permission/manage_user'} ? ' active' : ''"><i
+                            class="fa-solid fa-users-gear me-2"></i>管理使用者</a>
+                </div>
+
+            </div>
+
+        </div>
+    </nav>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 封裝共用函式：根據路徑開啟對應的 dropdown
+        function expandDropdownIfMatch(pathPrefix, dropdownId) {
+            if (window.location.pathname.startsWith(pathPrefix)) {
+                const dropdown = document.getElementById(dropdownId);
+                const toggleLink = dropdown?.previousElementSibling;
+                dropdown?.classList.add('show');
+                toggleLink?.classList.add('show');
+                toggleLink?.setAttribute('aria-expanded', 'true');
+            }
+        }
+        // 多組呼叫
+        expandDropdownIfMatch('/chyunn/resource', 'resourceDropdownMenu');
+        expandDropdownIfMatch('/chyunn/incident', 'incidentDropdownMenu');
+        expandDropdownIfMatch('/chyunn/asset', 'assetDropdownMenu');
+        expandDropdownIfMatch('/chyunn/permission', 'permissionDropdownMenu');
+    });
+</script>

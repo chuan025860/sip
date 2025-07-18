@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-首頁</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        .news-box {
+            height: 240px;
+            /* 顯示一則訊息 */
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #ddd;
+        }
+
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .news-item {
+            text-align: left;
+            display: flex;
+            align-items: center;
+            padding-left: 16px;
+            height: 80px;
+            padding: 10px 12px;
+            background: #1ab394;
+            color: white;
+            border-bottom: 1px solid #ddd;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-color: rgba(0, 0, 0, 0.4);
+            background-blend-mode: overlay;
+            color: white;
+        }
+
+        .control-btns {
+            margin-top: 10px;
+        }
+
+
+        /* 修改標題文字顏色 */
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem;
+            /* 字體縮小一點 */
+        }
+
+        /* header toolbar 排版與間距優化 */
+        .fc-header-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* 選中日期顏色 */
+        .fc-daygrid-event {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 當天日期高亮顏色 */
+        .fc-day-today {
+            background-color: #e6f7f3 !important;
+        }
+
+        /* 滿版邊框統一 */
+        .fc {
+            --fc-border-color: #d9f3ed;
+        }
+
+        /* 藍字（連結、日期）變成綠色 */
+        .fc a {
+            color: #1ab394 !important;
+            text-decoration: none;
+        }
+
+        .fc-toolbar-chunk .fc-button {
+            background-color: #666666;
+            border-color: #666666;
+            color: white;
+        }
+
+        .swal2-popup img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .text-orange {
+            color: orange;
+        }
+
+        .text-purple {
+            color: purple;
+        }
+
+        .btn-outline-custom-green {
+            color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        .btn-outline-custom-green:hover {
+            background-color: #1ab394;
+            color: white;
+            border-color: #1ab394;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+        <div class="container-fluid pt-4 px-4">
+
+            <div class="bg-light text-center rounded p-4">
+                <div class="row">
+                    <!-- 左側：行事曆 & 搜尋 -->
+                    <div class="col-md-4 text-start">
+                        <!-- 行事曆（FullCalendar） -->
+                        <div class="mb-4 border rounded p-3 bg-white text-center">
+                            <div id="calendar"></div>
+                            <div class="mt-3 position-relative">
+                                <h6 class="text-success text-center mb-0">即將來臨</h6>
+                                <button id="calendar-settings-btn"
+                                    class="btn btn-sm btn-outline-secondary position-absolute"
+                                    style="top: 0; right: 0; font-size: 0.7rem; padding: 2px 6px; line-height: 1; border-radius: 0;">
+                                    設定
+                                </button>
+
+                                <ul id="upcoming-events" class="list-unstyled mb-0 mt-2">
+                                    <!-- 自動填入最近三筆 -->
+                                </ul>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- 右側：最新消息輪播 -->
+                    <div class="col-md-8">
+                        <div class="border rounded p-3 bg-white" style="height: auto;">
+                            <h5 class="mb-3">多公告欄</h5>
+                            <div id="newsList" class="d-flex flex-column gap-3">
+                                <!-- JS 會動態插入公告項目 -->
+                            </div>
+                        </div>
+                        <!-- 官網嵌入 -->
+                        <div class="border rounded p-3 bg-white mt-4">
+                            <h5 class="mb-3">事件反應</h5>
+                            <div class="ratio ratio-16x9">
+                                <table class="table table-bordered align-middle text-center" id="eventTable">
+                                    <thead class="table-light">
+                                        <tr class="text-dark">
+                                            <th>反應人</th>
+                                            <th>處理狀態</th>
+                                            <th>反應日期</th>
+                                            <th>事件主旨</th>
+                                            <th>重要性</th>
+                                            <th>回報數</th>
+                                            <th>最後回報時間</th>
+                                            <th>當前處理人</th>
+                                            <th>檢視</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="incident : ${incidents}">
+                                            <td th:text="${incident.reporter}"></td>
+                                            <td>
+                                                <span class="badge status-badge" th:text="${incident.status}"
+                                                    th:attr="data-status=${incident.status}"></span>
+                                            </td>
+                                            <td th:text="${incident.reportDate}">
+                                            </td>
+                                            <td th:text="${incident.eventPurpose}"></td>
+                                            <td>
+                                                <span th:classappend="${incident.importance} == '高' ? ' text-danger' :
+                                  (incident.importance == '中' ? ' text-warning' : ' text-muted')"
+                                                    th:text="${incident.importance}"></span>
+                                            </td>
+                                            <td th:text="${incident.reportCount}"></td>
+                                            <td th:text="${incident.lastReportTime}">
+                                            </td>
+                                            <td th:text="${incident.handler}">
+                                            </td>
+                                            <td>
+                                                <a th:href="@{/incident/incident_Detail(incidentId=${incident.incidentId})}"
+                                                    class="btn btn-sm btn-outline-custom-green">查看</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        let originalEvents = [];    // 存放從後端抓回來的完整事件清單
+        let calendar;               // FullCalendar 實例
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadEventsFromServer();
+            document.getElementById('calendar-settings-btn').addEventListener('click', openDisplaySettings);
+            document.querySelectorAll(".status-badge").forEach(function (el) {
+                const status = el.getAttribute("data-status");
+                let statusClass = "";
+
+                switch (status) {
+                    case '未開始': statusClass = 'status-unstarted'; break;
+                    case '待處理': statusClass = 'status-pending'; break;
+                    case '處理中': statusClass = 'status-in-progress'; break;
+                    case '已轉交他人': statusClass = 'status-transferred'; break;
+                    case '延期': statusClass = 'status-delayed'; break;
+                    case '待結案(待收款)': statusClass = 'status-awaiting-settlement'; break;
+                    case '退件': statusClass = 'status-returned'; break;
+                    case '已結案': statusClass = 'status-closed'; break;
+                    case '已作廢': statusClass = 'status-cancelled'; break;
+                    default: statusClass = 'status-default'; break;
+                }
+
+                el.classList.add(statusClass);
+            });
+            function openDisplaySettings() {
+                Swal.fire({
+                    title: '行事曆顯示設定',
+                    html: `
+            <div id="cal-tree" class="px-0 text-start">
+              <!-- 我的行事曆 群組 -->
+              <div class="mb-4">
+                <div class="form-check d-flex align-items-center mb-2">
+                  <input class="form-check-input" type="checkbox" id="chk-myroot">
+                  <label class="form-check-label fw-bold ms-2" for="chk-myroot">行事曆</label>
+                </div>
+                <div class="ps-4">
+                  <div class="form-check d-flex align-items-center mb-2">
+                     <input
+          class="form-check-input chk-my"
+          type="checkbox"
+          value="PRIVATE_EVENT"
+          id="chk-sq"
+        />
+        <label class="form-check-label ms-2" for="chk-sq">個人行事曆</label>
+      </div>
+      <div class="form-check d-flex align-items-center mb-2">
+        <input
+          class="form-check-input chk-my"
+          type="checkbox"
+          value="PUBLIC_EVENT"
+          id="chk-sq"
+        />
+        <label class="form-check-label ms-2" for="chk-sq">公開行事曆</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 資源管理 群組 -->
+              <div class="mb-4">
+                <div class="form-check d-flex align-items-center mb-2">
+                  <input class="form-check-input" type="checkbox" id="chk-resroot">
+                  <label class="form-check-label fw-bold ms-2" for="chk-resroot">資源管理</label>
+                </div>
+                <div class="ps-4">
+                  <div class="form-check d-flex align-items-center mb-2">
+                    <input class="form-check-input chk-res" type="checkbox" value="ROOM" id="chk-room">
+                    <label class="form-check-label ms-2" for="chk-room">會議室</label>
+                  </div>
+                  <div class="form-check d-flex align-items-center mb-2">
+                    <input class="form-check-input chk-res" type="checkbox" value="VEHICLE" id="chk-room">
+                    <label class="form-check-label ms-2" for="chk-room">車輛</label>
+                  </div>
+                     <div class="form-check d-flex align-items-center mb-2">
+                    <input class="form-check-input chk-res" type="checkbox" value="OTHER" id="chk-room">
+                    <label class="form-check-label ms-2" for="chk-room">其他</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+                `,
+                    width: 400,
+                    showCancelButton: true,
+                    showCloseButton: true,
+                    confirmButtonText: '套用',
+                    cancelButtonText: '取消',
+                    didOpen: () => {
+                        // 1. 初始化 syncGroup（父子 checkbox 聯動）
+                        const syncGroup = (parentId, childSel) => {
+                            const p = document.getElementById(parentId);
+                            const children = Array.from(document.querySelectorAll(childSel));
+                            p.addEventListener('change', () => {
+                                children.forEach(c => { c.checked = p.checked; c.indeterminate = false; });
+                            });
+                            children.forEach(c => {
+                                c.addEventListener('change', () => {
+                                    const all = children.every(x => x.checked);
+                                    const none = children.every(x => !x.checked);
+                                    p.checked = all;
+                                    p.indeterminate = !(all || none);
+                                });
+                            });
+                        };
+                        syncGroup('chk-myroot', '#cal-tree .chk-my');
+                        syncGroup('chk-resroot', '#cal-tree .chk-res');
+
+                        // 2. 若 localStorage 有舊設定，就把各 checkbox 還原
+                        let saved = localStorage.getItem('calFilters');
+                        if (!saved) {
+                            const allCheckboxes = document.querySelectorAll('#cal-tree .form-check-input');
+                            const selected = [];
+                            allCheckboxes.forEach(chk => {
+                                chk.checked = true;
+                                if (chk.value) selected.push(chk.value);
+                            });
+                            localStorage.setItem('calFilters', JSON.stringify(selected));
+                        } else {
+                            // ⬇ 若有資料就還原勾選狀態
+                            const selected = JSON.parse(saved);
+                            document.querySelectorAll('#cal-tree .form-check-input').forEach(chk => {
+                                if (chk.value) {
+                                    chk.checked = selected.includes(chk.value);
+                                }
+                            });
+                            localStorage.setItem('calFilters', JSON.stringify(selected));
+                        }
+                    },
+                    preConfirm: () => {
+                        // 收集有 value 而且被勾的 checkbox
+                        const selected = Array.from(
+                            document.querySelectorAll('#cal-tree .form-check-input:checked')
+                        )
+                            .map(chk => chk.value)
+                            .filter(v => v);
+                        // 存進 localStorage
+                        localStorage.setItem('calFilters', JSON.stringify(selected));
+                        return selected;
+                    }
+                }).then(res => {
+                    if (res.isConfirmed) {
+                        // 套用剛剛儲存好的篩選
+                        filterEvents();
+                    }
+                });
+            }
+
+        });
+        function loadEventsFromServer() {
+            $.ajax({
+                url: '/chyunn/resource/events',
+                method: 'POST',
+                dataType: 'json',
+                success: res => {
+                    console.log(res.data)
+                    originalEvents = res.data;
+                    initCalendar();            // 不帶參數，事件在 initCalendar 裡透過 filter 來決定
+                },
+                error: xhr => console.error('載入行事曆事件失敗', xhr)
+            });
+        }
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridWeek',
+                locale: 'zh-tw',
+                events: [],
+                headerToolbar: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                height: 'auto',
+                dateClick: function (info) {
+                    renderEventsList(new Date(info.dateStr));
+                },
+                eventClick: function (info) {
+                    renderEventsList(new Date(info.event.startStr));
+                }
+            });
+
+            calendar.render();
+            filterEvents();
+        }
+        function filterEvents() {
+            const saved = localStorage.getItem('calFilters');
+            const selected = saved ? JSON.parse(saved) : [];
+
+            const eventsToShow = selected.length === 0
+                ? originalEvents
+                : originalEvents.filter(ev => selected.includes(ev.category));
+
+            // ✅ 按日期分組（只取一天一筆事件）
+            const grouped = {};
+            eventsToShow.forEach(ev => {
+                const dateStr = ev.start.split('T')[0]; // 取 YYYY-MM-DD 部分
+                if (!grouped[dateStr]) {
+                    grouped[dateStr] = true; // 只記錄出現過的日期
+                }
+            });
+
+            // ✅ 轉為匯總事件陣列，只取一筆代表（例如亮燈用）
+            const summaryEvents = Object.keys(grouped).map(date => ({
+                title: '📌 ',
+                start: date,
+                display: 'auto',  // ✅ 顯示為普通事件
+                allDay: true,
+                color: '#f6c23e', // 黃色（你也可以用紅色 '#dc3545' 或綠色 '#198754'）
+                textColor: '#000' // 讓字夠黑、清楚
+            }));
+            renderEventsList(new Date());
+            calendar.setOption('events', summaryEvents);
+        }
+
+        function renderEventsList(targetDate) {
+            const listEl = document.getElementById('upcoming-events');
+            listEl.innerHTML = '';
+
+            const dateStr = targetDate.toISOString().split('T')[0];
+
+            const saved = localStorage.getItem('calFilters');
+            const selected = saved ? JSON.parse(saved) : [];
+
+            const eventsToShow = selected.length === 0
+                ? originalEvents
+                : originalEvents.filter(ev => selected.includes(ev.category));
+
+            const eventsOfDay = eventsToShow.filter(ev => ev.start.startsWith(dateStr));
+            if (eventsOfDay.length === 0) {
+                listEl.innerHTML = `<li class="text-muted">（此日無事件）</li>`;
+                return;
+            }
+            eventsOfDay
+                .sort((a, b) => new Date(a.start) - new Date(b.start))
+                .forEach(ev => {
+                    const time = ev.start.split('T')[1]?.substring(0, 5) || '整天';
+                    const li = document.createElement('li');
+                    li.className = 'mb-3';
+
+                    li.innerHTML = `
+<div class="d-flex align-items-start">
+  <div class="me-2">
+    <i class="bi bi-tag-fill text-secondary fs-5"></i>
+  </div>
+  <div>
+    <div class="fw-bold">${time}　${ev.title}</div>
+    <div class="text-muted small">${ev.location || ''}</div>
+  </div>
+</div>
+            `;
+                    listEl.appendChild(li);
+                });
+        }
+        function fetchBulletins() {
+            fetch("/chyunn/resource/latest-bulletins")
+                .then(response => response.json())
+                .then(data => {
+                    newsList.innerHTML = ""; // 清空原本內容
+
+                    data.forEach(item => {
+                        const div = document.createElement("div");
+                        div.className = "news-item text-white";
+                        div.style.backgroundImage = `url('${item.background}')`;
+                        // 擷取純文字摘要
+                        const tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = item.content;
+                        const summary = tempDiv.textContent
+                            .replace(/\s+/g, " ")      // 移除多餘空白
+                            .replace(/－+/g, "")       // 可選：移除裝飾用破折號
+                            .trim()
+                            .substring(0, 50) + "…";   // 取前 50 字（視情況調整）
+                        div.innerHTML = `
+    <div class="news-text">
+        <strong class="fs-5 d-block">${item.title}</strong>
+        <p class="mt-2 small">${summary}</p>
+    </div>
+`;
+                        div.addEventListener("click", () => {
+                            // 將 content + 附件組成 html 字串
+                            let htmlContent = item.content;
+
+                            if (item.files && item.files.length > 0) {
+                                let fileLinks = '<hr><div class="text-start"><strong>附件：</strong><ul>';
+                                item.files.forEach(file => {
+                                    fileLinks += `<li><a href="${file.fileUrl}" target="_blank" style="color: #0d6efd;">${file.fileName}</a></li>`;
+                                });
+                                fileLinks += '</ul></div>';
+                                htmlContent += fileLinks;
+                            }
+
+                            Swal.fire({
+                                title: item.title,
+                                html: htmlContent,
+                                width: 800,
+                                showCloseButton: true,
+                                showConfirmButton: false,
+                                scrollbarPadding: false,
+                                background: '#f8f9fa',
+                                customClass: {
+                                    popup: 'swal-wide'
+                                }
+                            });
+                        });
+
+                        newsList.appendChild(div);
+                    });
+
+                    initScroll(); // 重啟輪播
+                });
+        }
+
+        // 輪播初始化函式
+        // function initScroll() {
+        //     const itemHeight = 120;
+        //     const visibleCount = 3;
+        //     const scrollInterval = 4000;
+        //     let index = 0;
+        //     let interval;
+
+        //     const totalItems = newsList.children.length;
+
+        //     for (let i = 0; i < visibleCount; i++) {
+        //         const clone = newsList.children[i].cloneNode(true);
+        //         newsList.appendChild(clone);
+        //     }
+
+        //     function scrollDown() {
+        //         index++;
+        //         newsList.style.transition = 'transform 0.5s ease-in-out';
+        //         newsList.style.transform = `translateY(-${index * itemHeight}px)`;
+        //         if (index === totalItems) {
+        //             setTimeout(() => {
+        //                 newsList.style.transition = 'none';
+        //                 newsList.style.transform = 'translateY(0px)';
+        //                 index = 0;
+        //                 requestAnimationFrame(() => {
+        //                     void newsList.offsetWidth;
+        //                     newsList.style.transition = 'transform 0.5s ease-in-out';
+        //                 });
+        //             }, 500);
+        //         }
+        //     }
+
+        //     window.scrollDown = scrollDown;
+
+        //     window.scrollUp = function () {
+        //         if (index === 0) {
+        //             newsList.style.transition = 'none';
+        //             index = totalItems;
+        //             newsList.style.transform = `translateY(-${index * itemHeight}px)`;
+        //             requestAnimationFrame(() => {
+        //                 index--;
+        //                 newsList.style.transition = 'transform 0.5s ease-in-out';
+        //                 newsList.style.transform = `translateY(-${index * itemHeight}px)`;
+        //             });
+        //         } else {
+        //             index--;
+        //             newsList.style.transition = 'transform 0.5s ease-in-out';
+        //             newsList.style.transform = `translateY(-${index * itemHeight}px)`;
+        //         }
+        //     }
+
+        //     window.toggleScroll = function (btn) {
+        //         if (interval) {
+        //             clearInterval(interval);
+        //             interval = null;
+        //             btn.innerText = '▶ 播放';
+        //         } else {
+        //             interval = setInterval(scrollDown, scrollInterval);
+        //             btn.innerText = '⏸ 暫停';
+        //         }
+        //     }
+
+        //     interval = setInterval(scrollDown, scrollInterval);
+        // }
+
+        // 初始化
+        document.addEventListener("DOMContentLoaded", fetchBulletins);
+
+        //     fetch("https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate desc&format=JSON")
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             const filteredData = data.records.filter(site =>
+        //                 site.county === "臺南市" && targetSites.includes(site.sitename)
+        //             );
+
+        //             // 根據站名排序
+        //             const sortedData = targetSites.map(name =>
+        //                 filteredData.find(site => site.sitename === name)
+        //             ).filter(site => site); // 排除 null
+
+
+        //             const airStatusEl = document.getElementById("airStatusText");
+        //             let airStatusIndex = 0;
+        //             let airStatusItems = []; // 儲存要輪播的文字與 class
+
+        //             sortedData.forEach(site => {
+        //                 const aqiClass = getAqiColorClass(site.aqi);
+        //                 const pm25Class = getPm25ColorClass(site["pm2.5"]);
+
+        //                 const airStatusHTML = `
+        //     ${site.sitename}
+        //     PM2.5：<span class="${pm25Class}">${site["pm2.5"]}</span>
+        //     空氣品質：<span class="${aqiClass}">${site.aqi}</span>（${site.status}）
+        // `;
+
+        //                 airStatusItems.push({ html: airStatusHTML, className: "fw-semibold" });
+        //             });
+
+        //             if (airStatusItems.length > 0) {
+        //                 // 使用 innerHTML 顯示，保留文字內的 class 標記
+        //                 airStatusEl.innerHTML = airStatusItems[0].html;
+        //                 airStatusEl.className = airStatusItems[0].className;
+
+        //                 setInterval(() => {
+        //                     airStatusEl.style.opacity = 0;
+        //                     setTimeout(() => {
+        //                         airStatusIndex = (airStatusIndex + 1) % airStatusItems.length;
+        //                         airStatusEl.innerHTML = airStatusItems[airStatusIndex].html;
+        //                         airStatusEl.className = airStatusItems[airStatusIndex].className;
+        //                         airStatusEl.style.opacity = 1;
+        //                     }, 300);
+        //                 }, 4000);
+        //             }
+        //         })
+
+
+    </script>

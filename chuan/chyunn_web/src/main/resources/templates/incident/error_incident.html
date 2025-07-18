@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運事件問題-錯誤訊息</title>
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+
+    <!-- Content Start -->
+    <div class="content" style="width: auto;  position: relative;">
+
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+
+    </div>
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script th:if="${noPermission}">
+        Swal.fire({
+            icon: 'warning',
+            title: '無權限查看',
+            text: '您沒有權限查看此事件內容！',
+            allowOutsideClick: false, // 禁止點擊背景關閉
+            allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+            allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>財務-固定資產</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        .final_property_id-column {
+            width: 3%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+
+        .name-column {
+            width: 11%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+
+        .custodian-column {
+            width: 5%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+
+        .location-column {
+            width: 5%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+
+        .remarks-column {
+            width: 30%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+
+
+        .change_record-column {
+            width: 10%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+
+        .inventory-date {
+            width: 5%;
+            /* word-wrap: break-word; */
+            white-space: normal;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+        <div class="container-fluid pt-4 px-4">
+            <div class="bg-light text-center rounded p-4">
+                <div class="container-fluid">
+                    <form class="row align-items-center g-2">
+                        <!-- 關鍵字搜尋 -->
+                        <div class="col-md-auto">
+                            <label for="searchInput" class="form-label text-dark mb-0">財產搜尋</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="search" id="searchInput" class="form-control text-dark" placeholder="請輸入關鍵字">
+                        </div>
+
+                        <!-- 放置處 -->
+                        <div class="col-md-auto">
+                            <label for="location" class="form-label text-dark mb-0">放置處</label>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="location" class="form-select text-dark">
+                                <option value="">-- 請選擇 --</option>
+                                <option th:each="location : ${locations}" th:value="${location.name}"
+                                    th:text="${location.name}"></option>
+                            </select>
+                        </div>
+                        <div class="w-100"></div>
+                        <!-- 按鈕區 -->
+                        <div class="col-md-auto d-flex gap-2 w-100">
+                            <div class="d-flex gap-2">
+                                <button id="filter-btn" class="btn btn-primary">🔍 搜尋</button>
+                                <button id="reset-btn" class="btn btn-secondary">🔄 重置</button>
+                                <button id="add-btn" class="btn btn-primary"
+                                    th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_ASSET_ADMIN'))}">
+                                    ➕ 新增
+                                </button>
+                                <button id="downloadExcelBtn" class="btn btn-success">📥 匯出 Excel</button>
+                            </div>
+                            <!-- <div class="ms-auto">
+                                <button id="inventorySettingBtn" class="btn btn-warning">⚙️ 設定</button>
+                            </div> -->
+                        </div>
+                    </form>
+                </div>
+                <hr>
+                <div class="table-responsive border">
+                    <table class="table text-start align-middle table-bordered table-hover mb-0">
+                        <thead>
+                            <tr class="text-dark">
+                                <!-- <th scope="col"><input class="form-check-input" type="checkbox"></th> -->
+                                <th scope="col">財產細項編號</th>
+                                <th scope="col">名稱</th>
+                                <th scope="col">保管人</th>
+                                <th scope="col">放置處</th>
+                                <th scope="col">備註</th>
+                                <th scope="col">盤點日期</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryEquipment-table">
+                        </tbody>
+                    </table>
+                    <div id="pagination">
+                        <!-- 分頁控制會由 JavaScript 填充 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="userRoles" th:value="${userRoles}" />
+    <!-- Content End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <script>
+        $(document).ready(function () {
+            const rolesRaw = $("#userRoles").val(); // 會是 "[ROLE_USER, ROLE_ASSET_MANAGE]"
+            const userRoles = rolesRaw.replace(/[\[\]\s]/g, "").split(",");
+            const canEdit = userRoles.includes("ROLE_ADMIN") || userRoles.includes("ROLE_ASSET_ADMIN");
+            $("#reset-btn").click(function (event) {
+                event.preventDefault();
+
+                // 清空搜尋欄位
+                $("#searchInput").val("");
+
+                // 重置下拉選單
+                $("#location").prop("selectedIndex", 0);
+
+                // 清空 sessionStorage
+                sessionStorage.removeItem("FixedAssetCurrentPage");
+                sessionStorage.removeItem("selectedFixedAssetLocation");
+                sessionStorage.removeItem("searchFixedAssetInput");
+
+                // 重新整理頁面
+                location.reload();
+            });
+
+            // 從 sessionStorage 取得資訊
+            var savedPage = sessionStorage.getItem("FixedAssetCurrentPage");
+            var storedSearchQuery = sessionStorage.getItem("searchFixedAssetInput");
+            var storedLocation = sessionStorage.getItem("selectedFixedAssetLocation");
+            console.log(savedPage)
+            console.log(storedSearchQuery)
+            console.log(storedLocation)
+
+            if (storedSearchQuery) {
+                $("#searchInput").val(storedSearchQuery);
+            }
+            if (storedLocation) {
+                $("#location").val(storedLocation);
+            }
+
+            // 判斷該載入哪一種資料
+            if (savedPage !== null) {
+                load_ITAsset(parseInt(savedPage));
+                console.log("1");
+            } else if (storedSearchQuery !== null && storedLocation === null) {
+                filterByID(storedSearchQuery || '');
+                console.log("2");
+            } else if (storedSearchQuery === null && storedLocation !== null) {
+                filterByLocation(storedLocation || '');
+                console.log("3");
+            } else {
+                load_ITAsset(0);
+                console.log("4");
+            }
+
+            function load_ITAsset(page) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/asset/select_FixedAsset',
+                    data: { page: page, size: 100 },
+                    success: function (response) {
+                        var tableBody = $("#inventoryEquipment-table");
+                        tableBody.empty();
+                        response.content.forEach(function (fixedAssetDto) {
+                            var newRow = $("<tr>");
+                            newRow.append("<td class='text-dark final_property_id-column'>" +
+                                "<a href='#' class='property-id' data-id='" + fixedAssetDto.sub_category_id + "'>" +
+                                fixedAssetDto.sub_category_id +
+                                "</a></td>");
+                            newRow.append("<td class='text-dark name-column'>" + fixedAssetDto.sub_category_name + "</td>");
+                            newRow.append("<td class='text-dark custodian-column'>" + fixedAssetDto.custodian_name + "</td>");
+                            newRow.append("<td class='text-dark location-column'>" + fixedAssetDto.fixed_location + "</td>");
+                            newRow.append("<td class='text-dark remarks-column'>" + fixedAssetDto.remark + "</td>");
+                            newRow.append("<td class='text-dark inventory-date'>" + (fixedAssetDto.inventory_date ?? "") + "</td>");
+                            tableBody.append(newRow);
+                        });
+
+                        // 更新分頁控制
+                        var pagination = $("#pagination");
+                        pagination.empty();
+
+                        // 使用 Bootstrap 樣式的分頁按鈕
+                        var paginationContainer = $('<nav aria-label="Page navigation"><ul class="pagination justify-content-center"></ul></nav>');
+                        var paginationList = paginationContainer.find('ul');
+
+                        // 上一頁按鈕
+                        if (response.currentPage > 0) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark prev-page">上一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">上一頁</span></li>');
+                        }
+
+                        // 當前頁數
+                        paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">第 ' + (response.currentPage + 1) + ' 頁 / ' + response.totalPages + ' 頁</span></li>');
+
+                        // 下一頁按鈕
+                        if (response.currentPage < response.totalPages - 1) {
+                            paginationList.append('<li class="page-item"><button class="page-link text-dark next-page">下一頁</button></li>');
+                        } else {
+                            paginationList.append('<li class="page-item disabled"><span class="page-link text-dark">下一頁</span></li>');
+                        }
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 查詢特定頁數
+                        paginationList.append('<li class="page-item"><input type="number" id="pageInput" class="form-control" style="width: 80px; margin-left: 10px;" min="1" max="' + response.totalPages + '" placeholder="頁數"></li>');
+                        paginationList.append('<li class="page-item"><button class="page-link text-dark" id="goToPage">跳轉</button></li>');
+
+                        // 把 Bootstrap 分頁元素加入頁面
+                        pagination.append(paginationContainer);
+
+                        // 點擊分頁按鈕
+                        $(".prev-page").click(function () {
+                            load_ITAsset(response.currentPage - 1);
+                            sessionStorage.setItem("FixedAssetCurrentPage", response.currentPage - 1);
+                        });
+                        $(".next-page").click(function () {
+                            load_ITAsset(response.currentPage + 1);
+                            sessionStorage.setItem("FixedAssetCurrentPage", response.currentPage + 1);
+                        });
+
+                        // 點擊跳轉按鈕
+                        $("#goToPage").click(function () {
+                            var pageInput = $("#pageInput").val();
+                            if (pageInput >= 1 && pageInput <= response.totalPages) {
+                                load_ITAsset(pageInput - 1);  // 分頁從0開始
+                                sessionStorage.setItem("FixedAssetCurrentPage", pageInput - 1);
+                            } else {
+                                alert("請輸入有效的頁數！");
+                            }
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("錯誤回應: ", xhr.responseText); // 打印錯誤回應
+                    }
+
+                });
+            }
+
+            $("#filter-btn").on("click", function (event) {
+                event.preventDefault();
+                let searchQuery = $("#searchInput").val().trim(); // 取得搜尋框的輸入內容
+                if (searchQuery.length > 0) {
+                    filterByID(searchQuery); // 進行第一次搜尋並從第 1 頁開始
+                } else {
+                    $("#inventoryEquipment-table").empty(); // 若輸入框為空，清空表格
+                    $("#pagination").empty(); // 清空分頁控制
+                }
+            });
+
+            function filterByID(searchQuery = '') {
+                $.ajax({
+                    type: "POST",
+                    url: "/chyunn/asset/searchFixedAsset",
+                    data: {
+                        sub_category_id: searchQuery,
+                    },
+                    success: function (response) {
+                        if (response.code === 200) {
+                            let assets = response.data;
+                            // 清空表格
+                            $("#inventoryEquipment-table").empty();
+
+                            if (assets.length > 0) {
+                                let tableBody = $("#inventoryEquipment-table");
+
+                                assets.forEach(function (asset) {
+                                    var newRow = $("<tr>");
+                                    newRow.append("<td class='text-dark final_property_id-column'>" +
+                                        "<a href='#' class='property-id' data-id='" + asset.sub_category_id + "'>" +
+                                        asset.sub_category_id +
+                                        "</a></td>");
+                                    newRow.append("<td class='text-dark name-column'>" + asset.sub_category_name + "</td>");
+                                    newRow.append("<td class='text-dark custodian-column'>" + asset.custodian_name + "</td>");
+                                    newRow.append("<td class='text-dark location-column'>" + asset.fixed_location + "</td>");
+                                    newRow.append("<td class='text-dark remarks-column'>" + asset.remark + "</td>");
+
+                                    newRow.append("<td class='text-dark inventory-date'>" + (asset.inventory_date ?? "") + "</td>");
+                                    tableBody.append(newRow);
+                                });
+                            }
+                            sessionStorage.setItem("searchFixedAssetInput", searchQuery);
+                            sessionStorage.removeItem("FixedAssetCurrentPage");
+                            sessionStorage.removeItem("selectedFixedAssetLocation");
+                            $("#location").val("");
+                            let pagination = $("#pagination");
+                            pagination.empty();
+
+                        } else {
+                            console.error("查詢失敗:", response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        let errorMessage = "發生錯誤，請稍後再試";
+                        try {
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                errorMessage = "伺服器未回應或發生錯誤。";
+                            } else {
+                                errorMessage = xhr.responseText || errorMessage;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操作失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            }
+
+            $('#location').change(function () {
+                var selectedFixedAssetLocation = $(this).val();
+                sessionStorage.setItem("selectedFixedAssetLocation", selectedFixedAssetLocation);  // 存進 sessionStorage
+                sessionStorage.removeItem("FixedAssetCurrentPage");
+                filterByLocation(selectedFixedAssetLocation);
+            });
+
+            function filterByLocation(selectedFixedAssetLocation) {
+                if (!selectedFixedAssetLocation) {
+                    load_ITAsset(0)
+                };
+                console.log(selectedFixedAssetLocation)
+                $.ajax({
+                    type: 'GET',
+                    url: '/chyunn/asset/filterFixedAssetLocation',
+                    data: { location: selectedFixedAssetLocation },
+                    success: function (response) {
+                        console.log(response.data)
+                        if (response.code === 200) {
+                            let assets = response.data;
+
+                            let tableBody = $("#inventoryEquipment-table");
+                            tableBody.empty();
+
+                            if (assets.length > 0) {
+                                assets.forEach(function (asset) {
+                                    var newRow = $("<tr>");
+                                    newRow.append("<td class='text-dark final_property_id-column'>" +
+                                        "<a href='#' class='property-id' data-id='" + asset.sub_category_id + "'>" +
+                                        asset.sub_category_id +
+                                        "</a></td>");
+                                    newRow.append("<td class='text-dark name-column'>" + asset.sub_category_name + "</td>");
+                                    newRow.append("<td class='text-dark custodian-column'>" + asset.custodian_name + "</td>");
+                                    newRow.append("<td class='text-dark location-column'>" + asset.fixed_location + "</td>");
+                                    newRow.append("<td class='text-dark remarks-column'>" + asset.remark + "</td>");
+                                    newRow.append("<td class='text-dark inventory-date'>" + (asset.inventory_date ?? "") + "</td>");
+                                    tableBody.append(newRow);
+
+                                    let pagination = $("#pagination");
+                                    pagination.empty();
+                                });
+                            } else {
+                                tableBody.html(`<tr><td colspan="6" class="text-center text-muted">查無資料</td></tr>`);
+                            }
+
+                            // 更新 sessionStorage
+                            sessionStorage.setItem("selectedFixedAssetLocation", selectedFixedAssetLocation);  // 存進 sessionStorage
+                            sessionStorage.removeItem("searchFixedAssetInput");
+                            $("#searchInput").val("");
+
+                        } else {
+                            console.error("查詢失敗:", response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        let errorMessage = "發生錯誤，請稍後再試";
+                        try {
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                errorMessage = "伺服器未回應或發生錯誤。";
+                            } else {
+                                errorMessage = xhr.responseText || errorMessage;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操作失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            }
+            $("#downloadExcelBtn").click(function () {
+                event.preventDefault();
+                $.ajax({
+                    type: "GET",
+                    url: "/chyunn/asset/FixedAsset_exportExcel",
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function (response, status, xhr) {
+
+                        const blob = response;
+                        const link = document.createElement("a");
+                        link.href = URL.createObjectURL(blob);
+                        link.download = "財務_固定資產.xlsx";  // 設定下載的檔案名稱
+                        link.click();
+                    },
+                    error: function (xhr, status, error) {
+                        let errorMessage = "匯出 Excel 失敗，請稍後再試！";
+                        try {
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                errorMessage = "伺服器未回應或發生錯誤。";
+                            }
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: '匯出失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            });
+
+            $("#add-btn").click(function () {
+                event.preventDefault();
+                $.ajax({
+                    type: "GET",
+                    url: "/chyunn/asset/FixedAssetLocation",
+                    success: function (response) {
+                        if (response.code === 200) {
+                            let locations = response.data;
+                            console.log(locations)
+                            let locationOptions = '<option value="">-- 請選擇 --</option>';
+                            locations.forEach(function (location) {
+                                locationOptions += `<option value="${location.name}">${location.name}</option>`;
+                            });
+
+                            Swal.fire({
+                                title: "&nbsp;&nbsp;財產資訊",
+                                html: `
+                        <div class="container text-center">
+                        <div class="form-group mb-3 row">
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產大類編號</label>
+                            <input type="text" id="sw-major_category_id" class="form-control text-dark" >
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產大類名稱</label>
+                            <input type="text" id="sw-major_category_name" class="form-control text-dark" >
+                        </div>
+                          <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產細項編號</label>
+                            <input type="text" id="sw-sub_category_id" class="form-control text-dark" >
+                        </div>
+                        </div>
+
+                        <div class="form-group mb-3 row">
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產細項名稱</label>
+                            <input type="text" " class="form-control text-dark"  id="sw-sub_category_name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">單位</label>
+                            <input type="text" id="sw-unit" class="form-control text-dark">
+                        </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                        <div class="col-md-4">
+                        <label class="text-dark text-start d-block">所在地</label>
+                        <select id="sw-fixed_location" class="form-select text-dark">
+                        ${locationOptions}
+                        </select>
+                        </div>
+                        <div class="col-md-4">
+                        <label class="text-dark text-start d-block">保管人</label>
+                        <input type="text" id="sw-custodian_id" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">保管人名稱</label>
+                        <input type="text" id="sw-custodian_name" class="form-control text-dark" >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">耐用年數-原表</label>
+                        <input type="text" id="sw-useful_life_original" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">耐用年數-新表</label>
+                        <input type="text" id="sw-useful_life_new" class="form-control text-dark" >
+                    </div>
+                     <div class="col-md-4">
+                        <label class="text-dark text-start d-block">耐用年數-換算</label>
+                        <input type="text" id="sw-useful_life_converted" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">取得時間</label>
+                        <input type="text" id="sw-acquisition_date" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">截止提列日期</label>
+                        <input type="text" id="sw-depreciation_end_date" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">數量/單位</label>
+                        <input type="text" id="sw-quantity" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">取得原價</label>
+                        <input type="text" id="sw-acquisition_cost" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">改良或修理</label>
+                        <input type="text" id="sw-improvement_cost" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">預留殘值</label>
+                        <input type="text" id="sw-salvage_value" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">取得原價減預留殘值</label>
+                        <input type="text" id="sw-net_acquisition_cost" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">本期提列數</label>
+                        <input type="text" id="sw-current_period_depreciation" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">截至本期累計數</label>
+                        <input type="text" id="sw-accumulated_depreciation" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">未折減餘額</label>
+                        <input type="text" id="sw-net_book_value" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">改良修理序號</label>
+                        <input type="text" id="sw-improvement_serial_no" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">設備或生財器具名稱</label>
+                        <input type="text" id="sw-equipment_name" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">財產目錄大類名稱</label>
+                        <input type="text" id="sw-catalog_major_name" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">ASFA004C</label>
+                        <input type="text" id="sw-asset_id" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">廠牌代號</label>
+                        <input type="text" id="sw-brand_id" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">廠牌名稱</label>
+                        <input type="text" id="sw-brand_name" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">供應商代號</label>
+                        <input type="text" id="sw-vendor_id" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">廠商名稱</label>
+                        <input type="text" id="sw-vendor_name" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">固資傳票類別</label>
+                        <input type="text" id="sw-voucher_type" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">不重算註記</label>
+                        <input type="text" id="sw-is_depreciation_recalc_excluded" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">轉B帳註記</label>
+                        <input type="text" id="sw-is_transferred_to_b_account" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">部門\工地編號</label>
+                        <input type="text" id="sw-department_id" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">條碼代號</label>
+                        <input type="text" id="sw-barcode" class="form-control text-dark"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">資產屬性</label>
+                        <input type="text" id="sw-asset_attribute" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">固資分類</label>
+                        <input type="text" id="sw-asset_category" class="form-control text-dark" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">折舊方法(中文)</label>
+                        <input type="text" id="sw-depreciation_method" class="form-control text-dark"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-12">
+                        <label class="text-dark text-start d-block">備註(型號)</label>
+                        <textarea class="form-control text-dark" id="sw-remark" rows="4" ></textarea>
+                    </div>
+                </div>
+                  <div class="form-group mb-3 row">
+                <div class="col-md-12">
+                      <label for="sw-imageUpload" class="btn btn-sm btn-outline-success rounded-pill shadow-sm d-flex align-items-center">
+                        <i class="bi bi-upload me-2"></i> <span>上傳圖片</span>
+                    </label>
+      <!-- 調整：檔案列表靠左、區塊有底色、間距、陰影 -->
+  <div class="bg-light border rounded mt-2 p-2 shadow-sm">
+    <strong class="d-block text-start text-secondary small mb-1">已選擇檔案：</strong>
+    <ul id="fileList" class="list-group list-group-flush small text-start mb-0">
+      <!-- 這裡會由 JS 自動插入檔名 -->
+    </ul>
+       <input type="file" id="sw-imageUpload" style="display:none;" accept="image/*" multiple />
+  </div>
+                </div>
+            </div>
+                     `,
+                                allowOutsideClick: false,
+                                showCloseButton: true,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                focusConfirm: false,
+                                showCancelButton: true,
+                                confirmButtonText: '確定新增',
+                                cancelButtonText: '取消',
+                                width: 800,
+                                customClass: {
+                                    title: 'text-start w-100 px-4'
+                                },
+                                didOpen: () => {
+                                    $("#sw-imageUpload").on("change", function (event) {
+                                        const fileList = $("#fileList");
+                                        fileList.empty(); // 清空現有列表
+
+                                        const files = event.target.files;
+                                        if (files.length > 10) {
+                                            Swal.showValidationMessage("最多只能上傳 10 張圖片，請重新選擇");
+                                            $(this).val('');
+                                            fileList.append(`<li class="list-group-item text-muted py-1 px-2 small">尚未選擇圖片</li>`);
+                                            return;
+                                        }
+                                        Swal.resetValidationMessage();
+                                        if (files.length > 0) {
+                                            for (let i = 0; i < files.length; i++) {
+                                                const fileName = files[i].name;
+                                                fileList.append(`<li class="list-group-item py-1 px-2 small">${fileName}</li>`);
+                                            }
+                                        } else {
+                                            fileList.append(`<li class="list-group-item text-muted py-1 px-2 small">尚未選擇圖片</li>`);
+                                        }
+                                    });
+                                },
+                                preConfirm: () => {
+                                    const sub_category_id = document.getElementById("sw-sub_category_id").value.trim();
+                                    if (!sub_category_id) {
+                                        Swal.showValidationMessage("財產細項編號為必填");
+                                        return false;
+                                    }
+                                    let locationValue = document.getElementById("sw-fixed_location").value;
+                                    if (!locationValue) {
+                                        Swal.showValidationMessage("放置處為必選");
+                                        return false;
+                                    }
+                                    return {
+                                        major_category_id: document.getElementById("sw-major_category_id").value,
+                                        major_category_name: document.getElementById("sw-major_category_name").value,
+                                        sub_category_id: document.getElementById("sw-sub_category_id").value,
+                                        sub_category_name: document.getElementById("sw-sub_category_name").value,
+                                        fixed_location: document.getElementById("sw-fixed_location").value,
+                                        unit: document.getElementById("sw-unit").value,
+                                        acquisition_date: document.getElementById("sw-acquisition_date").value,
+                                        useful_life_original: document.getElementById("sw-useful_life_original").value,
+                                        useful_life_new: document.getElementById("sw-useful_life_new").value,
+                                        useful_life_converted: document.getElementById("sw-useful_life_converted").value,
+                                        depreciation_end_date: document.getElementById("sw-depreciation_end_date").value,
+                                        remark: document.getElementById("sw-remark").value,
+                                        quantity: document.getElementById("sw-quantity").value,
+                                        acquisition_cost: document.getElementById("sw-acquisition_cost").value,
+                                        improvement_cost: document.getElementById("sw-improvement_cost").value,
+                                        salvage_value: document.getElementById("sw-salvage_value").value,
+                                        net_acquisition_cost: document.getElementById("sw-net_acquisition_cost").value,
+                                        current_period_depreciation: document.getElementById("sw-current_period_depreciation").value,
+                                        accumulated_depreciation: document.getElementById("sw-accumulated_depreciation").value,
+                                        net_book_value: document.getElementById("sw-net_book_value").value,
+                                        improvement_serial_no: document.getElementById("sw-improvement_serial_no").value,
+                                        equipment_name: document.getElementById("sw-equipment_name").value,
+                                        catalog_major_name: document.getElementById("sw-catalog_major_name").value,
+                                        asset_id: document.getElementById("sw-asset_id").value,
+                                        custodian_id: document.getElementById("sw-custodian_id").value,
+                                        custodian_name: document.getElementById("sw-custodian_name").value,
+                                        brand_id: document.getElementById("sw-brand_id").value,
+                                        brand_name: document.getElementById("sw-brand_name").value,
+                                        vendor_id: document.getElementById("sw-vendor_id").value,
+                                        vendor_name: document.getElementById("sw-vendor_name").value,
+                                        voucher_type: document.getElementById("sw-voucher_type").value,
+                                        is_depreciation_recalc_excluded: document.getElementById("sw-is_depreciation_recalc_excluded").checked,
+                                        is_transferred_to_b_account: document.getElementById("sw-is_transferred_to_b_account").checked,
+                                        department_id: document.getElementById("sw-department_id").value,
+                                        barcode: document.getElementById("sw-barcode").value,
+                                        asset_attribute: document.getElementById("sw-asset_attribute").value,
+                                        asset_category: document.getElementById("sw-asset_category").value,
+                                        depreciation_method: document.getElementById("sw-depreciation_method").value,
+
+                                        fileInput: document.getElementById('sw-imageUpload').files
+                                    };
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    let newProperty = result.value;
+
+                                    const formData = new FormData();
+
+                                    formData.append('major_category_id', newProperty.major_category_id);
+                                    formData.append('major_category_name', newProperty.major_category_name);
+                                    formData.append('sub_category_id', newProperty.sub_category_id);
+                                    formData.append('sub_category_name', newProperty.sub_category_name);
+                                    formData.append('fixed_location', newProperty.fixed_location);
+                                    formData.append('unit', newProperty.unit);
+                                    formData.append('acquisition_date', newProperty.acquisition_date);
+                                    formData.append('useful_life_original', newProperty.useful_life_original);
+                                    formData.append('useful_life_new', newProperty.useful_life_new);
+                                    formData.append('useful_life_converted', newProperty.useful_life_converted);
+                                    formData.append('depreciation_end_date', newProperty.depreciation_end_date);
+                                    formData.append('remark', newProperty.remark);
+                                    formData.append('quantity', newProperty.quantity);
+                                    formData.append('acquisition_cost', newProperty.acquisition_cost);
+                                    formData.append('improvement_cost', newProperty.improvement_cost);
+                                    formData.append('salvage_value', newProperty.salvage_value);
+                                    formData.append('net_acquisition_cost', newProperty.net_acquisition_cost);
+                                    formData.append('current_period_depreciation', newProperty.current_period_depreciation);
+                                    formData.append('accumulated_depreciation', newProperty.accumulated_depreciation);
+                                    formData.append('net_book_value', newProperty.net_book_value);
+                                    formData.append('improvement_serial_no', newProperty.improvement_serial_no);
+                                    formData.append('equipment_name', newProperty.equipment_name);
+                                    formData.append('catalog_major_name', newProperty.catalog_major_name);
+                                    formData.append('asset_id', newProperty.asset_id);
+                                    formData.append('custodian_id', newProperty.custodian_id);
+                                    formData.append('custodian_name', newProperty.custodian_name);
+                                    formData.append('brand_id', newProperty.brand_id);
+                                    formData.append('brand_name', newProperty.brand_name);
+                                    formData.append('vendor_id', newProperty.vendor_id);
+                                    formData.append('vendor_name', newProperty.vendor_name);
+                                    formData.append('voucher_type', newProperty.voucher_type);
+                                    formData.append('is_depreciation_recalc_excluded', newProperty.is_depreciation_recalc_excluded);
+                                    formData.append('is_transferred_to_b_account', newProperty.is_transferred_to_b_account);
+                                    formData.append('department_id', newProperty.department_id);
+                                    formData.append('barcode', newProperty.barcode);
+                                    formData.append('asset_attribute', newProperty.asset_attribute);
+                                    formData.append('asset_category', newProperty.asset_category);
+                                    formData.append('depreciation_method', newProperty.depreciation_method);
+
+                                    // 多檔圖片處理
+                                    if (newProperty.fileInput && newProperty.fileInput.length > 0) {
+                                        for (let i = 0; i < newProperty.fileInput.length; i++) {
+                                            formData.append("files", newProperty.fileInput[i]);
+                                        }
+                                    }
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/chyunn/asset_manage/addFixedAsset',
+                                        processData: false,
+                                        contentType: false,
+                                        data: formData,
+                                        success: function (response) {
+                                            if (response.code === 200) {
+                                                const item = response.data;
+                                                let content = `
+                      <div class="text-start">
+    <p><strong>財產大類編號：</strong>${item.major_category_id || ''}</p>
+    <p><strong>財產大類名稱：</strong>${item.major_category_name || ''}</p>
+    <p><strong>財產細項編號：</strong>${item.sub_category_id || ''}</p>
+    <p><strong>財產細項名稱：</strong>${item.sub_category_name || ''}</p>
+    <p><strong>所在地：</strong>${item.fixed_location || ''}</p>
+    <p><strong>單位：</strong>${item.unit || ''}</p>
+    <p><strong>取得時間：</strong>${item.acquisition_date || ''}</p>
+    <p><strong>原始耐用年數：</strong>${item.useful_life_original || ''}</p>
+    <p><strong>新耐用年數：</strong>${item.useful_life_new || ''}</p>
+    <p><strong>換算後耐用年數：</strong>${item.useful_life_converted || ''}</p>
+    <p><strong>截止提列日期：</strong>${item.depreciation_end_date || ''}</p>
+    <p><strong>備註：</strong>${item.remark || ''}</p>
+    <p><strong>數量：</strong>${item.quantity || ''}</p>
+    <p><strong>取得原價：</strong>${item.acquisition_cost || ''}</p>
+    <p><strong>改良費用：</strong>${item.improvement_cost || ''}</p>
+    <p><strong>預留殘值：</strong>${item.salvage_value || ''}</p>
+    <p><strong>原價減殘值：</strong>${item.net_acquisition_cost || ''}</p>
+    <p><strong>本期提列：</strong>${item.current_period_depreciation || ''}</p>
+    <p><strong>累計折舊：</strong>${item.accumulated_depreciation || ''}</p>
+    <p><strong>未折減餘額：</strong>${item.net_book_value || ''}</p>
+    <p><strong>改良序號：</strong>${item.improvement_serial_no || ''}</p>
+    <p><strong>設備名稱：</strong>${item.equipment_name || ''}</p>
+    <p><strong>目錄大類名稱：</strong>${item.catalog_major_name || ''}</p>
+    <p><strong>ASFA代號：</strong>${item.asset_id || ''}</p>
+    <p><strong>保管人代號：</strong>${item.custodian_id || ''}</p>
+    <p><strong>保管人名稱：</strong>${item.custodian_name || ''}</p>
+    <p><strong>廠牌代號：</strong>${item.brand_id || ''}</p>
+    <p><strong>廠牌名稱：</strong>${item.brand_name || ''}</p>
+    <p><strong>供應商代號：</strong>${item.vendor_id || ''}</p>
+    <p><strong>供應商名稱：</strong>${item.vendor_name || ''}</p>
+    <p><strong>傳票類別：</strong>${item.voucher_type || ''}</p>
+    <p><strong>不重算折舊：</strong>${item.is_depreciation_recalc_excluded || ''}</p>
+    <p><strong>轉B帳：</strong>${item.is_transferred_to_b_account || ''}</p>
+    <p><strong>部門編號：</strong>${item.department_id || ''}</p>
+    <p><strong>條碼：</strong>${item.barcode || ''}</p>
+    <p><strong>資產屬性：</strong>${item.asset_attribute || ''}</p>
+    <p><strong>固資分類：</strong>${item.asset_category || ''}</p>
+    <p><strong>折舊方法：</strong>${item.depreciation_method || ''}</p>
+    <p><strong>圖片數量：</strong>${item.image_Number || ''}</p>
+</div>
+                    `;
+
+                                                Swal.fire({
+                                                    title: "新增成功！",
+                                                    html: content,
+                                                    icon: "success",
+                                                    confirmButtonText: "完成",
+                                                    allowOutsideClick: false,
+                                                    allowEscapeKey: false,
+                                                    allowEnterKey: false,
+                                                    focusConfirm: false,
+                                                    showCancelButton: false,
+                                                    width: 600,
+                                                    customClass: {
+                                                        htmlContainer: 'text-start'
+                                                    }
+                                                }).then(() => {
+                                                    location.reload(); // ✅ 只有按「完成」後才 reload
+                                                });
+
+                                            } else {
+                                                Swal.fire("錯誤", "新增失敗，請稍後再試", "error");
+                                            }
+                                        },
+                                        error: function (xhr, status, error) {
+                                            let errorMessage = "發生錯誤，請稍後再試";
+                                            try {
+                                                let response = JSON.parse(xhr.responseText);
+                                                errorMessage = response.message || errorMessage;
+                                            } catch (e) {
+                                                if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                                    errorMessage = "伺服器未回應或發生錯誤。";
+                                                } else {
+                                                    errorMessage = xhr.responseText || errorMessage;
+                                                }
+                                            }
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: '操作失敗',
+                                                text: errorMessage,
+                                            })
+                                        }
+                                    });
+                                }
+                            });
+
+                        } else {
+                            Swal.fire("錯誤", "無法獲取放置處列表", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        let errorMessage = "發生錯誤，請稍後再試";
+                        try {
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                errorMessage = "伺服器未回應或發生錯誤。";
+                            } else {
+                                errorMessage = xhr.responseText || errorMessage;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操作失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            });
+            function showPropertyModal(propertyData, locationOptions) {
+                let imageButtonsHtml = '';
+                if (propertyData.fixedAssetFileDtoList && propertyData.fixedAssetFileDtoList.length > 0) {
+                    propertyData.fixedAssetFileDtoList.forEach((file, index) => {
+                        imageButtonsHtml += `
+                        <a href="#" id="viewImage${index}" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm d-flex align-items-center">
+                        <i class="bi bi-eye me-2"></i> <span>檢視圖片${index + 1}</span>
+                        </a>
+                     `;
+                    });
+                } else {
+                    imageButtonsHtml = `<p class="text-muted">尚無圖片可檢視</p>`;
+                }
+                Swal.fire({
+                    title: "",  // 不用內建 title,
+                    html: `
+                        <div class="text-start px-3 pt-2 pb-1">
+                        <div class="d-flex justify-content-between align-items-end">
+                        <span class="fw-bold fs-2">財產資訊</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mb-0" id="history-btn">歷史紀錄</button>
+                        </div>
+                        </div>
+                        <div class="container text-center px-3">
+                        <div class="form-group mb-3 row">
+                         <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產大類編號</label>
+                            <input type="text" id="sw-major_category_id" class="form-control text-dark" value="${propertyData.major_category_id}" >
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產大類名稱</label>
+                            <input type="text" id="sw-major_category_name" class="form-control text-dark" value="${propertyData.major_category_name}" >
+                        </div>
+                          <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產細項編號</label>
+                            <input type="text" id="sw-sub_category_id" class="form-control text-dark" value="${propertyData.sub_category_id}" >
+                        </div>
+                        </div>
+                        
+
+                        <div class="form-group mb-3 row">
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">財產細項名稱</label>
+                            <input type="text" " class="form-control text-dark"  id="sw-sub_category_name" value="${propertyData.sub_category_name}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-dark text-start d-block">單位</label>
+                            <input type="text" id="sw-unit" class="form-control text-dark" value="${propertyData.unit}">
+                        </div>
+                        </div>
+                        <div class="form-group mb-3 row">
+                        <div class="col-md-4">
+                        <label class="text-dark text-start d-block">所在地</label>
+                        <select id="sw-fixed_location" class="form-select text-dark">
+                        ${locationOptions}
+                        </select>
+                        </div>
+                        <div class="col-md-4">
+                        <label class="text-dark text-start d-block">保管人</label>
+                        <input type="text" id="sw-custodian_id" class="form-control text-dark" value="${propertyData.custodian_id}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">保管人名稱</label>
+                        <input type="text" id="sw-custodian_name" class="form-control text-dark" value="${propertyData.custodian_name}" >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">耐用年數-原表</label>
+                        <input type="text" id="sw-useful_life_original" class="form-control text-dark"  value="${propertyData.useful_life_original}"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">耐用年數-新表</label>
+                        <input type="text" id="sw-useful_life_new" class="form-control text-dark" value="${propertyData.useful_life_new}"  >
+                    </div>
+                     <div class="col-md-4">
+                        <label class="text-dark text-start d-block">耐用年數-換算</label>
+                        <input type="text" id="sw-useful_life_converted" class="form-control text-dark"  value="${propertyData.useful_life_converted}"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">取得時間</label>
+                        <input type="text" id="sw-acquisition_date" class="form-control text-dark" value="${propertyData.acquisition_date}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">截止提列日期</label>
+                        <input type="text" id="sw-depreciation_end_date" class="form-control text-dark"  value="${propertyData.depreciation_end_date}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">數量/單位</label>
+                        <input type="text" id="sw-quantity" class="form-control text-dark" value="${propertyData.quantity}"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">取得原價</label>
+                        <input type="text" id="sw-acquisition_cost" class="form-control text-dark"  value="${propertyData.acquisition_cost}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">改良或修理</label>
+                        <input type="text" id="sw-improvement_cost" class="form-control text-dark"   value="${propertyData.improvement_cost}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">預留殘值</label>
+                        <input type="text" id="sw-salvage_value" class="form-control text-dark"  value="${propertyData.salvage_value}" >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">取得原價減預留殘值</label>
+                        <input type="text" id="sw-net_acquisition_cost" class="form-control text-dark" value="${propertyData.net_acquisition_cost}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">本期提列數</label>
+                        <input type="text" id="sw-current_period_depreciation" class="form-control text-dark"  value="${propertyData.current_period_depreciation}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">截至本期累計數</label>
+                        <input type="text" id="sw-accumulated_depreciation" class="form-control text-dark" value="${propertyData.accumulated_depreciation}" >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">未折減餘額</label>
+                        <input type="text" id="sw-net_book_value" class="form-control text-dark" value="${propertyData.net_book_value}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">改良修理序號</label>
+                        <input type="text" id="sw-improvement_serial_no" class="form-control text-dark" value="${propertyData.improvement_serial_no}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">設備或生財器具名稱</label>
+                        <input type="text" id="sw-equipment_name" class="form-control text-dark" value="${propertyData.equipment_name}"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">財產目錄大類名稱</label>
+                        <input type="text" id="sw-catalog_major_name" class="form-control text-dark"  value="${propertyData.catalog_major_name}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">ASFA004C</label>
+                        <input type="text" id="sw-asset_id" class="form-control text-dark" value="${propertyData.asset_id}"   >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">廠牌代號</label>
+                        <input type="text" id="sw-brand_id" class="form-control text-dark"  value="${propertyData.brand_id}"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">廠牌名稱</label>
+                        <input type="text" id="sw-brand_name" class="form-control text-dark"  value="${propertyData.brand_name}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">供應商代號</label>
+                        <input type="text" id="sw-vendor_id" class="form-control text-dark"  value="${propertyData.vendor_id}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">廠商名稱</label>
+                        <input type="text" id="sw-vendor_name" class="form-control text-dark"  value="${propertyData.vendor_name}" >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">固資傳票類別</label>
+                        <input type="text" id="sw-voucher_type" class="form-control text-dark" value="${propertyData.voucher_type}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">不重算註記</label>
+                        <input type="text" id="sw-is_depreciation_recalc_excluded" class="form-control text-dark" value="${propertyData.is_depreciation_recalc_excluded}"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">轉B帳註記</label>
+                        <input type="text" id="sw-is_transferred_to_b_account" class="form-control text-dark"   value="${propertyData.is_transferred_to_b_account}">
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">部門\工地編號</label>
+                        <input type="text" id="sw-department_id" class="form-control text-dark"  value="${propertyData.department_id}"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">條碼代號</label>
+                        <input type="text" id="sw-barcode" class="form-control text-dark"  value="${propertyData.barcode}"  >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">資產屬性</label>
+                        <input type="text" id="sw-asset_attribute" class="form-control text-dark"  value="${propertyData.asset_attribute}"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">固資分類</label>
+                        <input type="text" id="sw-asset_category" class="form-control text-dark"  value="${propertyData.asset_category}" >
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-dark text-start d-block">折舊方法(中文)</label>
+                        <input type="text" id="sw-depreciation_method" class="form-control text-dark"  value="${propertyData.depreciation_method}"  >
+                    </div>
+                </div>
+
+                <div class="form-group mb-3 row">
+                    <div class="col-md-12">
+                        <label class="text-dark text-start d-block">備註(型號)</label>
+                        <textarea class="form-control text-dark" id="sw-remark" rows="4" >${propertyData.remark}
+                    </textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3 row">
+                <div class="col-md-12">
+                      <label for="sw-imageUpload" class="btn btn-sm btn-outline-success rounded-pill shadow-sm d-flex align-items-center">
+                        <i class="bi bi-upload me-2"></i> <span>上傳圖片</span>
+                    </label>
+      <!-- 調整：檔案列表靠左、區塊有底色、間距、陰影 -->
+  <div class="bg-light border rounded mt-2 p-2 shadow-sm">
+    <strong class="d-block text-start text-secondary small mb-1">已選擇檔案：</strong>
+    <ul id="fileList" class="list-group list-group-flush small text-start mb-0">
+      <!-- 這裡會由 JS 自動插入檔名 -->
+    </ul>
+  </div>
+                <hr class="my-4">
+                 <input type="file" id="sw-imageUpload" style="display:none;" accept="image/*" multiple />
+                    <label class="text-dark text-start d-block mb-2">圖片檢視</label>
+                    <div class="d-flex flex-wrap gap-3" id="property-images">
+                         ${imageButtonsHtml}
+                    </div>
+                </div>
+                </div>
+                    `,
+                    showCloseButton: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: false,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    showConfirmButton: canEdit,
+                    confirmButtonText: '更新',
+                    cancelButtonText: '取消',
+                    width: 800,
+                    willOpen: () => {
+                        // 綁定所有圖片檢視按鈕事件
+                        propertyData.fixedAssetFileDtoList.forEach((file, index) => {
+                            let imageUrl = '/chyunn/asset/fixedAsset_file_' + file.sub_category_id + '/' + file.fileName;
+
+                            // 1. 將反斜線換成正斜線，標準化路徑
+                            imageUrl = imageUrl.replace(/\\/g, '/');
+
+                            // 2. 移除 //192.168 開頭到 equipment_ 數字/ 的部分（包含那段）
+                            const cleanedUrl = imageUrl.replace(/\/\/192\.168[^]*?equipment_\d+\//, '');
+
+                            console.log(cleanedUrl);
+                            $(`#viewImage${index}`).on('click', function (e) {
+                                e.preventDefault();
+                                Swal.fire({
+                                    title: '檢視圖片',
+                                    html: `<img src="${cleanedUrl}" class="img-fluid" alt="檢視圖片" style="max-height: 800px; width: 100%;">`,
+                                    width: 800,              // 整個 Swal 彈窗寬度 800px
+                                    showCloseButton: true,
+                                    showCancelButton: true,
+                                    showConfirmButton: true,
+                                    confirmButtonText: '刪除圖片',
+                                    cancelButtonText: '關閉',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    allowEnterKey: false,
+                                    preConfirm: () => {
+                                        return Swal.fire({
+                                            title: '確定要刪除這張圖片嗎？',
+                                            text: '刪除後將無法復原',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonText: '是的，刪除',
+                                            cancelButtonText: '取消',
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                return $.ajax({
+                                                    type: 'DELETE',
+                                                    url: '/chyunn/asset_manage/delete_image_FixedAsset',
+                                                    data: {
+                                                        fileId: file.fileId,  // ← 這個需要你在後端對應刪除用的 fileId
+                                                        sub_category_id: file.sub_category_id
+                                                    }
+                                                }).done(() => {
+                                                    Swal.fire('已刪除', '圖片已成功刪除', 'success').then(() => {
+                                                        // 從列表中移除該圖片資訊（依據 fileId）
+                                                        propertyData.fixedAssetFileDtoList = propertyData.fixedAssetFileDtoList.filter(
+                                                            f => f.fileId !== file.fileId
+                                                        );
+                                                        // 重新開啟主視窗
+                                                        showPropertyModal(propertyData, locationOptions);
+                                                    });
+                                                }).fail(() => {
+                                                    Swal.fire('錯誤', '刪除失敗，請稍後再試', 'error');
+                                                });
+                                            } else {
+                                                return false;
+                                            }
+                                        });
+                                    },
+                                    willClose: () => {
+                                        // 關閉後再重新打開主視窗
+                                        setTimeout(() => {
+                                            showPropertyModal(propertyData, locationOptions);
+                                        }, 100);
+                                    }
+                                });
+                            });
+                        });
+                    },
+                    customClass: {
+                        // title: 'text-start px-2'  // 拿掉 w-100，padding 改小一點
+                    },
+                    didOpen: () => {
+                        $("#sw-imageUpload").on("change", function (event) {
+                            const fileList = $("#fileList");
+                            fileList.empty(); // 清空現有列表
+
+                            const files = event.target.files;
+                            if (files.length > 0) {
+                                for (let i = 0; i < files.length; i++) {
+                                    const fileName = files[i].name;
+                                    fileList.append(`<li class="list-group-item py-1 px-2 small">${fileName}</li>`);
+                                }
+                            } else {
+                                fileList.append(`<li class="list-group-item text-muted py-1 px-2 small">尚未選擇圖片</li>`);
+                            }
+                        });
+                        document.getElementById('history-btn').addEventListener('click', () => {
+                            let historyHtml = `
+                        <div class="text-start">
+                        <p class="mb-1"><strong>財產細項編號:</strong>${propertyData.sub_category_id}</p>
+                        <p class="mb-3"><strong>名稱：</strong>${propertyData.sub_category_name}</p>
+                        <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width:15%;">日期</th>
+                            <th style="width:10%;">保管人</th>
+                            <th style="width:15%;">放置處</th>
+                            <th>異動記錄</th>
+                        </tr>
+                        </thead>
+                        <tbody>`;
+
+                            propertyData.fixedAssetHistoryDtoList.forEach(item => {
+                                historyHtml += `
+                        <tr>
+                        <td>${item.date}</td>
+                        <td>${item.custodian}</td>
+                        <td>${item.fixed_location}</td>
+                        <td>${item.change_record}</td>
+                        </tr>`;
+                            });
+
+                            historyHtml += `
+                        </tbody>
+                        </table>
+                        </div>`;
+
+                            Swal.fire({
+                                title: '歷史紀錄',
+                                html: historyHtml,
+                                showCloseButton: true,
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                width: 800,
+                                willClose: () => {
+                                    // 關閉時重新打開主視窗
+                                    setTimeout(() => {
+                                        showPropertyModal(propertyData, locationOptions);
+                                    }, 100);
+                                }
+
+                            });
+                        });
+                    },
+                    preConfirm: () => {
+                        return {
+                            major_category_id: document.getElementById("sw-major_category_id").value,
+                            major_category_name: document.getElementById("sw-major_category_name").value,
+                            sub_category_id: document.getElementById("sw-sub_category_id").value,
+                            sub_category_name: document.getElementById("sw-sub_category_name").value,
+                            fixed_location: document.getElementById("sw-fixed_location").value,
+                            unit: document.getElementById("sw-unit").value,
+                            acquisition_date: document.getElementById("sw-acquisition_date").value,
+                            useful_life_original: document.getElementById("sw-useful_life_original").value,
+                            useful_life_new: document.getElementById("sw-useful_life_new").value,
+                            useful_life_converted: document.getElementById("sw-useful_life_converted").value,
+                            depreciation_end_date: document.getElementById("sw-depreciation_end_date").value,
+                            remark: document.getElementById("sw-remark").value,
+                            quantity: document.getElementById("sw-quantity").value,
+                            acquisition_cost: document.getElementById("sw-acquisition_cost").value,
+                            improvement_cost: document.getElementById("sw-improvement_cost").value,
+                            salvage_value: document.getElementById("sw-salvage_value").value,
+                            net_acquisition_cost: document.getElementById("sw-net_acquisition_cost").value,
+                            current_period_depreciation: document.getElementById("sw-current_period_depreciation").value,
+                            accumulated_depreciation: document.getElementById("sw-accumulated_depreciation").value,
+                            net_book_value: document.getElementById("sw-net_book_value").value,
+                            improvement_serial_no: document.getElementById("sw-improvement_serial_no").value,
+                            equipment_name: document.getElementById("sw-equipment_name").value,
+                            catalog_major_name: document.getElementById("sw-catalog_major_name").value,
+                            asset_id: document.getElementById("sw-asset_id").value,
+                            custodian_id: document.getElementById("sw-custodian_id").value,
+                            custodian_name: document.getElementById("sw-custodian_name").value,
+                            brand_id: document.getElementById("sw-brand_id").value,
+                            brand_name: document.getElementById("sw-brand_name").value,
+                            vendor_id: document.getElementById("sw-vendor_id").value,
+                            vendor_name: document.getElementById("sw-vendor_name").value,
+                            voucher_type: document.getElementById("sw-voucher_type").value,
+                            is_depreciation_recalc_excluded: document.getElementById("sw-is_depreciation_recalc_excluded").checked,
+                            is_transferred_to_b_account: document.getElementById("sw-is_transferred_to_b_account").checked,
+                            department_id: document.getElementById("sw-department_id").value,
+                            barcode: document.getElementById("sw-barcode").value,
+                            asset_attribute: document.getElementById("sw-asset_attribute").value,
+                            asset_category: document.getElementById("sw-asset_category").value,
+                            depreciation_method: document.getElementById("sw-depreciation_method").value,
+
+                            fileInput: document.getElementById('sw-imageUpload').files
+                        };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let updatedData = result.value;
+                        console.log(updatedData)
+                        // 新增這段：詢問是否更新歷史紀錄
+                        Swal.fire({
+                            title: "是否更新歷史紀錄？",
+                            text: "是否要將這次變更記錄到歷史紀錄中？",
+                            icon: "question",
+                            showCloseButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: "是，更新",
+                            cancelButtonText: "否，不用",
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            allowEnterKey: false,
+                            focusConfirm: false,
+                        }).then((historyResult) => {
+                            // 檢查是否是用 confirm 或 cancel 關閉，才執行後續動作
+                            if (historyResult.isConfirmed || historyResult.isDismissed) {
+
+                                // 按右上角 X，不更新
+                                if (historyResult.dismiss === Swal.DismissReason.close) {
+                                    console.log("使用者關閉視窗，不更新");
+                                    return;
+                                }
+
+                                let updateHistory = historyResult.isConfirmed;
+                                console.log(updateHistory);
+
+                                // 建立 FormData
+                                const formData = new FormData();
+                                formData.append('major_category_id', updatedData.major_category_id);
+                                formData.append('major_category_name', updatedData.major_category_name);
+                                formData.append('sub_category_id', updatedData.sub_category_id);
+                                formData.append('sub_category_name', updatedData.sub_category_name);
+                                formData.append('fixed_location', updatedData.fixed_location);
+                                formData.append('unit', updatedData.unit);
+                                formData.append('acquisition_date', updatedData.acquisition_date);
+                                formData.append('useful_life_original', updatedData.useful_life_original);
+                                formData.append('useful_life_new', updatedData.useful_life_new);
+                                formData.append('useful_life_converted', updatedData.useful_life_converted);
+                                formData.append('depreciation_end_date', updatedData.depreciation_end_date);
+                                formData.append('remark', updatedData.remark);
+                                formData.append('quantity', updatedData.quantity);
+                                formData.append('acquisition_cost', updatedData.acquisition_cost);
+                                formData.append('improvement_cost', updatedData.improvement_cost);
+                                formData.append('salvage_value', updatedData.salvage_value);
+                                formData.append('net_acquisition_cost', updatedData.net_acquisition_cost);
+                                formData.append('current_period_depreciation', updatedData.current_period_depreciation);
+                                formData.append('accumulated_depreciation', updatedData.accumulated_depreciation);
+                                formData.append('net_book_value', updatedData.net_book_value);
+                                formData.append('improvement_serial_no', updatedData.improvement_serial_no);
+                                formData.append('equipment_name', updatedData.equipment_name);
+                                formData.append('catalog_major_name', updatedData.catalog_major_name);
+                                formData.append('asset_id', updatedData.asset_id);
+                                formData.append('custodian_id', updatedData.custodian_id);
+                                formData.append('custodian_name', updatedData.custodian_name);
+                                formData.append('brand_id', updatedData.brand_id);
+                                formData.append('brand_name', updatedData.brand_name);
+                                formData.append('vendor_id', updatedData.vendor_id);
+                                formData.append('vendor_name', updatedData.vendor_name);
+                                formData.append('voucher_type', updatedData.voucher_type);
+                                formData.append('is_depreciation_recalc_excluded', updatedData.is_depreciation_recalc_excluded);
+                                formData.append('is_transferred_to_b_account', updatedData.is_transferred_to_b_account);
+                                formData.append('department_id', updatedData.department_id);
+                                formData.append('barcode', updatedData.barcode);
+                                formData.append('asset_attribute', updatedData.asset_attribute);
+                                formData.append('asset_category', updatedData.asset_category);
+                                formData.append('depreciation_method', updatedData.depreciation_method);
+                                formData.append('update_history', updateHistory);
+
+                                // 圖片
+                                if (updatedData.fileInput && updatedData.fileInput.length > 0) {
+                                    for (let i = 0; i < updatedData.fileInput.length; i++) {
+                                        formData.append('files', updatedData.fileInput[i]);  // 多檔用相同欄位名 'files'
+                                    }
+                                }
+                                for (let pair of formData.entries()) {
+                                    console.log(pair[0] + ':', pair[1]);
+                                }
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '/chyunn/asset_manage/updateFixedAsset',
+                                    processData: false,
+                                    contentType: false,
+                                    data:
+                                        formData
+                                    ,
+                                    success: function (response) {
+                                        if (response.code === 200) {
+                                            Swal.fire("更新成功！", "資料已成功更新", "success").then(() => {
+                                                $(".property-id[data-id='" + response.fixedAssetDto.sub_category_id + "']").click();
+                                            });
+
+                                            let $row = $(`.property-id[data-id='${response.fixedAssetDto.sub_category_id}']`).closest("tr");
+                                            $row.find("td:eq(1)").text(response.fixedAssetDto.sub_category_name);
+                                            $row.find("td:eq(2)").text(response.fixedAssetDto.custodian_name);
+                                            $row.find("td:eq(3)").text(response.fixedAssetDto.fixed_location);
+                                            $row.find("td:eq(4)").text(response.fixedAssetDto.remark);
+                                        } else {
+                                            Swal.fire("錯誤", "更新失敗，請稍後再試", "error");
+                                        }
+                                    },
+                                    error: function (xhr, status, error) {
+                                        let errorMessage = "發生錯誤，請稍後再試";
+                                        try {
+                                            let response = JSON.parse(xhr.responseText);
+                                            errorMessage = response.message || errorMessage;
+                                        } catch (e) {
+                                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                                errorMessage = "伺服器未回應或發生錯誤。";
+                                            } else {
+                                                errorMessage = xhr.responseText || errorMessage;
+                                            }
+                                        }
+
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: '操作失敗',
+                                            text: errorMessage,
+                                        }).then(() => {
+                                            //  錯誤後重新打開原本的財產視窗
+                                            showPropertyModal(propertyData, locationOptions);
+                                        });
+                                    }
+                                });
+                            }
+                        });
+
+                    }
+                });
+            }
+
+            // 使用事件委託來綁定 `property-id` 的點擊事件
+            $(document).on("click", ".property-id", function (event) {
+                event.preventDefault();
+                let propertyId = $(this).data("id");
+                console.log(propertyId);
+                $.ajax({
+                    type: 'POST',
+                    url: '/chyunn/asset/getFixedAssetDetails',
+                    data: { id: propertyId },
+                    success: function (response) {
+                        let propertyData = response.data;
+                        console.log(propertyData)
+                        let locationOptions = `<option value="">-- 請選擇放置處 --</option>`;
+                        locationOptions += response.locations.map(function (location) {
+                            return `<option value="${location.name}" ${propertyData.fixed_location === location.name ? "selected" : ""}>${location.name}</option>`;
+                        }).join("");
+
+                        showPropertyModal(propertyData, locationOptions)
+                    },
+                    error: function (xhr, status, error) {
+                        let errorMessage = "發生錯誤，請稍後再試";
+                        try {
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                errorMessage = "伺服器未回應或發生錯誤。";
+                            } else {
+                                errorMessage = xhr.responseText || errorMessage;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操作失敗',
+                            text: errorMessage,
+                        });
+                    }
+
+                });
+            });
+
+            // $('#inventorySettingBtn').on('click', function () {
+            //     event.preventDefault();
+            //     Swal.fire({
+            //         title: '設定盤點數量',
+            //         input: 'number',
+            //         inputAttributes: {
+            //             min: 1
+            //         },
+            //         inputLabel: '請輸入要隨機產生的財產數量',
+            //         showCloseButton: true,
+            //         showCancelButton: true,
+            //         confirmButtonText: '產生',
+            //         cancelButtonText: '取消',
+            //         inputValidator: (value) => {
+            //             if (!value || value <= 0) {
+            //                 return '請輸入大於 0 的數字';
+            //             }
+            //         }
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             const count = parseInt(result.value, 10);
+            //             // 呼叫後端 API 產生隨機盤點資料
+            //             $.ajax({
+            //                 url: '/chyunn/asset/random-inventory',
+            //                 method: 'POST',
+            //                 contentType: 'application/json',
+            //                 data: JSON.stringify({ count: count }),
+            //                 success: function (response) {
+            //                     if (response.code === 200) {
+            //                         const downloadUrl = '/chyunn/asset/random-inventory-download';
+            //                         $.ajax({
+            //                             url: downloadUrl,  // 發送請求的 URL
+            //                             type: 'GET',  // 請求方法
+            //                             success: function (response) {
+            //                                 // 如果請求成功，顯示成功訊息並觸發檔案下載
+            //                                 Swal.fire('成功！', '已成功產生隨機盤點資料。', 'success').then(() => {
+            //                                     $.ajax({
+            //                                         url: '/chyunn/asset/uncompleted-inventory',
+            //                                         method: 'POST',
+            //                                         success: function (response) {
+            //                                             if (!response.data || response.data.length === 0) {
+            //                                                 Swal.fire('資訊', '目前沒有任何未完成的盤點項目。', 'info');
+            //                                                 return;
+            //                                             }
+
+            //                                             let htmlList = `
+            //                                             <div class="text-start">
+            //                                             <table class="table table-sm table-bordered">
+            //                                             <thead class="table-light">
+            //                                             <tr>
+            //                                             <th style="width:10%;">最終財產編號</th>
+            //                                             <th style="width:10%;">名稱</th>
+            //                                             <th style="width:15%;">放置處</th>
+            //                                             </tr>
+            //                                             </thead>
+            //                                             <tbody>`;
+
+            //                                             response.data.forEach(item => {
+            //                                                 htmlList += `
+            //                                             <tr>
+            //                                             <td>${item.final_property_id}</td>
+            //                                             <td>${item.name}</td>
+            //                                             <td>${item.location}</td>
+            //                                             </tr>`;
+            //                                             });
+
+            //                                             htmlList += `
+            //                                             </tbody>
+            //                                             </table>
+            //                                             </div>`;
+
+            //                                             Swal.fire({
+            //                                                 title: '未完成盤點項目',
+            //                                                 html: htmlList,
+            //                                                 icon: 'info',
+            //                                                 width: 700,
+            //                                                 showCloseButton: true,
+            //                                                 confirmButtonText: '知道了'
+            //                                             });
+            //                                         },
+            //                                         error: function () {
+            //                                             Swal.fire('錯誤', '查詢未完成盤點項目失敗。', 'error');
+            //                                         }
+            //                                     });
+            //                                 });
+            //                                 window.location.href = downloadUrl;  // 啟動檔案下載
+            //                             },
+            //                             error: function (xhr, status, error) {
+            //                                 // 當請求失敗，顯示錯誤訊息
+            //                                 if (xhr.status === 500) {
+            //                                     // 如果是 500 內部伺服器錯誤，顯示錯誤訊息
+            //                                     Swal.fire('錯誤', '伺服器內部錯誤，請稍後再試！', 'error');
+            //                                 } else {
+            //                                     // 處理其他狀況的錯誤
+            //                                     Swal.fire('錯誤', '發生未預期的錯誤，請稍後再試！', 'error');
+            //                                 }
+            //                             }
+            //                         });
+            //                     } else {
+            //                         Swal.fire('錯誤', response.message || '產生失敗，請稍後再試', 'error');
+            //                     }
+            //                 },
+            //                 error: function (xhr) {
+            //                     if (xhr.status === 409) {
+            //                         const res = xhr.responseJSON;
+
+            //                         Swal.fire({
+            //                             title: '提示',
+            //                             text: res.message || '有盤點未完成，請先完成後再操作。',
+            //                             icon: 'warning',
+            //                             showCloseButton: true,
+            //                             confirmButtonText: '查看',
+            //                         }).then((result) => {
+            //                             if (result.isConfirmed) {
+            //                                 // 發送 AJAX 查詢未完成盤點清單
+            //                                 $.ajax({
+            //                                     url: '/chyunn/asset/uncompleted-inventory',
+            //                                     method: 'POST',
+            //                                     success: function (response) {
+            //                                         console.log(response)
+            //                                         let htmlList = `
+            //                                         <div class="text-start">
+            //                                         <table class="table table-sm table-bordered">
+            //                                         <thead class="table-light">
+            //                                         <tr>
+            //                                             <th style="width:10%;">最終財產編號</th>
+            //                                             <th style="width:10%;">名稱</th>
+            //                                             <th style="width:15%;">放置處</th>
+            //                                         </tr>
+            //                                         </thead>
+            //                                         <tbody>`;
+
+            //                                         response.data.forEach(item => {
+            //                                             htmlList += `
+            //                                         <tr>
+            //                                         <td>${item.final_property_id}</td>
+            //                                         <td>${item.name}</td>
+            //                                         <td>${item.location}</td>
+            //                                         </tr>`;
+            //                                         });
+
+            //                                         htmlList += `
+            //                                         </tbody>
+            //                                         </table>
+            //                                         </div>`;
+
+
+            //                                         Swal.fire({
+            //                                             title: '未完成盤點項目',
+            //                                             html: htmlList,
+            //                                             icon: 'info',
+            //                                             width: 700,
+            //                                             showCloseButton: true,
+            //                                             confirmButtonText: '知道了'
+            //                                         });
+            //                                     },
+            //                                     error: function () {
+            //                                         Swal.fire('錯誤', '查詢未完成盤點項目失敗。', 'error');
+            //                                     }
+            //                                 });
+            //                             }
+            //                         });
+            //                     } else if (xhr.status === 400) {
+            //                         const res = xhr.responseJSON;
+            //                         Swal.fire('提示', res.message || '伺服器錯誤，請稍後再試', 'warning');
+            //                     } else if (xhr.status === 410) {
+            //                         const res = xhr.responseJSON;
+            //                         Swal.fire({
+            //                             title: '提示',
+            //                             text: res.message || '目前沒有可供盤點的項目',
+            //                             icon: 'question',
+            //                             showCancelButton: true,
+            //                             showCloseButton: true,
+            //                             confirmButtonText: '開始新一輪盤點',
+            //                             cancelButtonText: '取消'
+            //                         }).then((result) => {
+            //                             if (result.isConfirmed) {
+            //                                 $.post('/chyunn/asset/resetInventory', function (res) {
+            //                                     Swal.fire('完成', res.message || '已開始新一輪盤點', 'success');
+            //                                 }).fail(function (xhr) {
+            //                                     const msg = xhr.responseJSON?.message || '重製失敗，請稍後再試';
+            //                                     Swal.fire('錯誤', msg, 'error');
+            //                                 });
+            //                             }
+            //                         })
+            //                     } else {
+            //                         Swal.fire('錯誤', '伺服器錯誤，請稍後再試', 'error');
+            //                     }
+            //                 }
+            //             });
+            //         }
+            //     });
+            // });
+
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-管理-編輯使用者</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* btn-query 配色，同 #btnQuery */
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover,
+        .btn-query:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+
+        /* 左側樹狀 hover 樣式 */
+        nav ul li ul li>a {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #333;
+        }
+
+        nav ul li ul li>a:hover {
+            background: rgba(26, 179, 148, 0.1);
+            color: #1ab394;
+            text-decoration: none;
+        }
+
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover {
+            background-color: #189c85;
+            border-color: #189c85;
+        }
+
+        .sidebar-link strong,
+        .sidebar-link i {
+            color: #189c85;
+        }
+
+        /* 高亮樣式 */
+        a.position-item.selected {
+            background: rgba(26, 179, 148, 0.1);
+            color: #1ab394;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <div class="content container-fluid" style="margin-top:80px;">
+        <div class="row">
+            <nav style="width: 15%; margin-top: 2%;">
+                <div class="d-flex justify-content-between align-items-center mb-3 calendar-header">
+                    <h5>部門/職位清單</h5>
+                </div>
+                <ul class="list-unstyled">
+                    <!-- ===== 第一層：部門 ===== -->
+                    <li th:each="dept : ${orgTree}">
+                        <!-- 部門標題 -->
+                        <a class="d-flex justify-content-start align-items-center sidebar-link"
+                            data-bs-toggle="collapse" th:href="'#dept' + ${dept.id}" aria-expanded="false">
+                            <strong th:text="${dept.name}">部門</strong>
+                            <i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <!-- 部門內容：職位＋子單位 -->
+                        <div class="collapse" th:id="'dept' + ${dept.id}">
+                            <ul class="list-unstyled ps-3">
+                                <!-- 第一層·項目 A：直屬部門職位 -->
+                                <li th:each="p : ${dept.positions}" th:if="${p.subUnit} == null">
+                                    <a href="#" class="position-item" th:data-dept="${dept.name}"
+                                        th:data-deptid="${dept.id}" th:data-posid="${p.id}"
+                                        th:data-pos="|${dept.id}${p.id}|" th:text="${p.name}"
+                                        th:data-name="${p.name}">職位名稱</a>
+                                </li>
+                                <!-- 第一層·項目 B：第二層子單位 -->
+                                <li th:each="sub : ${dept.subUnits}">
+                                    <!-- 第二層：子單位標題 -->
+                                    <a class="d-flex justify-content-start align-items-center ms-2 sidebar-link"
+                                        data-bs-toggle="collapse" th:href="'#sub-' + ${sub.id}" aria-expanded="false"
+                                        style="font-size:.9em;">
+                                        <strong th:text="${sub.name}">子單位</strong>
+                                        <i class="bi bi-chevron-down ms-auto"></i>
+                                    </a>
+                                    <!-- 第二層：子單位內容 -->
+                                    <div class="collapse" th:id="'sub-' + ${sub.id}">
+                                        <ul class="list-unstyled ps-4 mb-0">
+                                            <li th:each="sp : ${sub.positions}" th:if="${sp.subSubUnit} == null">
+                                                <a href="#" class="position-item" th:data-dept="${dept.name}"
+                                                    th:data-deptid="${dept.id}" th:data-subid="${sub.id}"
+                                                    th:data-posid="${sp.id}" th:data-sub="${sub.name}"
+                                                    th:data-pos="|${dept.id}${sub.id}${sp.id}|"
+                                                    th:data-name="${sp.name}" th:text="${sp.name}">職位名稱</a>
+                                            </li>
+                                            <!-- 第二層·項目 B：第三層子子單位 -->
+                                            <li th:each="sub2 : ${sub.subSubUnits}">
+                                                <!-- 第三層：子子單位標題 -->
+                                                <a class="d-flex justify-content-start align-items-center ms-3 sidebar-link"
+                                                    data-bs-toggle="collapse"
+                                                    th:href="'#sub-' + ${sub.id} + '-' + ${sub2.id}"
+                                                    aria-expanded="false" style="font-size:.85em;">
+                                                    <strong th:text="${sub2.name}">子子單位</strong>
+                                                    <i class="bi bi-chevron-down ms-auto"></i>
+                                                </a>
+                                                <!-- 第三層：子子單位內容 -->
+                                                <div class="collapse" th:id="'sub-' + ${sub.id} + '-' + ${sub2.id}">
+                                                    <ul class="list-unstyled ps-5 mb-0">
+                                                        <!-- 第三層·項目：子子單位的職位 -->
+                                                        <li th:each="sp2 : ${sub2.positions}">
+                                                            <a href="#" class="position-item"
+                                                                th:data-dept="${dept.name}"
+                                                                th:data-sub="${sub.name} + '-' + ${sub2.name}"
+                                                                th:data-pos="|${dept.id}${sub.id}${sub2.id}${sp2.id}|"
+                                                                th:data-name="${sp2.name}" th:data-deptid="${dept.id}"
+                                                                th:data-subid="${sub.id}" th:data-sub2id="${sub2.id}"
+                                                                th:data-posid="${sp2.id}" th:text="${sp2.name}">職位名稱</a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <!-- 右側表單 -->
+            <div class="col-9 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 calendar-header"
+                    style="margin-top: 10px;">
+                    <h5>編輯使用者</h5>
+                </div>
+
+                <!-- 1) 綁定 user 物件，並送到 POST /permission/update_user -->
+                <form th:object="${user}" class="row g-3">
+
+                    <!-- 隱藏 loginId，表單送出時會帶回 -->
+                    <input type="hidden" th:field="*{loginId}" />
+
+                    <!-- 部門 -->
+                    <div class="col-md-4">
+                        <label class="form-label">部門</label>
+                        <input id="inputDept" th:field="*{department.name}" class="form-control"
+                            th:disabled="${userPerms.contains('ROLE_ADMIN')}" readonly />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">單位</label>
+                        <input id="inputSub" class="form-control" readonly
+                            th:disabled="${userPerms.contains('ROLE_ADMIN')}"
+                            th:value="|${user.subUnit != null ? user.subUnit.name : ''} - ${user.subSubUnit != null ? user.subSubUnit.name : ''}|" />
+                    </div>
+
+                    <!-- 職稱 -->
+                    <div class="col-md-4">
+                        <label class="form-label">職稱</label>
+                        <input id="inputPos" th:field="*{position.name}" class="form-control" readonly />
+                    </div>
+
+                    <!-- 姓名 -->
+                    <div class="col-md-4">
+                        <label class="form-label" for="username">姓名</label>
+                        <input id="username" th:field="*{username}" class="form-control" required />
+                    </div>
+
+                    <!-- 工號 -->
+                    <div class="col-md-4">
+                        <label class="form-label" for="employee_no">工號</label>
+                        <input id="employee_no" th:field="*{employee_no}" class="form-control" required />
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-4">
+                        <label class="form-label" for="email">Email</label>
+                        <input id="email" type="email" th:field="*{email}" class="form-control" required />
+                    </div>
+
+                    <!-- 帳號 loginId（只讀） -->
+                    <div class="col-md-4">
+                        <label class="form-label" for="account">帳號</label>
+                        <input id="account" th:field="*{loginId}" class="form-control" required />
+                    </div>
+
+                    <!-- 密碼（留空表示不變更） -->
+                    <div class="col-md-4">
+                        <label class="form-label" for="password">密碼</label>
+                        <input id="password" type="password" th:field="*{password}" class="form-control"
+                            placeholder="留空白代表不變更" readonly />
+                    </div>
+
+                    <!-- 確認密碼，一開始隱藏 -->
+                    <div class="col-md-4" id="confirmPwdGroup" style="display:none;">
+                        <label class="form-label" for="confirmPassword">確認密碼</label>
+                        <input id="confirmPassword" type="password" class="form-control" placeholder="再次輸入新密碼"
+                            readonly />
+                    </div>
+
+
+
+                    <div class="col-md-12">
+                        <label>權限
+                            <span th:if="${userPerms.contains('ROLE_ADMIN')}" class="text-muted">(管理員)</span>
+                        </label>
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>模組</th>
+                                    <th class="text-center">初級權限</th>
+                                    <th class="text-center">管理權限</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 公佈欄管理 -->
+                                <tr>
+                                    <td>公佈欄管理</td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="adminPermissions" value="ROLE_BULLETIN_ADMIN"
+                                            th:checked="${userPerms.contains('ROLE_BULLETIN_ADMIN') or userPerms.contains('ROLE_ADMIN')}"
+                                            th:disabled="${userPerms.contains('ROLE_ADMIN')}" id="admin_bulletin" />
+                                        <label for="admin_bulletin">管理</label>
+                                    </td>
+                                </tr>
+                                <!-- 事件反應 (模組ID=1) -->
+                                <tr>
+                                    <td>事件反應</td>
+                                    <td class="text-center">
+
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="adminPermissions" value="ROLE_INCIDENT_ADMIN"
+                                            th:checked="${userPerms.contains('ROLE_INCIDENT_ADMIN') or userPerms.contains('ROLE_ADMIN')}"
+                                            th:disabled="${userPerms.contains('ROLE_ADMIN')}" id="admin_1" />
+                                        <label for="admin_1">管理</label>
+                                    </td>
+                                </tr>
+
+                                <!-- 財產管理 (模組ID=2) -->
+                                <tr>
+                                    <td>財產管理</td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="basicPermissions" value="ROLE_ASSET_VIEW"
+                                            th:checked="${userPerms.contains('ROLE_ASSET_VIEW') or userPerms.contains('ROLE_ADMIN')}"
+                                            th:disabled="${userPerms.contains('ROLE_ADMIN')}" id="basic_2" />
+                                        <label for="basic_2">檢視</label>
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="adminPermissions" value="ROLE_ASSET_ADMIN"
+                                            th:checked="${userPerms.contains('ROLE_ASSET_ADMIN') or userPerms.contains('ROLE_ADMIN')}"
+                                            th:disabled="${userPerms.contains('ROLE_ADMIN')}" id="admin_2" />
+                                        <label for="admin_2">管理</label>
+                                    </td>
+                                </tr>
+
+                                <!-- 使用者帳號 (模組ID=3) -->
+                                <tr>
+                                    <td>權限管理</td>
+                                    <td class="text-center">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="adminPermissions" value="ROLE_USER_ADMIN"
+                                            th:checked="${userPerms.contains('ROLE_USER_ADMIN') or userPerms.contains('ROLE_ADMIN')}"
+                                            th:disabled="${userPerms.contains('ROLE_ADMIN')}" id="admin_3" />
+                                        <label for="admin_3">管理</label>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+                <input type="hidden" id="selectedDeptId" th:value="${user.department.id}" />
+                <input type="hidden" id="selectedSubId" th:value="${user.subUnit != null ? user.subUnit.id : ''}" />
+                <input type="hidden" id="selectedSub2Id"
+                    th:value="${user.subSubUnit != null ? user.subSubUnit.id : ''}" />
+                <input type="hidden" id="selectedPositionId" th:value="${user.position.id}" />
+                <input type="hidden" id="originalLoginId" name="originalLoginId" th:value="${user.loginId}" />
+                <div class="col-12 d-inline"
+                    th:if="${user.loginId != 'administrator' or #lists.contains(userRoles, 'ROLE_ADMIN')}">
+                    <button type="button" class="btn btn-query me-2" id="updateUser">更新使用者</button>
+                    <button id="btnTogglePwd" type="button" class="btn btn-secondary me-2">變更密碼</button>
+                    <button id="toggleEnabled" type="button" class="btn"
+                        th:classappend="${user.enabled} ? ' btn-warning' : ' btn-success'"
+                        th:text="${user.enabled} ? '停用帳號' : '啟用帳號'">
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary ms-2" onclick="history.back()">
+                        返回
+                    </button>
+                </div>
+                <div class="col-12 d-inline"
+                    th:if="${user.loginId == 'administrator' and !#lists.contains(userRoles, 'ROLE_ADMIN')}">
+                    <button type="button" class="btn btn-outline-secondary me-2" onclick="history.back()">
+                        返回
+                    </button>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+
+
+        $(function () {
+
+            // 1) 逐級展開 collapse panel
+            let deptId = $('#selectedDeptId').val();
+            let subId = $('#selectedSubId').val();
+            let sub2Id = $('#selectedSub2Id').val();
+            let positionId = $('#selectedPositionId').val();
+            if (deptId) {
+                $(`a[href="#dept${deptId}"]`).attr('aria-expanded', 'true');
+                $(`#dept${deptId}`).addClass('show');
+            }
+            if (subId) {
+                $(`a[href="#sub-${subId}"]`).attr('aria-expanded', 'true');
+                $(`#sub-${subId}`).addClass('show');
+            }
+            if (sub2Id) {
+                const sel2 = `#sub-${subId}-${sub2Id}`;
+                $(`a[href="${sel2}"]`).attr('aria-expanded', 'true');
+                $(sel2).addClass('show');
+            }
+
+            // 2) 頁面載入時如果 inputPos 已有值，也要高亮對應那一行
+            const posVal = deptId + subId + sub2Id + positionId
+            console.log(posVal)
+            if (posVal) {
+                $('.position-item').each(function () {
+                    const itemPos = String($(this).data('pos'));
+                    console.log(itemPos)
+                    if (itemPos === posVal) {
+                        $(this).addClass('selected');
+                        return false; // 找到後跳出 each
+                    }
+                });
+            }
+
+            // 3) 點擊職稱時高亮並更新右側表單
+            $(document).on('click', '.position-item', function (e) {
+                e.preventDefault();
+                deptId = $(this).data('deptid');
+                subId = $(this).data('subid') || '';
+                sub2Id = $(this).data('sub2id') || '';
+                positionId = $(this).data('posid');
+                $('#selectedDeptId').val(deptId);
+                $('#selectedSubId').val(subId);
+                $('#selectedSub2Id').val(sub2Id);
+                $('#selectedPositionId').val(positionId);
+                // 先移除舊的高亮
+                $('.position-item.selected').removeClass('selected');
+
+                // 給點擊的那一條加上高亮
+                $(this).addClass('selected');
+
+                // 更新表單
+                $('#inputDept').val($(this).data('dept'));
+                $('#inputSub').val($(this).data('sub') || '');
+                $('#inputPos').val($(this).data('name'));
+            });
+
+
+            let pwdEnabled = false;
+            // 點擊「變更密碼」，打開或關閉可編輯
+            $('#btnTogglePwd').click(function () {
+                pwdEnabled = !pwdEnabled;
+
+                // 切換按鈕文字
+                $(this).text(pwdEnabled ? '取消變更密碼' : '變更密碼');
+
+                // 切換密碼欄位 readonly／required
+                $('#password, #confirmPassword')
+                    .prop('readonly', !pwdEnabled)
+                    .prop('required', pwdEnabled)
+                    .val('');  // 變更狀態時清空
+                // 動態調整 placeholder
+                if (pwdEnabled) {
+                    $('#password').attr('placeholder', '請輸入密碼');
+                    $('#confirmPassword').attr('placeholder', '請再次輸入密碼');
+                } else {
+                    $('#password').attr('placeholder', '留空白代表不變更');
+                    $('#confirmPassword').attr('placeholder', '再次輸入新密碼');
+                }
+                // 顯示或隱藏「確認密碼」欄
+                $('#confirmPwdGroup').toggle(pwdEnabled);
+            });
+
+
+            $('#updateUser').click(function () {
+                const pwd = $('#password').val().trim();
+                const cpwd = $('#confirmPassword').val().trim();
+                if (pwdEnabled) {
+                    const p = $('#password').val().trim();
+                    const cp = $('#confirmPassword').val().trim();
+                    if (!p || !cp) {
+                        Swal.fire('錯誤', '請同時填寫 密碼 和 確認密碼', 'error');
+                        return;
+                    }
+                    if (p !== cp) {
+                        Swal.fire('錯誤', '兩次輸入的密碼不一致', 'error');
+                        return;
+                    }
+                }
+                const basicPerms = $("input[id^='basic_']:checked")
+                    .map((_, cb) => cb.value)
+                    .get();
+                const adminPerms = $("input[id^='admin_']:checked")
+                    .map((_, cb) => cb.value)
+                    .get();
+
+                const permissions = basicPerms.concat(adminPerms);
+
+                // 2) 準備要送到後端的物件
+                const payload = {
+                    username: $('#username').val(),
+                    employeeNo: $('#employee_no').val(),
+                    email: $('#email').val(),
+                    loginId: $('#account').val(),
+                    departmentId: deptId,
+                    subUnitId: $('#selectedSubId').val(),
+                    subSubUnitId: $('#selectedSub2Id').val(),
+                    positionId: positionId,
+                    permissions: permissions,
+                    originalLoginId: $('#originalLoginId').val(),
+                    // 只有當非空時才把 password 包進去
+                    ...(pwd && { password: pwd })
+                };
+
+                console.log(payload)
+
+                $.ajax({
+                    url: '/chyunn/permission/update_user',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload)
+                })
+                    .done(res => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '更新',
+                            text: res.message || '操作成功。',
+                            confirmButtonText: '返回檢視',
+                            allowOutsideClick: false, // 禁止點擊背景關閉
+                            allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                            allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                // 這邊把真正的 loginId 帶進去
+                                const loginId = encodeURIComponent(payload.loginId);
+                                window.location.href = `/chyunn/permission/update_user?loginId=${loginId}`;
+                            }
+                        });
+                    })
+                    .fail(xhr => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '建立失敗',
+                            text: xhr.responseJSON?.message || xhr.responseText
+                        });
+                    });
+            });
+            $('#toggleEnabled').click(function () {
+                const loginId = $('#originalLoginId').val(); // 或 $('#account').val()
+                $.ajax({
+                    url: '/chyunn/permission/toggle_user',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ loginId }),
+                    success: function (res) {
+                        // 從回傳中拿到最新 enabled 狀態
+                        const enabled = res.enabled;
+                        const $btn = $('#toggleEnabled');
+                        if (enabled) {
+                            $btn
+                                .removeClass('btn-success')
+                                .addClass('btn-warning')
+                                .text('停用帳號');
+                            Swal.fire('成功', '帳號已啟用', 'success');
+                        } else {
+                            $btn
+                                .removeClass('btn-warning')
+                                .addClass('btn-success')
+                                .text('啟用帳號');
+                            Swal.fire('成功', '帳號已停用', 'success');
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire('錯誤', xhr.responseJSON?.message || '操作失敗', 'error');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

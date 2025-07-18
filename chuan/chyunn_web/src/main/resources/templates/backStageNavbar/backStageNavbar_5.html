@@ -1,0 +1,130 @@
+<!-- JavaScript Libraries -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/translations/zh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/lib/chart/chart.min.js}"></script>
+<script th:src="@{/lib/easing/easing.min.js}"></script>
+<script th:src="@{/lib/waypoints/waypoints.min.js}"></script>
+<script th:src="@{/lib/owlcarousel/owl.carousel.min.js}"></script>
+<script th:src="@{/lib/tempusdominus/js/moment.min.js}"></script>
+<script th:src="@{/lib/tempusdominus/js/moment-timezone.min.js}"></script>
+<script th:src="@{/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js}"></script>
+
+<!-- Template Javascript -->
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/daterangepicker.js}"></script>
+<script th:src="@{/js/moment.min.js}"></script>
+
+<!-- 日歷 Javascript -->
+<!-- <script src='fullcalendar/dist/index.global.js'></script> -->
+
+<!-- google  -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
+<!-- sweetalert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
+
+<!-- flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr@4.6.3/dist/l10n/zh-tw.js"></script>
+
+<!-- fullcalendar -->
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/web-component@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
+<script>
+    $(document).ready(function () {
+        $('#logoutBtn').click(function () {
+            // 從 localStorage 中取得 token
+            // var token = localStorage.getItem('authToken');
+
+            // if (token) {
+            $.ajax({
+                url: '/chyunn/user/logout',  // 登出 API 路徑
+                type: 'POST',  // 使用 POST 請求
+                // headers: {
+                //     'Authorization': token // 加入 token 作為 Authorization header
+                // },
+                success: function (response) {
+                    // 登出成功後的處理
+                    console.log('登出成功');
+                    // 你可以根據需求清除 localStorage 或 sessionStorage
+                    // localStorage.removeItem('authToken');
+                    window.location.href = '/chyunn/login';  // 重新導向到登入頁面
+                },
+                error: function (error) {
+                    console.log('登出失敗:', error);
+                }
+            });
+            // } else {
+            //     console.log('未找到 token');
+            // }
+        });
+
+        const targetSites = ["臺南", "安南", "善化", "新營"];
+        function getAqiColorClass(aqi) {
+            aqi = parseInt(aqi);
+            if (aqi <= 50) return "text-success";
+            if (aqi <= 100) return "text-warning";
+            if (aqi <= 150) return "text-orange fw-bold";
+            if (aqi <= 200) return "text-danger fw-bold";
+            if (aqi <= 300) return "text-purple fw-bold";
+            return "text-dark bg-dark text-white fw-bold";
+        }
+        function getPm25ColorClass(pm25) {
+            pm25 = parseFloat(pm25);
+            if (pm25 <= 15.4) return "text-success";           // 良好
+            if (pm25 <= 35.4) return "text-warning";           // 普通
+            if (pm25 <= 54.4) return "text-orange fw-bold";    // 對敏感族群不良
+            if (pm25 <= 150.4) return "text-danger fw-bold";   // 對所有族群不良
+            if (pm25 <= 250.4) return "text-purple fw-bold";   // 非常不良
+            return "text-dark bg-dark text-white fw-bold";     // 危害
+        }
+        function getWindSpeedColorClass(speed) {
+            speed = parseFloat(speed);
+            if (isNaN(speed)) return "text-muted"; // 無資料
+
+            if (speed < 10.8) return "text-success";               // 無燈號（平均風力 < 6 級）
+            if (speed < 20.8) return "text-warning";               // 黃燈（平均風力 ≧ 6 級）
+            if (speed < 32.7) return "text-orange fw-bold";        // 橙燈（平均風力 ≧ 9 級）
+            return "text-danger fw-bold";                          // 紅燈（平均風力 ≧ 12 級）
+        }
+
+        fetch("https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate desc&format=JSON")
+            .then(response => response.json())
+            .then(data => {
+                const filteredData = data.records.filter(site =>
+                    site.county === "臺南市" && targetSites.includes(site.sitename)
+                );
+
+                const sortedData = targetSites.map(name =>
+                    filteredData.find(site => site.sitename === name)
+                ).filter(site => site);
+
+                const airStatusEl = document.getElementById("airStatusText");
+                let combinedHTML = "";
+
+                sortedData.forEach(site => {
+                    const aqiClass = getAqiColorClass(site.aqi);
+                    const pm25Class = getPm25ColorClass(site["pm2.5"]);
+                    const windSpeedClass = getWindSpeedColorClass(site.wind_speed);
+                    const airStatusHTML = `
+     <span class="air-block d-inline-block">
+        ${site.sitename} PM2.5：<span class="${pm25Class}">${site["pm2.5"]}</span>&nbsp;
+        AQI：<span class="${aqiClass}">${site.aqi}</span>（${site.status}）
+        風速：<span class="${windSpeedClass}">${site.wind_speed}</span>
+    </span>
+            `;
+
+                    combinedHTML += airStatusHTML;
+                });
+
+                airStatusEl.innerHTML = combinedHTML || "無資料";
+                airStatusEl.className = "fw-semibold";
+            })
+            .catch(() => {
+                document.getElementById("airStatusText").textContent = "資料載入失敗";
+            });
+    });
+</script>

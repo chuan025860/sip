@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-公佈欄</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* 修改標題文字顏色 */
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem;
+            /* 字體縮小一點 */
+        }
+
+        /* header toolbar 排版與間距優化 */
+        .fc-header-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* 選中日期顏色 */
+        .fc-daygrid-event {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 當天日期高亮顏色 */
+        .fc-day-today {
+            background-color: #e6f7f3 !important;
+        }
+
+        /* 滿版邊框統一 */
+        .fc {
+            --fc-border-color: #d9f3ed;
+        }
+
+        /* 藍字（連結、日期）變成綠色 */
+        .fc a {
+            color: #1ab394 !important;
+            text-decoration: none;
+        }
+
+        .fc-toolbar-chunk .fc-button {
+            background-color: #666666;
+            border-color: #666666;
+            color: white;
+        }
+
+        /* 分頁文字／邊框 主題色 */
+        #pagination .page-link {
+            color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 分頁 active 背景 */
+        #pagination .page-item.active .page-link {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        /* 分頁 hover 效果 */
+        #pagination .page-link:hover {
+            background-color: rgba(26, 179, 148, 0.1);
+        }
+
+        /* 讓 page-link、輸入框、按鈕 padding / font-size / line-height 一致 */
+        #pagination .page-link,
+        #pagination .input-group-sm .form-control,
+        #pagination .input-group-sm .btn-outline-secondary {
+            padding: .5rem .75rem;
+            line-height: 1.25;
+            font-size: 1rem;
+        }
+
+        /* 跳轉輸入框容器寬度 */
+        #pagination .jump-pager {
+            width: 140px;
+            /* 可依需求調整 */
+        }
+
+        /* 輸入框：主題色邊框 + 圓角 */
+        #pagination .jump-pager .form-control {
+            border-color: #1ab394;
+            border-radius: .25rem 0 0 .25rem;
+        }
+
+        /* 跳轉按鈕：文字＋邊框 主題色 + 圓角 */
+        #pagination .jump-pager .btn-outline-secondary {
+            color: #1ab394;
+            border-color: #1ab394;
+            border-radius: 0 .25rem .25rem 0;
+        }
+
+        /* 跳轉按鈕 hover / focus */
+        #pagination .jump-pager .btn-outline-secondary:hover,
+        #pagination .jump-pager .btn-outline-secondary:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+
+        /* 確保跳轉組件垂直置中 */
+        #pagination .page-item.d-flex {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+        <div class="container-fluid px-6 mt-4">
+            <h4 class="mb-3 fw-bold"><i class="bi bi-megaphone"></i> 公告欄：</h4>
+
+            <div class="mb-3 row align-items-center">
+                <!-- 左側：文章數量文字 -->
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <span>全部 <strong th:text="${totalElements}">0</strong> 篇文章</span>
+                </div>
+
+                <!-- 右側：搜尋列 + 按鈕組 -->
+                <div class="col-md-6 d-flex justify-content-md-end flex-wrap gap-2">
+                    <!-- 搜尋 -->
+                    <div class="input-group" style="max-width: 250px;">
+                        <input type="text" class="form-control" placeholder="搜尋文章標題...">
+                        <button class="btn btn-primary">搜尋</button>
+                    </div>
+
+                    <a th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}"
+                        th:href="@{'/resource_manage/insertBulletin'}"
+                        class="btn btn-success d-flex align-items-center px-3">
+                        新增
+                    </a>
+
+                    <!-- 刪除按鈕（僅限管理員） -->
+                    <button id="btnDeleteSelected" class="btn btn-danger d-flex align-items-center px-3"
+                        th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}">
+                        刪除
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle w-100">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th style="width: 5%;">編號</th>
+                            <th style="width: 35%;" class="text-start">標題</th>
+                            <th style="width: 12%;">作者</th>
+                            <th style="width: 18%;">發佈時間</th>
+                            <th style="width: 20%;">所屬公告欄</th>
+                            <th style="width: 5%;" class="text-center"
+                                th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}">
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="clickable-row" th:each="post, iterStat : ${bulletinPostDtos}"
+                            th:attr="data-id=${post.id}">
+                            <td class="text-center" th:text="${iterStat.count}">1</td>
+                            <td class="text-start" th:text="${post.title!= null ? post.title: ''}">標題</td>
+                            <td class="text-center" th:text="${post.creatorName != null ? post.creatorName : ''}">作者
+                            </td>
+                            <td class="text-center" th:text="${post.publishTimeStr != null ? post.publishTimeStr : ''}">
+                                發佈時間</td>
+                            <td class="text-center">全公司公告</td>
+
+                            <td class="text-center"
+                                th:if="${userRoles != null and (userRoles.contains('ROLE_ADMIN') or userRoles.contains('ROLE_BULLETIN_ADMIN'))}">
+                                <input type="checkbox" class="row-checkbox" th:attr="data-id=${post.id}">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3" id="pagination">
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                                th:href="@{'/resource/bulletin'(page=${currentPage - 1}, size=${pageSize})}">«</a>
+                        </li>
+
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{'/resource/bulletin'(page=${i}, size=${pageSize})}"
+                                th:text="${i + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link"
+                                th:href="@{'/resource/bulletin'(page=${currentPage + 1}, size=${pageSize})}">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rows = document.querySelectorAll('.clickable-row');
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            rows.forEach(row => {
+                row.addEventListener('click', function (e) {
+                    // 如果點擊的是 checkbox 或它的 label，不執行跳轉
+                    if (
+                        e.target.tagName === 'INPUT' && e.target.type === 'checkbox' ||
+                        e.target.closest('label') !== null
+                    ) {
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    // 執行跳轉
+                    const id = this.getAttribute('data-id');
+                    if (id) {
+                        console.log(id + "跳轉")
+                        window.location.href = `/chyunn/resource/bulletinDetail?id=${id}`;
+                    }
+                });
+            });
+            const selectedIds = new Set();
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    if (this.checked) {
+                        selectedIds.add(id);
+                    } else {
+                        selectedIds.delete(id);
+                    }
+                    console.log("目前勾選的 ID 列表:", Array.from(selectedIds));
+                });
+            });
+            // 點刪除按鈕
+            document.getElementById('btnDeleteSelected').addEventListener('click', function () {
+                if (selectedIds.size === 0) {
+                    Swal.fire('請先勾選要刪除的資料', '', 'warning');
+                    return;
+                }
+
+                Swal.fire({
+                    title: `確定要刪除這 ${selectedIds.size} 筆資料？`,
+                    text: "刪除後無法復原，請確認是否繼續。",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '是，刪除',
+                    cancelButtonText: '取消',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        fetch('/chyunn/resource_manage/bulletin_delete', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(Array.from(selectedIds))
+                        })
+                            .then(response => {
+                                if (!response.ok) throw new Error("刪除失敗");
+                                return response.text();
+                            })
+                            .then(msg => {
+                                Swal.fire('成功刪除', msg, 'success').then(() => {
+                                    location.reload(); // 重新整理頁面
+                                });
+                            })
+                            .catch(err => {
+                                Swal.fire('刪除失敗', err.message, 'error');
+                            });
+                    }
+                });
+            });
+
+
+        });
+    </script>
+    <script th:if="${errorMessage}">
+        Swal.fire({
+            icon: 'error',
+            title: '發生錯誤',
+            text: '[[${ errorMessage }]]',
+            confirmButtonText: '知道了'
+        });
+    </script>
+
+</body>

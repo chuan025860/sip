@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+	<meta charset="UTF-8">
+	<title>群運事件問題-員工申訴表單</title>
+	<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet" />
+	<div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+	<div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+	<style>
+		.table th {
+			text-align: left;
+			/* 水平居中 */
+			vertical-align: middle;
+			/* 垂直居中 */
+			width: 120px;
+			/* 固定寬度，可根據需要調整 */
+			white-space: nowrap;
+			/* 防止文字換行 */
+		}
+
+		.table td {
+			vertical-align: middle;
+			/* 垂直居中 */
+		}
+
+		.tbody th {
+			text-align: left;
+			/* 標題內容居中 */
+			width: 120px;
+			/* 固定寬度，可根據需要調整 */
+			white-space: nowrap;
+			/* 防止文字換行 */
+			padding-top: 11px;
+			/* 只影響 th 的上邊距 */
+		}
+
+		.flatpickr-input {
+			background-color: #fff !important;
+			color: #000 !important;
+		}
+
+		.custom-btn {
+			background-color: #1ab394;
+			border-color: #1ab394;
+			color: white;
+		}
+
+		.custom-btn:hover {
+			color: white;
+			/* 字體保持白色 */
+			text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+			/* 發光效果 */
+			background-color: #18a383;
+			/* 懸停時略微變化背景色 */
+			border-color: #18a383;
+		}
+
+		/* 設定 CKEditor 的編輯區域高度 */
+		.ck-editor__editable {
+			min-height: 400px !important;
+			/* 讓編輯區至少有 400px 高 */
+		}
+	</style>
+</head>
+
+<body>
+	<div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+
+	<!-- Content Start -->
+	<div class="content" style="width: auto; margin-top: 100px;">
+		<div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+		<form id="reportBullyingForm">
+			<table class="table table-bordered text-dark" style="border-color: #ddd;">
+				<thead class="bg-danger text-white">
+					<tr>
+						<th colspan="4" class="text-left">員工申訴表單</th>
+					</tr>
+				</thead>
+				<tbody class="tbody">
+					<tr style="background-color: #f9f9f9;">
+						<th>申請人姓名/部門</th>
+						<td style="width: 400px;"><input type="text" class="form-control text-dark d-inline"
+								id="reporter" style="width: 170px;" readonly th:value="${creator}" />
+							<select id="department" name="department" class="form-select text-dark d-inline"
+								style="width: 170px;" required>
+								<option value="" disabled selected>請選擇部門</option>
+								<option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}">部門</option>
+							</select>
+						</td>
+						<!-- <th>部門</th>
+						<td>
+						</td> -->
+					</tr>
+					<tr>
+						<th>聯絡信箱</th>
+						<td><input type="text" class="form-control text-dark" id="email" style="width: 300px;" />
+						</td>
+						<th>連絡電話</th>
+						<td><input type="text" class="form-control text-dark" id="phone" style="width: 200px;" />
+						</td>
+					</tr>
+					<tr>
+						<th>申訴對象(選填)</th>
+						<td><input type="text" class="form-control text-dark" id="targetPerson" style="width: 300px;"
+								placeholder="如知悉對象請填寫姓名或單位" />
+						</td>
+						<th>發生日期</th>
+						<td><input type="date" class="form-control text-dark" id="incidentDate" style="width: 200px;" />
+						</td>
+					</tr>
+					<tr>
+						<th>發生地點(選填)</th>
+						<td colspan="3"><input type="text" class="form-control text-dark" id="incidentLocation"
+								placeholder="" /></td>
+					</tr>
+					<tr>
+						<th>申訴類別</th>
+						<td colspan="3">
+							<select class="form-select text-dark" id="supportNeeded">
+								<option value="遭受不當差別待遇或不合理工作指派">遭受不當差別待遇或不合理工作指派</option>
+								<option value="涉及性別歧視或其他不法侵害事件">涉及性別歧視或其他不法侵害事件</option>
+								<option value="遭受不當處分、職場霸凌或管理不當行為">遭受不當處分、職場霸凌或管理不當行為</option>
+								<option value="薪資、福利、考核等相關事項認有不當">薪資、福利、考核等相關事項認有不當</option>
+								<option value="其他損及工作權益之情形">其他損及工作權益之情形</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th>事件描述</th>
+						<td colspan="3">
+							<textarea id="incidentDescription" class="form-control text-dark" rows="5"
+								placeholder="請詳述事件背景、過程、影響與訴求"></textarea>
+						</td>
+					</tr>
+
+					<tr>
+						<th>附件上傳(選填)</th>
+						<td colspan="3">
+							<small class="text-muted">可上傳圖片、PDF 或語音檔案，單檔最大 10MB</small>
+							<input type="file" id="attachment" class="form-control text-dark" multiple
+								accept=".pdf,.jpg,.jpeg,.png,.mp3,.wav" />
+							<div class="mt-2">
+								<ul id="fileList" class="list-group"></ul>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div>
+				<button class="btn btn-secondary btn-sm" id="returnButton">返回</button>
+				<button id="submit" type="submit" class="btn btn-danger btn-sm">提交(尚無功能)</button>
+			</div>
+		</form>
+	</div>
+
+
+	<!-- Footer --><!-- Back to Top -->
+	<div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+	<!-- scriptNavbar -->
+	<div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+	<!-- <div th:replace="~{backStageNavbar/ckeditor}"></div> -->
+	<script>
+
+		var dateStartPicker = flatpickr("#incidentDate", {
+			dateFormat: "Y-m-d",
+			locale: "zh_tw"
+		});
+		document.getElementById("reportBullyingForm").addEventListener("submit", function (e) {
+			e.preventDefault();
+
+			const reporter = document.getElementById("reporter").value;
+			const department = document.getElementById("department").selectedOptions[0]?.text || '';
+			const email = document.getElementById("email").value;
+			const phone = document.getElementById("phone").value;
+			const target = document.getElementById("targetPerson").value;
+			const date = document.getElementById("incidentDate").value;
+			const location = document.getElementById("incidentLocation").value;
+			const category = document.getElementById("supportNeeded").selectedOptions[0]?.text || '';
+			const description = document.getElementById("incidentDescription").value;
+			const attachments = document.getElementById("attachment").files;
+
+			let attachmentList = '';
+			if (attachments.length > 0) {
+				attachmentList = '<ul style="padding-left: 20px; margin-top: 5px;">';
+				for (let i = 0; i < attachments.length; i++) {
+					attachmentList += `<li>${attachments[i].name}</li>`;
+				}
+				attachmentList += '</ul>';
+			} else {
+				attachmentList = '（未上傳）';
+			}
+
+			let summary = `
+		<div style="text-align: left">
+			<strong>申請人：</strong> ${reporter}<br>
+			<strong>部門：</strong> ${department}<br>
+			<strong>聯絡信箱：</strong> ${email}<br>
+			<strong>電話：</strong> ${phone}<br>
+			<strong>申訴對象：</strong> ${target || '（未填寫）'}<br>
+			<strong>發生日期：</strong> ${date}<br>
+			<strong>地點：</strong> ${location || '（未填寫）'}<br>
+			<strong>申訴類別：</strong> ${category}<br>
+			<strong>事件描述：</strong>${description}<br>
+			<strong>附件：</strong>${attachmentList}
+		</div>
+	`;
+
+			Swal.fire({
+				title: "確認送出申訴？",
+				html: summary,
+				icon: "question",
+				showCancelButton: true,
+				confirmButtonText: "確認送出",
+				cancelButtonText: "取消"
+			}).then((result) => {
+				if (result.isConfirmed) {
+					Swal.fire({
+						icon: 'success',
+						title: '您的申訴已送出，我們將於7個工作天內進行受理案件',
+						showCancelButton: false,
+					}).then((result) => {
+					})
+				}
+			});
+		});
+		// $(document).ready(function () {
+		// 	$('#returnButton').click(function () {
+		// 		event.preventDefault()
+		// 		window.location.href = '/chyunn/incident/select_incident';
+		// 	});
+		// 	//新增事件AJAX
+		// 	$("#submit").click(function (event) {
+
+		// 		//取消預設動作
+		// 		event.preventDefault();
+		// 		var form = document.getElementById('insterIncident');
+		// 		// 手動驗證表單
+		// 		if (form.checkValidity()) {
+		// 			let eventContent = '';
+		// 			// ✅ 確保 CKEditor 初始化成功後，才能讀取內容
+		// 			if (window.editorInstance) {
+		// 				eventContent = window.editorInstance.getData().trim(); // ✅ 取得 CKEditor 內的內容
+		// 				console.log(eventContent)
+		// 			} else {
+		// 				console.error("CKEditor 尚未初始化");
+		// 			}
+
+		// 			//創一個formData裝incident、附件
+		// 			const formData = new FormData();
+		// 			// 附件處理
+		// 			let files = $("#attachment")[0].files;
+		// 			for (let i = 0; i < files.length; i++) {
+		// 				formData.append("files", files[i]);
+		// 			}
+
+		// 			const incident = {
+		// 				customer: $("#customer").val(),
+		// 				car: $("#car").val(),
+		// 				belongingType: $("#belongingType").val(),
+		// 				status: $("#status").val(),
+		// 				reporter: $("#reporter").val(),
+		// 				task: $("#task").val(),
+		// 				eventPurpose: $("#eventPurpose").val(),
+		// 				eventContent: eventContent,
+		// 				importance: $("#importance").val(),
+		// 				department: $("#department").val(),
+		// 				handler: $("#handler").val(),
+		// 				reportDate: $("#reportDate").val(),
+		// 				creator: $("#creator").val(),
+		// 			};
+		// 			const token = localStorage.getItem('authToken');  // 從 localStorage 獲取 token
+		// 			formData.append("incidentJson", JSON.stringify(incident));
+		// 			$.ajax({
+		// 				url: "/chyunn/incident/inster_incident",
+		// 				type: "POST",
+		// 				data: formData,
+		// 				processData: false,
+		// 				contentType: false,
+		// 				success: function (response) {
+		// 					if (response.code === 200) {
+		// 						Swal.fire({
+		// 							icon: 'success',
+		// 							title: '上傳成功！',
+		// 							showCancelButton: false,
+		// 						}).then((result) => {
+		// 							window.location.href = "/chyunn/incident/incident_Detail?incidentId=" + response.data.incident.incidentId;
+		// 						})
+		// 					} else {
+		// 						Swal.fire({
+		// 							icon: "error",
+		// 							title: "Oops...",
+		// 							text: "上傳失敗",
+		// 						});
+		// 					}
+		// 				},
+		// 				error: function (xhr, status, error) {
+		// 					let errorMessage = "發生錯誤，請稍後再試";
+		// 					try {
+		// 						let response = JSON.parse(xhr.responseText);
+		// 						errorMessage = response.message || errorMessage;
+		// 					} catch (e) {
+		// 						if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+		// 							errorMessage = "伺服器未回應或發生錯誤。";
+		// 						} else {
+		// 							errorMessage = xhr.responseText || errorMessage;
+		// 						}
+		// 					}
+
+		// 					Swal.fire({
+		// 						icon: 'error',
+		// 						title: '操作失敗',
+		// 						text: errorMessage,
+		// 					});
+		// 				}
+		// 			});
+		// 		} else {
+		// 			console.log("表單驗證失敗，不能提交");
+		// 			// 如果表單無效，強制觸發瀏覽器的驗證提示 開啟required功能
+		// 			form.reportValidity();
+		// 		}
+		// 	});
+
+		// 	// 上傳附件的UI
+		// 	let selectedFiles = []; // 存儲已選擇的檔案
+		// 	$("#attachment").on("change", function (event) {
+		// 		let fileList = $("#fileList");
+		// 		fileList.empty(); // 清空列表
+		// 		selectedFiles = Array.from(event.target.files); // 轉成陣列
+
+		// 		updateFileList();
+		// 	});
+
+		// 	function updateFileList() {
+		// 		let fileList = $("#fileList");
+		// 		fileList.empty();
+
+		// 		$.each(selectedFiles, function (index, file) {
+		// 			let listItem = $("<li>")
+		// 				.addClass("list-group-item d-flex justify-content-between align-items-center")
+		// 				.text(file.name);
+
+		// 			let deleteButton = $("<button>")
+		// 				.addClass("btn btn-danger btn-md rounded-circle")
+		// 				.css({ "width": "35px", "height": "35px", "font-size": "18px", "padding": "5px" })
+		// 				.html("&times;")
+		// 				.on("click", function () {
+		// 					selectedFiles.splice(index, 1); // 移除檔案
+		// 					updateFileInput();
+		// 					updateFileList();
+		// 				});
+
+		// 			listItem.append(deleteButton);
+		// 			fileList.append(listItem);
+		// 		});
+		// 	}
+
+		// 	function updateFileInput() {
+		// 		let dataTransfer = new DataTransfer();
+		// 		selectedFiles.forEach(file => dataTransfer.items.add(file));
+		// 		$("#attachment")[0].files = dataTransfer.files;
+		// 	}
+		// });
+
+	</script>
+</body>
+
+</html>

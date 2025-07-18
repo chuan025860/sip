@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-個人管理</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* btn-query 配色，同 #btnQuery */
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover,
+        .btn-query:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+
+        /* 左側樹狀 hover 樣式 */
+        nav ul li ul li>a {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #333;
+        }
+
+        nav ul li ul li>a:hover {
+            background: rgba(26, 179, 148, 0.1);
+            color: #1ab394;
+            text-decoration: none;
+        }
+
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover {
+            background-color: #189c85;
+            border-color: #189c85;
+        }
+
+        .sidebar-link strong,
+        .sidebar-link i {
+            color: #189c85;
+        }
+
+        /* 高亮樣式 */
+        a.position-item.selected {
+            background: rgba(26, 179, 148, 0.1);
+            color: #1ab394;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div class="content" style="width: auto;  position: relative;">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+        <div class="container-fluid pt-4 px-4" style="margin-top: 40px;">
+            <div class="bg-light text-start rounded p-4">
+                <div class="row">
+                    <!-- 右側表單 -->
+                    <div class="col-9 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 calendar-header"
+                            style="margin-top: 10px;">
+                            <h5>個人管理</h5>
+                        </div>
+
+                        <!-- 1) 綁定 user 物件，並送到 POST /permission/update_user -->
+                        <form th:object="${user}" class="row g-3">
+
+                            <!-- 隱藏 loginId，表單送出時會帶回 -->
+                            <input type="hidden" th:field="*{loginId}" />
+
+                            <!-- 部門 -->
+                            <div class="col-md-4">
+                                <label class="form-label">部門</label>
+                                <input id="inputDept" th:field="*{department.name}" class="form-control"
+                                    th:disabled="${userPerms.contains('ROLE_ADMIN')}" readonly />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">單位</label>
+                                <input id="inputSub" class="form-control" readonly
+                                    th:disabled="${userPerms.contains('ROLE_ADMIN')}"
+                                    th:value="|${user.subUnit != null ? user.subUnit.name : ''} - ${user.subSubUnit != null ? user.subSubUnit.name : ''}|" />
+                            </div>
+
+                            <!-- 職稱 -->
+                            <div class="col-md-4">
+                                <label class="form-label">職稱</label>
+                                <input id="inputPos" th:field="*{position.name}" class="form-control" readonly />
+                            </div>
+
+                            <!-- 姓名 -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="username">姓名</label>
+                                <input id="username" th:field="*{username}" class="form-control" readonly />
+                            </div>
+
+                            <!-- 工號 -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="employee_no">工號</label>
+                                <input id="employee_no" th:field="*{employee_no}" class="form-control" readonly />
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="email">Email</label>
+                                <input id="email" type="email" th:field="*{email}" class="form-control" readonly />
+                            </div>
+
+                            <!-- 帳號 loginId（只讀） -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="account">帳號</label>
+                                <input id="account" th:field="*{loginId}" class="form-control" readonly />
+                            </div>
+
+                            <!-- 密碼（留空表示不變更） -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="password">密碼</label>
+                                <input id="password" type="password" th:field="*{password}" class="form-control"
+                                    placeholder="留空白代表不變更" readonly />
+                            </div>
+
+                            <!-- 確認密碼，一開始隱藏 -->
+                            <div class="col-md-4" id="confirmPwdGroup" style="display:none;">
+                                <label class="form-label" for="confirmPassword">確認密碼</label>
+                                <input id="confirmPassword" type="password" class="form-control" placeholder="再次輸入新密碼"
+                                    readonly />
+                            </div>
+                        </form>
+                        <input type="hidden" id="selectedDeptId" th:value="${user.department.id}" />
+                        <input type="hidden" id="selectedSubId"
+                            th:value="${user.subUnit != null ? user.subUnit.id : ''}" />
+                        <input type="hidden" id="selectedSub2Id"
+                            th:value="${user.subSubUnit != null ? user.subSubUnit.id : ''}" />
+                        <input type="hidden" id="selectedPositionId" th:value="${user.position.id}" />
+                        <input type="hidden" id="originalLoginId" name="originalLoginId" th:value="${user.loginId}" />
+                        <div class="col-12" style="margin-top: 3%;"
+                            th:if="${user.loginId != 'administrator' or #lists.contains(userRoles, 'ROLE_ADMIN')}">
+                            <button type="button" class="btn btn-query me-2" id="updateUser"
+                                style="display: none;">更新</button>
+                            <button id="btnTogglePwd" type="button" class="btn btn-secondary me-2">變更 Email /
+                                密碼</button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" onclick="history.back()">
+                                返回
+                            </button>
+                        </div>
+                        <div class="col-12 d-inline"
+                            th:if="${user.loginId == 'administrator' and !#lists.contains(userRoles, 'ROLE_ADMIN')}">
+                            <button type="button" class="btn btn-outline-secondary me-2" onclick="history.back()">
+                                返回
+                            </button>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+
+
+        $(function () {
+
+            let pwdEnabled = false;
+            // 點擊「變更密碼」，打開或關閉可編輯
+            $('#btnTogglePwd').click(function () {
+                pwdEnabled = !pwdEnabled;
+
+                // 切換按鈕文字
+                $(this).text(pwdEnabled ? '取消變更' : '變更 Email / 密碼');
+                $('#email').prop('readonly', !pwdEnabled); // 僅切換 readonly，不清除值
+                // 切換密碼欄位 readonly／required
+                $('#password, #confirmPassword')
+                    .prop('readonly', !pwdEnabled)
+                    .prop('required', pwdEnabled)
+                    .val('');  // 變更狀態時清空
+                // 動態調整 placeholder
+                if (pwdEnabled) {
+                    $('#password').attr('placeholder', '請輸入密碼');
+                    $('#confirmPassword').attr('placeholder', '請再次輸入密碼');
+                } else {
+                    $('#password').attr('placeholder', '留空白代表不變更');
+                    $('#confirmPassword').attr('placeholder', '再次輸入新密碼');
+                }
+                // 顯示或隱藏「確認密碼」欄
+                $('#confirmPwdGroup').toggle(pwdEnabled);
+                $('#updateUser').toggle(pwdEnabled);
+            });
+
+
+            $('#updateUser').click(function () {
+                const pwd = $('#password').val().trim();
+                const cpwd = $('#confirmPassword').val().trim();
+                const email = $('#email').val()?.trim();
+                if (!email) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '請輸入 Email',
+                        text: 'Email 欄位不得為空白',
+                    });
+                    return;
+                }
+                if (pwdEnabled) {
+                    const p = $('#password').val().trim();
+                    const cp = $('#confirmPassword').val().trim();
+                    if (!p || !cp) {
+                        Swal.fire('錯誤', '請同時填寫 密碼 和 確認密碼', 'error');
+                        return;
+                    }
+                    if (p !== cp) {
+                        Swal.fire('錯誤', '兩次輸入的密碼不一致', 'error');
+                        return;
+                    }
+                }
+                const basicPerms = $("input[id^='basic_']:checked")
+                    .map((_, cb) => cb.value)
+                    .get();
+                const adminPerms = $("input[id^='admin_']:checked")
+                    .map((_, cb) => cb.value)
+                    .get();
+
+                const permissions = basicPerms.concat(adminPerms);
+
+                // 2) 準備要送到後端的物件
+                const payload = {
+                    loginId: $('#account').val(),
+                    email: email,
+                    // 只有當非空時才把 password 包進去
+                    ...(pwd && { password: pwd })
+                };
+
+                console.log(payload)
+
+                $.ajax({
+                    url: '/chyunn/index/accountSettings_post',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload)
+                })
+                    .done(res => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '更新',
+                            text: res.message || '操作成功。',
+                            confirmButtonText: '返回檢視',
+                            allowOutsideClick: false, // 禁止點擊背景關閉
+                            allowEscapeKey: false, // 禁止按下 ESC 鍵關閉
+                            allowEnterKey: false, // 禁止按下 Enter 鍵關閉
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                        });
+                    })
+                    .fail(xhr => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '建立失敗',
+                            text: xhr.responseJSON?.message || xhr.responseText
+                        });
+                    });
+            });
+        });
+    </script>
+</body>
+
+</html>

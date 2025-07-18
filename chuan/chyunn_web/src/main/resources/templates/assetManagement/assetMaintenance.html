@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-維護-財產</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* btn-query 配色，同 #btnQuery */
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover,
+        .btn-query:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div class="content" style="width: auto;  position: relative;">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+
+
+
+        <div class="container-fluid pt-4 px-4" style="margin-top: 100PX;">
+            <div class="bg-light text-start rounded p-4">
+                <div class="mb-3">
+                    <h5 class="text-start mb-2">放置處、類別 維護</h5>
+                    <div class="">
+                        <select name="mainCategory" id="mainCategory" class="form-select form-select-sm"
+                            style="width: 20%; margin-top: 1%;" required>
+                            <option value="">請選擇</option>
+                            <option value="summary">總明細</option>
+                            <option value="it">資訊設備總表</option>
+                            <option value="finance">財務-固定資產</option>
+                        </select>
+                        <select name="subType" id="subType" class="form-select form-select-sm"
+                            style="width: 20%; margin-top: 1%;" required>
+                            <option value="">請選擇</option>
+                            <option value="location">放置處</option>
+                            <option value="category">類別</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+
+                            <th>名稱</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemTableBody">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+
+
+    </script>
+</body>
+
+</html>

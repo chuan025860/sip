@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-編輯公佈欄</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* 修改標題文字顏色 */
+        .fc .fc-toolbar-title {
+            font-size: 1.1rem;
+            /* 字體縮小一點 */
+        }
+
+        /* header toolbar 排版與間距優化 */
+        .fc-header-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        /* 選中日期顏色 */
+        .fc-daygrid-event {
+            background-color: #1ab394;
+            border-color: #1ab394;
+        }
+
+        /* 當天日期高亮顏色 */
+        .fc-day-today {
+            background-color: #e6f7f3 !important;
+        }
+
+        /* 滿版邊框統一 */
+        .fc {
+            --fc-border-color: #d9f3ed;
+        }
+
+        /* 藍字（連結、日期）變成綠色 */
+        .fc a {
+            color: #1ab394 !important;
+            text-decoration: none;
+        }
+
+        .fc-toolbar-chunk .fc-button {
+            background-color: #666666;
+            border-color: #666666;
+            color: white;
+        }
+
+        .ck-editor__editable {
+            min-height: 400px !important;
+            /* 讓編輯區至少有 400px 高 */
+        }
+
+        .flatpickr-input {
+            background-color: #fff !important;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+    <!-- Content Start -->
+    <div class="content" style="width: auto; margin-top: 80px;">
+
+        <div class="container-fluid px-5 mt-4">
+            <h4 class="fw-bold mb-4">編輯文章</h4>
+
+
+            <form>
+                <!-- 公告欄 -->
+                <div class="mb-3 row">
+                    <label class="col-auto col-form-label fw-bold mb-0">文章板名：</label>
+                    <div class="col-sm-11">
+                        <input type="text" class="form-control" value="全公司公告" readonly id="board">
+                    </div>
+                </div>
+                <input type="hidden" th:value="${bulletinPostDto.id}" id="id" required>
+                <!-- 標題 -->
+                <div class="mb-3 row">
+                    <label class="col-auto col-form-label fw-bold">文章標題：</label>
+                    <div class="col-sm-11">
+                        <input type="text" class="form-control" placeholder="請輸入公告標題" id="title" name="title"
+                            th:value="${bulletinPostDto.title}" required>
+                    </div>
+                </div>
+
+                <!-- 發佈時間 -->
+                <div class="mb-3 row align-items-center">
+                    <label class="col-auto col-form-label fw-bold">發佈時間：</label>
+                    <div class="col-sm-10 d-flex flex-wrap gap-2">
+                        <input type="hidden" class="form-control" id="publishTime" name="publishTime"
+                            th:value="${bulletinPostDto.publishTimeStr}" required>
+                        <input type="datetime-local" class="form-control" id="bulletinDateTime" name="publishTime"
+                            style="max-width: 250px;" th:value="${bulletinPostDto.publishTimeStr}" required>
+                    </div>
+                </div>
+
+                <!-- 內容 -->
+                <div class="mb-3 row">
+                    <label class="col-auto col-form-label fw-bold">文章內容：</label>
+                    <div class="col-sm-11">
+                        <textarea id="eventContent" name="content" class="form-control text-dark" placeholder="請輸入文章內容"
+                            th:text="${bulletinPostDto.content}"></textarea>
+                        <span id="eventContent-error"></span>
+                    </div>
+                </div>
+                <!-- 檢視附件 -->
+                <div class="row mt-2">
+                    <label class="col-auto col-form-label fw-bold">檢視附件：</label>
+                    <div class="col-sm-11">
+                        <ul class="list-group" id="attachmentList">
+                            <li th:each="file : ${bulletinPostDto.bulletinFileDtos}"
+                                class="list-group-item d-flex justify-content-between align-items-center">
+                                <a th:href="@{'/uploads/BulletinPost_' + ${file.bulletinId} + '/' + ${file.fileName}}"
+                                    th:text="${file.fileName}" target="_blank" class="text-primary"></a>
+                                <!-- 刪除按鈕 -->
+                                <button type="button" class="btn btn-danger btn-md rounded-circle delete-attachment"
+                                    th:attr="data-file=${file.fileId}"
+                                    style="width: 35px; height: 35px; font-size: 18px; padding: 5px;">&times;</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 附件 -->
+                <div class="row mt-2">
+                    <label class="col-auto col-form-label fw-bold">上傳附件：</label>
+                    <div class="col-sm-11">
+                        <label for="attachmentUpload" class="btn btn-outline-success mb-2 d-flex align-items-center">
+                            <i class="bi bi-upload me-2"></i> 上傳附件（Word, Excel,
+                            PowerPoint）、PDF、圖片（JPG/PNG）、壓縮檔（ZIP/RAR），單檔最大 10MB
+                        </label>
+                        <input type="file" id="attachmentUpload" name="attachment" style="display:none;" multiple
+                            accept=".doc, .docx, .xls, .xlsx, .ppt, .pptx, .pdf, .jpg, .jpeg, .png, .zip, .rar" />
+                        <ul id="attachmentFileList"
+                            class="list-group list-group-flush small text-start mb-0 border rounded shadow-sm">
+                            <li class="list-group-item text-muted py-1 px-2 small">尚未選擇檔案</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mb-3 row" style="margin-top: 1%;">
+                    <div class="col-12 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary me-2">儲存</button>
+                        <a th:href="@{'/resource/bulletinDetail'(id=${bulletinPostDto.id})}"
+                            class="btn btn-secondary">返回</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+    <div th:replace="~{backStageNavbar/ckeditor_image}"></div>
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const now = new Date();
+            now.setHours(8, 0, 0, 0);
+            const publishTime = document.getElementById("publishTime").value;
+            flatpickr("#bulletinDateTime", {
+                enableTime: true,
+                time_24hr: true,
+                dateFormat: "Y-m-d H:i",
+                locale: "zh_tw",
+                defaultDate: publishTime || new Date().setHours(8, 0, 0, 0),
+            });
+            const fileInput = document.getElementById("attachmentUpload");
+            const fileList = document.getElementById("attachmentFileList");
+
+            fileInput.addEventListener("change", function () {
+                fileList.innerHTML = ""; // 清空原本列表
+
+                const files = fileInput.files;
+                if (files.length > 0) {
+                    for (let i = 0; i < files.length; i++) {
+                        const fileName = files[i].name;
+                        fileList.innerHTML += `<li class="list-group-item py-1 px-2 small">${fileName}</li>`;
+                    }
+                } else {
+                    fileList.innerHTML = `<li class="list-group-item text-muted py-1 px-2 small">尚未選擇檔案</li>`;
+                }
+            });
+        });
+        $(document).ready(function () {
+            $("form").on("submit", function (e) {
+                e.preventDefault(); // 防止預設表單送出
+
+                // 建立 FormData 物件
+                const formData = new FormData();
+
+                formData.append("id", $("#id").val());
+                formData.append("board", $("#board").val());
+                formData.append("title", $("#title").val());
+                formData.append("loginId", $("#loginId").val());
+                // 發佈時間（可調整為 datetime-local 或 Flatpickr 搭配）
+                const publishDate = $("#bulletinDateTime").val();
+                formData.append("publish_datetime", publishDate);
+
+                // CKEditor HTML
+                const contentHtml = window.editorInstance.getData();
+                formData.append("content", contentHtml);
+
+                // 上傳的附件（多檔）
+                const files = document.getElementById("attachmentUpload").files;
+                for (let i = 0; i < files.length; i++) {
+                    formData.append("attachments", files[i]);
+                }
+
+
+                // 發送 AJAX 請求
+                $.ajax({
+                    type: "POST",
+                    url: "/chyunn/resource_manage/updateBulletin",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '更新成功',
+                            text: '公告已更新',
+                        }).then(() => {
+                            const id = res.id;
+                            if (id) {
+                                window.location.href = `/chyunn/resource/bulletinDetail?id=${id}`;
+                            }
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.log(xhr); // 確保錯誤資訊被記錄
+                        let errorMessage = "發生錯誤";
+                        try {
+                            // 嘗試解析 JSON 回應，避免解析錯誤
+                            let response = JSON.parse(xhr.responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            // 若解析失敗，直接使用原始 responseText
+                            errorMessage = xhr.responseText || errorMessage;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: '操做失敗',
+                            text: errorMessage,
+                        });
+                    }
+                });
+            });
+
+            // 附件刪除功能
+            $(document).on("click", ".delete-attachment", function () {
+                let fileId = $(this).attr("data-file");
+                let listItem = $(this).closest("li");
+
+                Swal.fire({
+                    title: "確定要刪除附件?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "刪除附件",
+                    cancelButtonText: "取消"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const token = localStorage.getItem('authToken');  // 從 localStorage 獲取 token
+                        $.ajax({
+                            url: '/chyunn/resource_manage/delete_file',
+                            type: 'DELETE',
+                            data: {
+                                fileId: fileId
+                            },
+                            success: function (response) {
+                                if (response.code === 200) {
+                                    // 刪除成功後，移除對應的行
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '附件已刪除',
+                                        showCancelButton: false,
+                                    })
+                                    listItem.remove();
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: '刪除失敗',
+                                        text: '發生錯誤，請稍後再試。',
+                                    });
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                let errorMessage = "發生錯誤，請稍後再試";
+                                try {
+                                    let response = JSON.parse(xhr.responseText);
+                                    errorMessage = response.message || errorMessage;
+                                } catch (e) {
+                                    if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                                        errorMessage = "伺服器未回應或發生錯誤。";
+                                    } else {
+                                        errorMessage = xhr.responseText || errorMessage;
+                                    }
+                                }
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: '操作失敗',
+                                    text: errorMessage,
+                                });
+                            }
+                        });
+                    }
+                })
+            });
+        });
+    </script>
+</body>

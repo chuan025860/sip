@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/">
+
+<head>
+    <meta charset="utf-8">
+    <title>群運-維護-資源借用</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <div th:replace="~{backStageNavbar/backStageNavbar_1}"></div>
+    <div th:replace="~{incidentNavBar/incidentNavBar_1}"></div>
+    <style>
+        /* btn-query 配色，同 #btnQuery */
+        .btn-query {
+            background-color: #1ab394;
+            border-color: #1ab394;
+            color: #fff;
+        }
+
+        .btn-query:hover,
+        .btn-query:focus {
+            background-color: #189c85;
+            border-color: #189c85;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div th:replace="~{backStageNavbar/backStageNavbar_2}"></div>
+    <div class="content" style="width: auto;  position: relative;">
+        <div th:replace="~{backStageNavbar/backStageNavbar_3}"></div>
+
+
+
+        <div class="container-fluid pt-4 px-4" style="margin-top: 100PX;">
+            <div class="bg-light text-start rounded p-4">
+                <div class="mb-3">
+                    <h5 class="text-start mb-2">類別、項目 維護</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="code" id="code" class="form-select form-select-sm" style="width: 20%;" required>
+                            <option value="ROOM">會議室</option>
+                            <option value="VEHICLE">車輛</option>
+                        </select>
+                        <button type="button" class="btn btn-sm btn-query" style="margin-left: 1%;"
+                            id="btnAdd">新增</button>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+
+                            <th>名稱</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemTableBody">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_4}"></div>
+    <div th:replace="~{backStageNavbar/backStageNavbar_5}"></div>
+
+    <script>
+
+        $(document).ready(function () {
+            $('#code').on('change', function () {
+                const selectedCode = $(this).val();
+
+                if (selectedCode) {
+                    $.ajax({
+                        url: `/chyunn/permission/resource-category/${selectedCode}`, // 後端 URL
+                        type: 'GET',
+                        success: function (data) {
+                            console.log("ok")
+                            const items = data.data;
+                            let rows = '';
+                            items.forEach(function (item) {
+                                rows += `
+                            <tr data-id="${item.id}" data-name="${item.name}">
+                                <td>${item.name}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary btn-edit">編輯</button>
+                                    <button class="btn btn-sm btn-danger">刪除</button>
+                                </td>
+                            </tr>`;
+                            });
+                            $('#itemTableBody').html(rows);
+                        },
+                        error: function () {
+                            alert('取得資料失敗');
+                        }
+                    });
+                } else {
+                    $('#itemTableBody').empty();
+                }
+            });
+            $('#itemTableBody').on('click', '.btn-edit', function () {
+                const $row = $(this).closest('tr');
+                const id = $row.data('id');
+                const oldName = $row.data('name');
+                const selectedCode = $('#code').val();
+
+                Swal.fire({
+                    title: '編輯項目',
+                    input: 'text',
+                    inputLabel: '請輸入新名稱',
+                    inputValue: oldName,
+                    showCancelButton: true,
+                    confirmButtonText: '儲存',
+                    cancelButtonText: '取消',
+                    preConfirm: (newName) => {
+                        if (!newName) {
+                            Swal.showValidationMessage('名稱不得為空');
+                            return false;
+                        }
+                        // ✅ AJAX PUT 請求（根據你的 API 設計改）
+                        return $.ajax({
+                            url: `/chyunn/permission/resource-category-update/${selectedCode}/${id}`,
+                            type: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ name: newName }),
+                        }).then((res) => {
+                            if (!res.success) {
+                                throw new Error(res.message || '更新失敗');
+                            }
+                            return res;
+                        }).catch((err) => {
+                            Swal.showValidationMessage(err.message);
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('成功！', '資料已更新', 'success');
+                        $('#code').trigger('change'); // 重新載入列表
+                    }
+                });
+            });
+
+            $('#itemTableBody').on('click', '.btn-danger', function () {
+                const $row = $(this).closest('tr');
+                const id = $row.data('id');
+                const name = $row.data('name');
+                const selectedCode = $('#code').val();
+
+                Swal.fire({
+                    title: `確定刪除「${name}」？`,
+                    text: "此動作無法還原",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: '刪除',
+                    cancelButtonText: '取消'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // 發送 DELETE 請求
+                        $.ajax({
+                            url: `/chyunn/permission/resource-category-delete/${selectedCode}/${id}`,
+                            type: 'DELETE',
+                            success: function (res) {
+                                if (res.success) {
+                                    Swal.fire('已刪除！', '項目已成功刪除', 'success');
+                                    $('#code').trigger('change'); // 重新載入列表
+                                } else {
+                                    Swal.fire('刪除失敗', res.message || '請稍後再試', 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('刪除失敗', '請求發生錯誤', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // 初始化載入ROOM
+            $('#code').val('ROOM').trigger('change');
+
+            // 新增按鈕事件
+            $('#btnAdd').on('click', function () {
+                const selectedCode = $('#code').val();
+                if (!selectedCode) {
+                    Swal.fire('請先選擇類別', '', 'warning');
+                    return;
+                }
+                let placeholder = '';
+                if (selectedCode === 'ROOM') {
+                    placeholder = '例如：第一會議室';
+                } else if (selectedCode === 'VEHICLE') {
+                    placeholder = '例如：營業部用車 A123BC';
+                } else {
+                    placeholder = '請輸入名稱';
+                }
+                Swal.fire({
+                    title: '新增項目',
+                    input: 'text',
+                    inputLabel: '請輸入名稱',
+                    inputPlaceholder: placeholder,
+                    showCancelButton: true,
+                    confirmButtonText: '新增',
+                    cancelButtonText: '取消',
+                    preConfirm: (name) => {
+                        if (!name) {
+                            Swal.showValidationMessage('名稱不得為空');
+                            return false;
+                        }
+
+                        return $.ajax({
+                            url: `/chyunn/permission/resource-category-add/${selectedCode}`,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ name }),
+                        }).then((res) => {
+                            if (!res.success) {
+                                throw new Error(res.message || '新增失敗');
+                            }
+                            return res;
+                        }).catch((err) => {
+                            Swal.showValidationMessage(err.message);
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('成功！', '資料已新增', 'success');
+                        $('#code').trigger('change'); // 重新載入列表
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
